@@ -41,7 +41,7 @@ export default function UserProfile({ id }) {
             <span className={styles.stat}>{reqs.length} request{reqs.length !== 1 ? 's' : ''}</span>
             {!isSelf && currentUser && (
               <a href={`/messages/${id}`} className={styles.msgBtn}>
-                Message @{user.username}
+                Contact
               </a>
             )}
             {!isSelf && !currentUser && (
