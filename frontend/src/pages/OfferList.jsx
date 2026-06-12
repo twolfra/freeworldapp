@@ -27,11 +27,13 @@ export default function OfferList() {
         ? <p className={styles.empty}>No offers yet — be the first to give something!</p>
         : <ul className={styles.grid}>
             {offers.map((o) => (
-              <li key={o.id} className={styles.card}>
-                <span className={styles.category}>{o.category}</span>
-                <h3>{o.title}</h3>
-                <p>{o.description}</p>
-                <footer>{o.region} · qty {o.quantity}</footer>
+              <li key={o.id}>
+                <a href={`/offers/${o.id}`} className={styles.card} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textDecoration: 'none', cursor: 'pointer' }}>
+                  <span className={styles.category}>{o.category}</span>
+                  <h3>{o.title}</h3>
+                  <p>{o.description}</p>
+                  <footer>{o.region} · qty {o.quantity}</footer>
+                </a>
               </li>
             ))}
           </ul>
