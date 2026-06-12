@@ -33,6 +33,9 @@ public class MessageController {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid user id."));
         }
 
+        if (senderId.equals(recipientId))
+            return ResponseEntity.badRequest().body(Map.of("error", "You cannot send a message to yourself."));
+
         var sender = userRepo.findById(senderId);
         var recipient = userRepo.findById(recipientId);
         if (sender.isEmpty()) return ResponseEntity.badRequest().body(Map.of("error", "Sender not found."));

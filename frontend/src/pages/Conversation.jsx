@@ -39,6 +39,13 @@ export default function Conversation({ userId: otherId }) {
     </main>
   );
 
+  if (currentUser.id === otherId) return (
+    <main className={styles.page}>
+      <a href="/messages" className={styles.back}>← Back to Messages</a>
+      <p className={styles.status}>You cannot message yourself.</p>
+    </main>
+  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!content.trim()) return;
