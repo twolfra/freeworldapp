@@ -31,3 +31,9 @@ export const offers = {
   get: (id) => request(`/offers/${id}`),
   create: (body) => request('/offers', { method: 'POST', body: JSON.stringify(body) }),
 };
+
+export const requests = {
+  list: () => request('/requests'),
+  get: (id) => request(`/requests/${id}`),
+  create: (body) => request('/requests', { method: 'POST', body: JSON.stringify(body) }),
+};

@@ -5,8 +5,10 @@ export default function Navbar() {
     <nav className={styles.nav}>
       <a href="/" className={styles.brand}>🌍 FreeWorld</a>
       <div className={styles.links}>
-        <a href="/offers">Browse Offers</a>
+        <a href="/offers">Offers</a>
+        <a href="/requests">Requests</a>
         <a href="/offers/new">Make an Offer</a>
+        <a href="/requests/new">Make a Request</a>
         <a href="/login">Sign In</a>
         <a href="/register">Join</a>
       </div>
