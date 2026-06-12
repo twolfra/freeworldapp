@@ -1,12 +1,14 @@
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import OfferList from './pages/OfferList';
+import OfferForm from './pages/OfferForm';
 import Register from './pages/Register';
 import Login from './pages/Login';
 
 const routes = {
   '/': Home,
   '/offers': OfferList,
+  '/offers/new': OfferForm,
   '/register': Register,
   '/login': Login,
 };
