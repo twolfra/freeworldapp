@@ -27,11 +27,13 @@ export default function RequestList() {
         ? <p className={styles.empty}>No requests yet — be the first to ask for something!</p>
         : <ul className={styles.grid}>
             {requests.map((r) => (
-              <li key={r.id} className={styles.card}>
-                <span className={styles.category} style={{ color: '#1565c0' }}>{r.category}</span>
-                <h3>{r.title}</h3>
-                <p>{r.description}</p>
-                <footer>{r.region} · qty {r.quantity}</footer>
+              <li key={r.id}>
+                <a href={`/requests/${r.id}`} className={styles.card} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textDecoration: 'none', cursor: 'pointer' }}>
+                  <span className={styles.category} style={{ color: '#1565c0' }}>{r.category}</span>
+                  <h3>{r.title}</h3>
+                  <p>{r.description}</p>
+                  <footer>{r.region} · qty {r.quantity}</footer>
+                </a>
               </li>
             ))}
           </ul>

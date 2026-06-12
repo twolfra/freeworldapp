@@ -28,6 +28,12 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+  transform: translateY(-2px);
 }
 
 .card h3 { font-size: 1.05rem; color: #111; }
