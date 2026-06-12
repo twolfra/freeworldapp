@@ -29,6 +29,9 @@ public class Request {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(length = 500)
+    private String imageUrl;
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "requested_by_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_request_requested_by"))
@@ -46,6 +49,7 @@ public class Request {
     public String getRegion() { return region; }
     public String getCategory() { return category; }
     public Integer getQuantity() { return quantity; }
+    public String getImageUrl() { return imageUrl; }
     public User getRequestedBy() { return requestedBy; }
     public Instant getCreatedAt() { return createdAt; }
 
@@ -54,5 +58,6 @@ public class Request {
     public void setRegion(String region) { this.region = region; }
     public void setCategory(String category) { this.category = category; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setRequestedBy(User requestedBy) { this.requestedBy = requestedBy; }
 }

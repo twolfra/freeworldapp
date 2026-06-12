@@ -18,3 +18,7 @@ logging:
     org.hibernate.orm.jdbc.bind: trace
 server:
   port: 8080
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB

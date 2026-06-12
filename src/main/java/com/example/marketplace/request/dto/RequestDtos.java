@@ -17,6 +17,7 @@ public class RequestDtos {
         public Integer quantity;
         @NotBlank
         public String requestedById;
+        public String imageUrl;
     }
 
     public static class Response {
@@ -28,6 +29,7 @@ public class RequestDtos {
         public Integer quantity;
         public String requestedById;
         public String requestedByUsername;
+        public String imageUrl;
         public String createdAt;
     }
 }

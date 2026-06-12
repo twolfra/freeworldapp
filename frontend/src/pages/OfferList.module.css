@@ -29,6 +29,14 @@
   flex-direction: column;
   gap: 0.4rem;
   transition: box-shadow 0.15s;
+  overflow: hidden;
+}
+
+.cardImage {
+  width: calc(100% + 3.2rem);
+  margin: -1.2rem -1.6rem 0.6rem -1.6rem;
+  height: 200px;
+  object-fit: cover;
 }
 
 .card:hover {

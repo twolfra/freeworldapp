@@ -1,5 +1,14 @@
 const BASE = '/api';
 
+async function upload(path, formData) {
+  const res = await fetch(`${BASE}${path}`, { method: 'POST', body: formData });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error ?? `${res.status} ${res.statusText}`);
+  }
+  return res.json();
+}
+
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {
     headers: { 'Content-Type': 'application/json', ...options.headers },
@@ -38,6 +47,14 @@ export const requests = {
   listByUser: (userId) => request(`/requests?requestedBy=${userId}`),
   get: (id) => request(`/requests/${id}`),
   create: (body) => request('/requests', { method: 'POST', body: JSON.stringify(body) }),
+};
+
+export const images = {
+  upload: (file) => {
+    const data = new FormData();
+    data.append('file', file);
+    return upload('/images', data);
+  },
 };
 
 export const subscriptions = {

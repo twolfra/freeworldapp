@@ -17,6 +17,7 @@ public class OfferDtos {
         public Integer quantity;
         @NotBlank
         public String offeredById;
+        public String imageUrl;
     }
 
     public static class Update {
@@ -41,6 +42,7 @@ public class OfferDtos {
         public Integer quantity;
         public String offeredById;
         public String offeredByUsername;
+        public String imageUrl;
         public String createdAt;
     }
 }

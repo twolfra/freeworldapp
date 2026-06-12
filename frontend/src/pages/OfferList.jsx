@@ -60,6 +60,7 @@ export default function OfferList() {
             {filtered.map((o) => (
               <li key={o.id}>
                 <a href={`/offers/${o.id}`} className={styles.card} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textDecoration: 'none', cursor: 'pointer' }}>
+                  {o.imageUrl && <img src={o.imageUrl} className={styles.cardImage} alt={o.title} />}
                   <span className={styles.category}>{o.category}</span>
                   <h3>{o.title}</h3>
                   <p>{o.description}</p>

@@ -60,6 +60,7 @@ export default function RequestList() {
             {filtered.map((r) => (
               <li key={r.id}>
                 <a href={`/requests/${r.id}`} className={styles.card} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textDecoration: 'none', cursor: 'pointer' }}>
+                  {r.imageUrl && <img src={r.imageUrl} className={styles.cardImage} alt={r.title} />}
                   <span className={styles.category} style={{ color: '#1565c0' }}>{r.category}</span>
                   <h3>{r.title}</h3>
                   <p>{r.description}</p>

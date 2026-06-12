@@ -79,6 +79,14 @@
   color: #666;
 }
 
+.image {
+  width: calc(100% + 5rem);
+  margin: -2rem -2.5rem 0.5rem -2.5rem;
+  max-height: 360px;
+  object-fit: cover;
+  border-radius: 12px 12px 0 0;
+}
+
 .authorRow {
   display: flex;
   align-items: center;

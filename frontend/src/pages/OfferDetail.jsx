@@ -24,6 +24,7 @@ export default function OfferDetail({ id }) {
     <main className={styles.page}>
       <a href="/offers" className={styles.back} style={{ color: '#2e7d32' }}>← Back to Offers</a>
       <div className={styles.card}>
+        {offer.imageUrl && <img src={offer.imageUrl} className={styles.image} alt={offer.title} />}
         <span className={styles.category} style={{ color: '#2e7d32' }}>{offer.category}</span>
         <h1>{offer.title}</h1>
         <div className={styles.authorRow}>

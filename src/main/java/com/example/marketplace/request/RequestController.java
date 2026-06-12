@@ -41,6 +41,7 @@ public class RequestController {
                     r.setRegion(in.region);
                     r.setCategory(in.category);
                     r.setQuantity(in.quantity);
+                    r.setImageUrl(in.imageUrl);
                     r.setRequestedBy(user);
                     Request saved = requestRepo.save(r);
                     return ResponseEntity
@@ -87,6 +88,7 @@ public class RequestController {
         out.quantity = r.getQuantity();
         out.requestedById = r.getRequestedBy().getId().toString();
         out.requestedByUsername = r.getRequestedBy().getUsername();
+        out.imageUrl = r.getImageUrl();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(r.getCreatedAt());
         return out;
     }

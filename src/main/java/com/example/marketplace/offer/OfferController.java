@@ -40,6 +40,7 @@ public class OfferController {
                     o.setRegion(in.region);
                     o.setCategory(in.category);
                     o.setQuantity(in.quantity);
+                    o.setImageUrl(in.imageUrl);
                     o.setOfferedBy(user);
                     Offer saved = offerRepo.save(o);
                     return ResponseEntity
@@ -86,6 +87,7 @@ public class OfferController {
         out.quantity = o.getQuantity();
         out.offeredById = o.getOfferedBy().getId().toString();
         out.offeredByUsername = o.getOfferedBy().getUsername();
+        out.imageUrl = o.getImageUrl();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(o.getCreatedAt());
         return out;
     }

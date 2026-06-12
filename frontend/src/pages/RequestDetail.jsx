@@ -24,6 +24,7 @@ export default function RequestDetail({ id }) {
     <main className={styles.page}>
       <a href="/requests" className={styles.back}>← Back to Requests</a>
       <div className={styles.card}>
+        {request.imageUrl && <img src={request.imageUrl} className={styles.image} alt={request.title} />}
         <span className={styles.category}>{request.category}</span>
         <h1>{request.title}</h1>
         <div className={styles.authorRow}>

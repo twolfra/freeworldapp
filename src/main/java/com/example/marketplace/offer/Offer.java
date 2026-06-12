@@ -29,6 +29,9 @@ public class Offer {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(length = 500)
+    private String imageUrl;
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "offered_by_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_offer_offered_by"))
@@ -46,6 +49,7 @@ public class Offer {
     public String getRegion() { return region; }
     public String getCategory() { return category; }
     public Integer getQuantity() { return quantity; }
+    public String getImageUrl() { return imageUrl; }
     public User getOfferedBy() { return offeredBy; }
     public Instant getCreatedAt() { return createdAt; }
 
@@ -54,5 +58,6 @@ public class Offer {
     public void setRegion(String region) { this.region = region; }
     public void setCategory(String category) { this.category = category; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setOfferedBy(User offeredBy) { this.offeredBy = offeredBy; }
 }
