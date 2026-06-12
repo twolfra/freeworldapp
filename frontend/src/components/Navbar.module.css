@@ -21,3 +21,10 @@
 }
 
 .links a:hover { text-decoration: underline; }
+
+.userChip {
+  padding: 0.2rem 0.7rem;
+  background: rgba(255,255,255,0.2);
+  border-radius: 20px;
+  font-weight: 600;
+}

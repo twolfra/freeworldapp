@@ -37,3 +37,9 @@ export const requests = {
   get: (id) => request(`/requests/${id}`),
   create: (body) => request('/requests', { method: 'POST', body: JSON.stringify(body) }),
 };
+
+export const messages = {
+  send: (body) => request('/messages', { method: 'POST', body: JSON.stringify(body) }),
+  getConversations: (userId) => request(`/messages/conversations?userId=${userId}`),
+  getConversation: (userId, otherId) => request(`/messages/conversation?userId=${userId}&otherId=${otherId}`),
+};

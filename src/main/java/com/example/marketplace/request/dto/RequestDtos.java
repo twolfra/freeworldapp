@@ -27,6 +27,7 @@ public class RequestDtos {
         public String category;
         public Integer quantity;
         public String requestedById;
+        public String requestedByUsername;
         public String createdAt;
     }
 }

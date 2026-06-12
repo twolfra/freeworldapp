@@ -40,6 +40,7 @@ public class OfferDtos {
         public String category;
         public Integer quantity;
         public String offeredById;
+        public String offeredByUsername;
         public String createdAt;
     }
 }

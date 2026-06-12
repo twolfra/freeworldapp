@@ -78,6 +78,7 @@ public class RequestController {
         out.category = r.getCategory();
         out.quantity = r.getQuantity();
         out.requestedById = r.getRequestedBy().getId().toString();
+        out.requestedByUsername = r.getRequestedBy().getUsername();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(r.getCreatedAt());
         return out;
     }

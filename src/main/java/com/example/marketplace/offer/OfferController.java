@@ -77,6 +77,7 @@ public class OfferController {
         out.category = o.getCategory();
         out.quantity = o.getQuantity();
         out.offeredById = o.getOfferedBy().getId().toString();
+        out.offeredByUsername = o.getOfferedBy().getUsername();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(o.getCreatedAt());
         return out;
     }

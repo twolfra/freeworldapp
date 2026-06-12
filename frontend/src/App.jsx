@@ -6,6 +6,8 @@ import RequestList from './pages/RequestList';
 import RequestForm from './pages/RequestForm';
 import OfferDetail from './pages/OfferDetail';
 import RequestDetail from './pages/RequestDetail';
+import Inbox from './pages/Inbox';
+import Conversation from './pages/Conversation';
 import Register from './pages/Register';
 import Login from './pages/Login';
 
@@ -16,6 +18,7 @@ function resolve(path) {
     '/offers/new': OfferForm,
     '/requests': RequestList,
     '/requests/new': RequestForm,
+    '/messages': Inbox,
     '/register': Register,
     '/login': Login,
   };
@@ -26,6 +29,9 @@ function resolve(path) {
 
   const requestDetail = path.match(/^\/requests\/([^/]+)$/);
   if (requestDetail) return { Page: RequestDetail, params: { id: requestDetail[1] } };
+
+  const conversation = path.match(/^\/messages\/([^/]+)$/);
+  if (conversation) return { Page: Conversation, params: { userId: conversation[1] } };
 
   return { Page: Home, params: {} };
 }

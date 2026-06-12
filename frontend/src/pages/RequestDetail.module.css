@@ -78,3 +78,33 @@
   margin-top: 3rem;
   color: #666;
 }
+
+.authorRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.authorLink {
+  color: #1565c0;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.authorLink:hover { text-decoration: underline; }
+
+.contactBtn {
+  margin-left: auto;
+  padding: 0.4rem 1.1rem;
+  background: #2e7d32;
+  color: #fff !important;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none !important;
+}
+
+.contactBtn:hover { background: #1b5e20; }
