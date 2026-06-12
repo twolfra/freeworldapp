@@ -10,6 +10,10 @@ async function request(path, options = {}) {
   return res.json();
 }
 
+export const auth = {
+  login: (body) => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
+};
+
 export const users = {
   list: () => request('/users'),
   get: (id) => request(`/users/${id}`),

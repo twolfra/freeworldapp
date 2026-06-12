@@ -22,6 +22,13 @@ public class UserDtos {
         public String email;
     }
 
+    public static class Login {
+        @NotBlank
+        public String username;
+        @NotBlank
+        public String password;
+    }
+
     public static class Response {
         public String id;
         public String username;

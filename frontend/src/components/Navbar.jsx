@@ -7,6 +7,7 @@ export default function Navbar() {
       <div className={styles.links}>
         <a href="/offers">Browse Offers</a>
         <a href="/offers/new">Make an Offer</a>
+        <a href="/login">Sign In</a>
         <a href="/register">Join</a>
       </div>
     </nav>
