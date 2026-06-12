@@ -5,6 +5,7 @@ import styles from './OfferList.module.css';
 export default function OfferList() {
   const [offers, setOffers]   = useState([]);
   const [query, setQuery]     = useState('');
+  const [region, setRegion]   = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
@@ -18,15 +19,16 @@ export default function OfferList() {
   if (loading) return <p className={styles.status}>Loading offers…</p>;
   if (error)   return <p className={styles.status}>Could not load offers: {error}</p>;
 
+  const regions = [...new Set(offers.map((o) => o.region))].sort();
   const q = query.trim().toLowerCase();
-  const filtered = q
-    ? offers.filter((o) =>
-        o.title.toLowerCase().includes(q) ||
-        o.description.toLowerCase().includes(q) ||
-        o.region.toLowerCase().includes(q) ||
-        o.category.toLowerCase().includes(q)
-      )
-    : offers;
+  const filtered = offers.filter((o) =>
+    (!region || o.region === region) &&
+    (!q ||
+      o.title.toLowerCase().includes(q) ||
+      o.description.toLowerCase().includes(q) ||
+      o.region.toLowerCase().includes(q) ||
+      o.category.toLowerCase().includes(q))
+  );
 
   return (
     <main className={styles.page}>
@@ -34,18 +36,26 @@ export default function OfferList() {
         <h2>Community Offers</h2>
         <a href="/offers/new" className="btn-primary" style={{ borderRadius: 6, background: '#2e7d32', color: '#fff', padding: '0.5rem 1.2rem', fontFamily: 'inherit' }}>+ Make an Offer</a>
       </div>
-      <div className={styles.searchBar}>
+      <div className={styles.filterBar}>
         <input
           className={styles.searchInput}
           type="search"
-          placeholder="Search offers by title, region, category…"
+          placeholder="Search by title, category…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoComplete="off"
         />
+        <select
+          className={styles.filterSelect}
+          value={region}
+          onChange={(e) => setRegion(e.target.value)}
+        >
+          <option value="">All regions</option>
+          {regions.map((r) => <option key={r} value={r}>{r}</option>)}
+        </select>
       </div>
       {filtered.length === 0
-        ? <p className={styles.empty}>{q ? `No offers matching "${query}".` : 'No offers yet — be the first to give something!'}</p>
+        ? <p className={styles.empty}>No offers match your search.</p>
         : <ul className={styles.grid}>
             {filtered.map((o) => (
               <li key={o.id}>

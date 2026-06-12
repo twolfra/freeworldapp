@@ -48,22 +48,41 @@
   color: #2e7d32;
 }
 
-.searchBar {
+.filterBar {
+  display: flex;
+  gap: 0.8rem;
   margin-bottom: 1.2rem;
+  flex-wrap: wrap;
 }
 
 .searchInput {
-  width: 100%;
+  flex: 1;
+  min-width: 180px;
   padding: 0.55rem 1rem;
   border: 1.5px solid #ccc;
   border-radius: 8px;
   font-size: 0.95rem;
   font-family: inherit;
   background: #fff;
-  box-sizing: border-box;
 }
 
 .searchInput:focus {
+  outline: none;
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 3px rgba(46,125,50,0.1);
+}
+
+.filterSelect {
+  padding: 0.55rem 0.8rem;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: #fff;
+  cursor: pointer;
+}
+
+.filterSelect:focus {
   outline: none;
   border-color: #2e7d32;
   box-shadow: 0 0 0 3px rgba(46,125,50,0.1);
