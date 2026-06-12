@@ -7,7 +7,10 @@ async function request(path, options = {}) {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new Error(body?.error ?? `${res.status} ${res.statusText}`);
+    const msg = body?.error
+      ?? body?.errors?.map((e) => e.defaultMessage).join(', ')
+      ?? `${res.status} ${res.statusText}`;
+    throw new Error(msg);
   }
   if (res.status === 204) return null;
   return res.json();
