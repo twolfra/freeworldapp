@@ -78,6 +78,36 @@
 
 .msgBtn:hover { background: #1b5e20; }
 
+.subBtn {
+  padding: 0.4rem 1.1rem;
+  background: #fff;
+  color: #2e7d32;
+  border: 1.5px solid #2e7d32;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+
+.subBtn:hover { background: #f1f8f1; }
+
+.subBtnActive {
+  padding: 0.4rem 1.1rem;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1.5px solid #a5d6a7;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.subBtnActive:hover { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
+
 .section {
   margin-bottom: 2.5rem;
 }

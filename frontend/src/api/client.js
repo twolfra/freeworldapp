@@ -40,6 +40,16 @@ export const requests = {
   create: (body) => request('/requests', { method: 'POST', body: JSON.stringify(body) }),
 };
 
+export const subscriptions = {
+  subscribe: (body) => request('/subscriptions', { method: 'POST', body: JSON.stringify(body) }),
+  unsubscribe: (subscriberId, subscribedToId) =>
+    request(`/subscriptions?subscriberId=${subscriberId}&subscribedToId=${subscribedToId}`, { method: 'DELETE' }),
+  list: (subscriberId) => request(`/subscriptions?subscriberId=${subscriberId}`),
+  check: (subscriberId, subscribedToId) =>
+    request(`/subscriptions/check?subscriberId=${subscriberId}&subscribedToId=${subscribedToId}`),
+  feed: (subscriberId) => request(`/subscriptions/feed?subscriberId=${subscriberId}`),
+};
+
 export const messages = {
   send: (body) => request('/messages', { method: 'POST', body: JSON.stringify(body) }),
   getConversations: (userId) => request(`/messages/conversations?userId=${userId}`),

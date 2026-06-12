@@ -12,6 +12,7 @@ export default function Navbar() {
         <a href="/offers/new">Make an Offer</a>
         <a href="/requests/new">Make a Request</a>
         {currentUser && <a href="/messages">Messages</a>}
+        {currentUser && <a href="/subscriptions">Subscriptions</a>}
         {!currentUser && <a href="/login">Sign In</a>}
         {!currentUser && <a href="/register">Join</a>}
         {currentUser && <a href="/login" className={styles.userChip}>@{currentUser.username}</a>}

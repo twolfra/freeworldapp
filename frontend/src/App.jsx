@@ -9,6 +9,7 @@ import RequestDetail from './pages/RequestDetail';
 import Inbox from './pages/Inbox';
 import Conversation from './pages/Conversation';
 import UserProfile from './pages/UserProfile';
+import Subscriptions from './pages/Subscriptions';
 import Register from './pages/Register';
 import Login from './pages/Login';
 
@@ -20,6 +21,7 @@ function resolve(path) {
     '/requests': RequestList,
     '/requests/new': RequestForm,
     '/messages': Inbox,
+    '/subscriptions': Subscriptions,
     '/register': Register,
     '/login': Login,
   };
