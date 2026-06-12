@@ -51,8 +51,16 @@ public class RequestController {
     }
 
     @GetMapping
-    public List<RequestDtos.Response> list() {
-        return requestRepo.findAll().stream().map(this::toResponse).toList();
+    public ResponseEntity<?> list(@RequestParam(required = false) String requestedBy) {
+        if (requestedBy != null) {
+            UUID uid;
+            try { uid = UUID.fromString(requestedBy); }
+            catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid user id."));
+            }
+            return ResponseEntity.ok(requestRepo.findByRequestedBy_Id(uid).stream().map(this::toResponse).toList());
+        }
+        return ResponseEntity.ok(requestRepo.findAll().stream().map(this::toResponse).toList());
     }
 
     @GetMapping("{id}")

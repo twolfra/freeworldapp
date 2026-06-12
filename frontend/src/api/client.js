@@ -28,12 +28,14 @@ export const users = {
 
 export const offers = {
   list: () => request('/offers'),
+  listByUser: (userId) => request(`/offers?offeredBy=${userId}`),
   get: (id) => request(`/offers/${id}`),
   create: (body) => request('/offers', { method: 'POST', body: JSON.stringify(body) }),
 };
 
 export const requests = {
   list: () => request('/requests'),
+  listByUser: (userId) => request(`/requests?requestedBy=${userId}`),
   get: (id) => request(`/requests/${id}`),
   create: (body) => request('/requests', { method: 'POST', body: JSON.stringify(body) }),
 };

@@ -50,8 +50,16 @@ public class OfferController {
     }
 
     @GetMapping
-    public List<OfferDtos.Response> list() {
-        return offerRepo.findAll().stream().map(this::toResponse).toList();
+    public ResponseEntity<?> list(@RequestParam(required = false) String offeredBy) {
+        if (offeredBy != null) {
+            UUID uid;
+            try { uid = UUID.fromString(offeredBy); }
+            catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid user id."));
+            }
+            return ResponseEntity.ok(offerRepo.findByOfferedBy_Id(uid).stream().map(this::toResponse).toList());
+        }
+        return ResponseEntity.ok(offerRepo.findAll().stream().map(this::toResponse).toList());
     }
 
     @GetMapping("{id}")

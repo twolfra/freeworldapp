@@ -28,7 +28,7 @@ export default function OfferDetail({ id }) {
         <h1>{offer.title}</h1>
         <div className={styles.authorRow}>
           <span>Posted by</span>
-          <a href={`/messages/${offer.offeredById}`} className={styles.authorLink}>
+          <a href={`/users/${offer.offeredById}`} className={styles.authorLink}>
             @{offer.offeredByUsername}
           </a>
           {!isOwnPost && currentUser && (

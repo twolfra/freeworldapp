@@ -8,6 +8,7 @@ import OfferDetail from './pages/OfferDetail';
 import RequestDetail from './pages/RequestDetail';
 import Inbox from './pages/Inbox';
 import Conversation from './pages/Conversation';
+import UserProfile from './pages/UserProfile';
 import Register from './pages/Register';
 import Login from './pages/Login';
 
@@ -32,6 +33,9 @@ function resolve(path) {
 
   const conversation = path.match(/^\/messages\/([^/]+)$/);
   if (conversation) return { Page: Conversation, params: { userId: conversation[1] } };
+
+  const userProfile = path.match(/^\/users\/([^/]+)$/);
+  if (userProfile) return { Page: UserProfile, params: { id: userProfile[1] } };
 
   return { Page: Home, params: {} };
 }

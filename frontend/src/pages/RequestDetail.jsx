@@ -28,7 +28,7 @@ export default function RequestDetail({ id }) {
         <h1>{request.title}</h1>
         <div className={styles.authorRow}>
           <span>Posted by</span>
-          <a href={`/messages/${request.requestedById}`} className={styles.authorLink}>
+          <a href={`/users/${request.requestedById}`} className={styles.authorLink}>
             @{request.requestedByUsername}
           </a>
           {!isOwnPost && currentUser && (
