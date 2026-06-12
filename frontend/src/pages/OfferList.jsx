@@ -1,0 +1,41 @@
+import { useEffect, useState } from 'react';
+import { offers as offersApi } from '../api/client';
+import styles from './OfferList.module.css';
+
+export default function OfferList() {
+  const [offers, setOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    offersApi.list()
+      .then(setOffers)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <p className={styles.status}>Loading offers…</p>;
+  if (error) return <p className={styles.status}>Could not load offers: {error}</p>;
+
+  return (
+    <main className={styles.page}>
+      <div className={styles.header}>
+        <h2>Community Offers</h2>
+        <a href="/offers/new" className="btn-primary" style={{ borderRadius: 6, background: '#2e7d32', color: '#fff', padding: '0.5rem 1.2rem', fontFamily: 'inherit' }}>+ Make an Offer</a>
+      </div>
+      {offers.length === 0
+        ? <p className={styles.empty}>No offers yet — be the first to give something!</p>
+        : <ul className={styles.grid}>
+            {offers.map((o) => (
+              <li key={o.id} className={styles.card}>
+                <span className={styles.category}>{o.category}</span>
+                <h3>{o.title}</h3>
+                <p>{o.description}</p>
+                <footer>{o.region} · qty {o.quantity}</footer>
+              </li>
+            ))}
+          </ul>
+      }
+    </main>
+  );
+}
