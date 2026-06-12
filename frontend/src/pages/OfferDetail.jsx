@@ -33,7 +33,7 @@ export default function OfferDetail({ id }) {
           </a>
           {!isOwnPost && currentUser && (
             <a href={`/messages/${offer.offeredById}`} className={styles.contactBtn}>
-              Contact {offer.offeredByUsername}
+              Contact
             </a>
           )}
           {!currentUser && (

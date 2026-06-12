@@ -33,7 +33,7 @@ export default function RequestDetail({ id }) {
           </a>
           {!isOwnPost && currentUser && (
             <a href={`/messages/${request.requestedById}`} className={styles.contactBtn}>
-              Contact {request.requestedByUsername}
+              Contact
             </a>
           )}
           {!currentUser && (
