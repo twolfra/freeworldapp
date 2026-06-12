@@ -24,9 +24,11 @@ public class UserController {
     }
     // create new User
     @PostMapping
-    public ResponseEntity<UserDtos.Response> create(@Valid @RequestBody UserDtos.Create in) {
-        if (userRepo.existsByUsername(in.username)) return ResponseEntity.badRequest().build();
-        if (userRepo.existsByEmail(in.email)) return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> create(@Valid @RequestBody UserDtos.Create in) {
+        if (userRepo.existsByUsername(in.username))
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Username already taken."));
+        if (userRepo.existsByEmail(in.email))
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Email already registered."));
 
         User u = new User();
         u.setUsername(in.username);

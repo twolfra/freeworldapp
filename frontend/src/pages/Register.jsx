@@ -39,7 +39,7 @@ export default function Register() {
         {error && <p className={styles.error}>{error}</p>}
         <label>
           Username
-          <input name="username" value={form.username} onChange={handleChange} required maxLength={32} />
+          <input name="username" value={form.username} onChange={handleChange} required minLength={3} maxLength={32} />
         </label>
         <label>
           Email
@@ -47,7 +47,8 @@ export default function Register() {
         </label>
         <label>
           Password
-          <input name="password" type="password" value={form.password} onChange={handleChange} required />
+          <input name="password" type="password" value={form.password} onChange={handleChange} required minLength={6} />
+          <span style={{ fontSize: '0.78rem', color: '#888' }}>At least 6 characters</span>
         </label>
         <button type="submit" className="btn-primary">Create Account</button>
       </form>
