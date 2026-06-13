@@ -4,17 +4,9 @@ import { t, tCat } from '../i18n';
 import styles from './Home.module.css';
 
 const CATEGORIES = [
-  { name: 'Food & Drink',      icon: '🍎' },
-  { name: 'Clothing',          icon: '👕' },
-  { name: 'Books & Media',     icon: '📚' },
-  { name: 'Tools & Equipment', icon: '🔧' },
-  { name: 'Furniture',         icon: '🛋️' },
-  { name: 'Electronics',       icon: '💻' },
-  { name: 'Skills & Services', icon: '🤝' },
-  { name: 'Plants & Seeds',    icon: '🌱' },
-  { name: 'Childcare',         icon: '🧸' },
-  { name: 'Transport',         icon: '🚲' },
-  { name: 'Other',             icon: '📦' },
+  'Food & Drink', 'Clothing', 'Books & Media', 'Tools & Equipment',
+  'Furniture', 'Electronics', 'Skills & Services', 'Plants & Seeds',
+  'Childcare', 'Transport', 'Other',
 ];
 
 export default function Home() {
@@ -54,7 +46,6 @@ export default function Home() {
           <h1>{t('home.title')} <span>{t('home.titleAccent')}</span>.</h1>
           <p>{t('home.subtitle')}</p>
           <form className={styles.searchBar} onSubmit={search}>
-            <span className={styles.searchIcon}>🔍</span>
             <input
               type="search"
               placeholder={t('home.searchPlaceholder')}
@@ -77,10 +68,9 @@ export default function Home() {
             <h3 className={styles.sideTitle}>{t('home.categories')}</h3>
             <ul className={styles.catList}>
               {CATEGORIES.map((c) => (
-                <li key={c.name}>
-                  <a href={`/offers?q=${encodeURIComponent(c.name)}`} className={styles.catRow}>
-                    <span className={styles.catEmoji}>{c.icon}</span>
-                    <span>{tCat(c.name)}</span>
+                <li key={c}>
+                  <a href={`/offers?q=${encodeURIComponent(c)}`} className={styles.catRow}>
+                    {tCat(c)}
                   </a>
                 </li>
               ))}
@@ -138,7 +128,7 @@ export default function Home() {
                     >
                       {item.imageUrl
                         ? <img src={item.imageUrl} className={styles.cardImg} alt={item.title} />
-                        : <div className={styles.thumbEmpty}>{isOffer ? '🎁' : '🙋'}</div>}
+                        : <div className={styles.thumbEmpty} />}
                       <span
                         className={styles.catPill}
                         style={{ color: isOffer ? 'var(--green-dark)' : 'var(--blue)' }}
@@ -152,7 +142,7 @@ export default function Home() {
                       <h3>{item.title}</h3>
                       <p className={styles.desc}>{item.description}</p>
                       <div className={styles.meta}>
-                        <span>📍 {item.region}</span>
+                        <span>{item.region}</span>
                         <span className={styles.dot}>·</span>
                         <span>{t('list.qty')} {item.quantity}</span>
                       </div>

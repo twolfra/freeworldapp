@@ -41,7 +41,6 @@ export default function Navbar() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <a href="/" className={styles.brand}>
-          <span className={styles.logoMark}>🌍</span>
           <span className={styles.logoText}>Free<span>World</span></span>
         </a>
 

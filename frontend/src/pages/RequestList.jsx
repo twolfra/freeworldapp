@@ -77,7 +77,7 @@ export default function RequestList() {
                     <div className={styles.thumb} style={{ background: 'var(--blue-light)' }}>
                       {r.imageUrl
                         ? <img src={r.imageUrl} className={styles.cardImage} alt={r.title} />
-                        : <div className={styles.thumbEmpty}>🙋</div>}
+                        : <div className={styles.thumbEmpty} />}
                       <span className={styles.categoryPill} style={{ color: 'var(--blue)' }}>{tCat(r.category)}</span>
                     </div>
                     <div className={styles.body}>
@@ -85,7 +85,7 @@ export default function RequestList() {
                       <p className={styles.desc}>{r.description}</p>
                       <span className={styles.price} style={{ color: 'var(--blue)' }}>{t('requests.priceTag')}</span>
                       <div className={styles.meta}>
-                        <span>📍 {r.region}</span>
+                        <span>{r.region}</span>
                         <span className={styles.dot}>·</span>
                         <span>{t('list.qty')} {r.quantity}</span>
                       </div>

@@ -77,7 +77,7 @@ export default function OfferList() {
                     <div className={styles.thumb}>
                       {o.imageUrl
                         ? <img src={o.imageUrl} className={styles.cardImage} alt={o.title} />
-                        : <div className={styles.thumbEmpty}>🎁</div>}
+                        : <div className={styles.thumbEmpty} />}
                       <span className={styles.categoryPill}>{tCat(o.category)}</span>
                     </div>
                     <div className={styles.body}>
@@ -85,7 +85,7 @@ export default function OfferList() {
                       <p className={styles.desc}>{o.description}</p>
                       <span className={styles.price}>{t('offers.priceTag')}</span>
                       <div className={styles.meta}>
-                        <span>📍 {o.region}</span>
+                        <span>{o.region}</span>
                         <span className={styles.dot}>·</span>
                         <span>{t('list.qty')} {o.quantity}</span>
                       </div>

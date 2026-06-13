@@ -41,7 +41,6 @@
   max-width: 580px;
   box-shadow: 0 8px 28px rgba(0,0,0,0.20);
 }
-.searchIcon { font-size: 1rem; opacity: 0.55; flex-shrink: 0; }
 .searchBar input {
   flex: 1;
   border: none;
@@ -108,7 +107,6 @@
   transition: background 0.12s, color 0.12s;
 }
 .catRow:hover { background: var(--green-light); color: var(--green-dark); }
-.catEmoji { font-size: 1.05rem; width: 1.4rem; text-align: center; flex-shrink: 0; }
 
 /* Stats */
 .stats {
