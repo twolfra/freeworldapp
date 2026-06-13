@@ -34,5 +34,13 @@ public class UserDtos {
         public String username;
         public String email;
         public String createdAt;
+        public String token; // only populated on login
+    }
+
+    /** Returned by public GET endpoints — no email exposed. */
+    public static class PublicResponse {
+        public String id;
+        public String username;
+        public String createdAt;
     }
 }

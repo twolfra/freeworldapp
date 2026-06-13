@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { offers as offersApi } from '../api/client';
 import styles from './OfferList.module.css';
 
+const PAGE_SIZE = 12;
+
 export default function OfferList() {
   const [offers, setOffers]   = useState([]);
   const [query, setQuery]     = useState('');
   const [region, setRegion]   = useState('');
+  const [page, setPage]       = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
@@ -30,6 +33,14 @@ export default function OfferList() {
       o.category.toLowerCase().includes(q))
   );
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  function handleFilterChange(setter) {
+    return (e) => { setter(e.target.value); setPage(1); };
+  }
+
   return (
     <main className={styles.page}>
       <div className={styles.header}>
@@ -42,13 +53,13 @@ export default function OfferList() {
           type="search"
           placeholder="Search by title, category…"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleFilterChange(setQuery)}
           autoComplete="off"
         />
         <select
           className={styles.filterSelect}
           value={region}
-          onChange={(e) => setRegion(e.target.value)}
+          onChange={handleFilterChange(setRegion)}
         >
           <option value="">All regions</option>
           {regions.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -56,19 +67,36 @@ export default function OfferList() {
       </div>
       {filtered.length === 0
         ? <p className={styles.empty}>No offers match your search.</p>
-        : <ul className={styles.grid}>
-            {filtered.map((o) => (
-              <li key={o.id}>
-                <a href={`/offers/${o.id}`} className={styles.card} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textDecoration: 'none', cursor: 'pointer' }}>
-                  {o.imageUrl && <img src={o.imageUrl} className={styles.cardImage} alt={o.title} />}
-                  <span className={styles.category}>{o.category}</span>
-                  <h3>{o.title}</h3>
-                  <p>{o.description}</p>
-                  <footer>{o.region} · qty {o.quantity}</footer>
-                </a>
-              </li>
-            ))}
-          </ul>
+        : <>
+            <ul className={styles.grid}>
+              {pageItems.map((o) => (
+                <li key={o.id}>
+                  <a href={`/offers/${o.id}`} className={styles.card}>
+                    {o.imageUrl && <img src={o.imageUrl} className={styles.cardImage} alt={o.title} />}
+                    <span className={styles.category}>{o.category}</span>
+                    <h3>{o.title}</h3>
+                    <p>{o.description}</p>
+                    <footer>{o.region} · qty {o.quantity}</footer>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            {totalPages > 1 && (
+              <div className={styles.pagination}>
+                <button
+                  className={styles.pageBtn}
+                  onClick={() => setPage((p) => p - 1)}
+                  disabled={safePage === 1}
+                >← Prev</button>
+                <span className={styles.pageInfo}>Page {safePage} of {totalPages}</span>
+                <button
+                  className={styles.pageBtn}
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={safePage === totalPages}
+                >Next →</button>
+              </div>
+            )}
+          </>
       }
     </main>
   );

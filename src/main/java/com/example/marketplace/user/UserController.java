@@ -1,5 +1,6 @@
 package com.example.marketplace.user;
 
+import com.example.marketplace.auth.SecurityContext;
 import com.example.marketplace.user.dto.UserDtos;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -22,13 +24,13 @@ public class UserController {
         this.userRepo = userRepo;
         this.encoder = encoder;
     }
-    // create new User
+
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody UserDtos.Create in) {
         if (userRepo.existsByUsername(in.username))
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Username already taken."));
+            return ResponseEntity.badRequest().body(Map.of("error", "Username already taken."));
         if (userRepo.existsByEmail(in.email))
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Email already registered."));
+            return ResponseEntity.badRequest().body(Map.of("error", "Email already registered."));
 
         User u = new User();
         u.setUsername(in.username);
@@ -37,41 +39,48 @@ public class UserController {
         u = userRepo.save(u);
 
         return ResponseEntity.created(URI.create("/api/users/" + u.getId()))
-                .body(toResponse(u));
+                .body(toPublicResponse(u));
     }
 
     @GetMapping
-    public List<UserDtos.Response> list() {
-        return userRepo.findAll().stream().map(this::toResponse).toList();
+    public List<UserDtos.PublicResponse> list() {
+        return userRepo.findAll().stream().map(this::toPublicResponse).toList();
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<UserDtos.Response> get(@PathVariable UUID id) {
-        return userRepo.findById(id).map(u -> ResponseEntity.ok(toResponse(u)))
+    public ResponseEntity<UserDtos.PublicResponse> get(@PathVariable UUID id) {
+        return userRepo.findById(id).map(u -> ResponseEntity.ok(toPublicResponse(u)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<UserDtos.Response> update(@PathVariable UUID id, @Valid @RequestBody UserDtos.Update in) {
+    public ResponseEntity<?> update(@PathVariable UUID id, @Valid @RequestBody UserDtos.Update in) {
+        UUID callerId = SecurityContext.authenticatedId();
+        if (!callerId.equals(id))
+            return ResponseEntity.status(403).body(Map.of("error", "You can only update your own account."));
+
         return userRepo.findById(id).map(u -> {
             u.setUsername(in.username);
             u.setEmail(in.email);
-            return ResponseEntity.ok(toResponse(userRepo.save(u)));
+            return ResponseEntity.ok(toPublicResponse(userRepo.save(u)));
         }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<?> delete(@PathVariable UUID id) {
+        UUID callerId = SecurityContext.authenticatedId();
+        if (!callerId.equals(id))
+            return ResponseEntity.status(403).body(Map.of("error", "You can only delete your own account."));
+
         if (!userRepo.existsById(id)) return ResponseEntity.notFound().build();
         userRepo.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    private UserDtos.Response toResponse(User u) {
-        var out = new UserDtos.Response();
+    private UserDtos.PublicResponse toPublicResponse(User u) {
+        var out = new UserDtos.PublicResponse();
         out.id = u.getId().toString();
         out.username = u.getUsername();
-        out.email = u.getEmail();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(u.getCreatedAt());
         return out;
     }

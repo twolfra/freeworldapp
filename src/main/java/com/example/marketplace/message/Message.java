@@ -30,6 +30,9 @@ public class Message {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "read_at")
+    private Instant readAt;
+
     @PrePersist
     void onCreate() { this.createdAt = Instant.now(); }
 
@@ -38,8 +41,10 @@ public class Message {
     public User getRecipient() { return recipient; }
     public String getContent() { return content; }
     public Instant getCreatedAt() { return createdAt; }
+    public Instant getReadAt() { return readAt; }
 
     public void setSender(User sender) { this.sender = sender; }
     public void setRecipient(User recipient) { this.recipient = recipient; }
     public void setContent(String content) { this.content = content; }
+    public void setReadAt(Instant readAt) { this.readAt = readAt; }
 }

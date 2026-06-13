@@ -133,3 +133,10 @@
   margin-top: 3rem;
   color: #666;
 }
+
+.seen {
+  font-size: 0.68rem;
+  opacity: 0.75;
+  align-self: flex-end;
+  margin-top: -0.1rem;
+}

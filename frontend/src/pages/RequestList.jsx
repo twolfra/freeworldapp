@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { requests as requestsApi } from '../api/client';
 import styles from './OfferList.module.css';
 
+const PAGE_SIZE = 12;
+
 export default function RequestList() {
   const [requests, setRequests] = useState([]);
   const [query, setQuery]       = useState('');
   const [region, setRegion]     = useState('');
+  const [page, setPage]         = useState(1);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
 
@@ -30,6 +33,14 @@ export default function RequestList() {
       r.category.toLowerCase().includes(q))
   );
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  function handleFilterChange(setter) {
+    return (e) => { setter(e.target.value); setPage(1); };
+  }
+
   return (
     <main className={styles.page}>
       <div className={styles.header}>
@@ -42,13 +53,13 @@ export default function RequestList() {
           type="search"
           placeholder="Search by title, category…"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleFilterChange(setQuery)}
           autoComplete="off"
         />
         <select
           className={styles.filterSelect}
           value={region}
-          onChange={(e) => setRegion(e.target.value)}
+          onChange={handleFilterChange(setRegion)}
         >
           <option value="">All regions</option>
           {regions.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -56,19 +67,36 @@ export default function RequestList() {
       </div>
       {filtered.length === 0
         ? <p className={styles.empty}>No requests match your search.</p>
-        : <ul className={styles.grid}>
-            {filtered.map((r) => (
-              <li key={r.id}>
-                <a href={`/requests/${r.id}`} className={styles.card} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textDecoration: 'none', cursor: 'pointer' }}>
-                  {r.imageUrl && <img src={r.imageUrl} className={styles.cardImage} alt={r.title} />}
-                  <span className={styles.category} style={{ color: '#1565c0' }}>{r.category}</span>
-                  <h3>{r.title}</h3>
-                  <p>{r.description}</p>
-                  <footer>{r.region} · qty {r.quantity}</footer>
-                </a>
-              </li>
-            ))}
-          </ul>
+        : <>
+            <ul className={styles.grid}>
+              {pageItems.map((r) => (
+                <li key={r.id}>
+                  <a href={`/requests/${r.id}`} className={styles.card}>
+                    {r.imageUrl && <img src={r.imageUrl} className={styles.cardImage} alt={r.title} />}
+                    <span className={styles.category} style={{ color: '#1565c0' }}>{r.category}</span>
+                    <h3>{r.title}</h3>
+                    <p>{r.description}</p>
+                    <footer>{r.region} · qty {r.quantity}</footer>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            {totalPages > 1 && (
+              <div className={styles.pagination}>
+                <button
+                  className={styles.pageBtn}
+                  onClick={() => setPage((p) => p - 1)}
+                  disabled={safePage === 1}
+                >← Prev</button>
+                <span className={styles.pageInfo}>Page {safePage} of {totalPages}</span>
+                <button
+                  className={styles.pageBtn}
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={safePage === totalPages}
+                >Next →</button>
+              </div>
+            )}
+          </>
       }
     </main>
   );

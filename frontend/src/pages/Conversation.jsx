@@ -16,17 +16,51 @@ export default function Conversation({ userId: otherId }) {
     users.get(otherId).then(setOtherUser).catch(() => setError('User not found.'));
   }, [otherId]);
 
-  const fetchMessages = () => {
-    if (!currentUser) return;
-    messagesApi.getConversation(currentUser.id, otherId)
-      .then(setMsgs)
-      .catch(console.error);
-  };
-
   useEffect(() => {
-    fetchMessages();
-    const interval = setInterval(fetchMessages, 5000);
-    return () => clearInterval(interval);
+    if (!currentUser) return;
+
+    // Force re-login for sessions created before token support was added
+    if (!currentUser.token) {
+      localStorage.removeItem('currentUser');
+      window.location.href = '/login';
+      return;
+    }
+
+    // Initial load + mark as read
+    messagesApi.getConversation(currentUser.id, otherId)
+      .then((msgs) => {
+        setMsgs(msgs);
+        messagesApi.markRead(currentUser.id, otherId).catch(() => {});
+      })
+      .catch(console.error);
+
+    // SSE for live updates — replaces setInterval polling
+    const es = new EventSource(
+      `/api/messages/stream?userId=${currentUser.id}&token=${currentUser.token}`
+    );
+
+    es.addEventListener('message', (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.senderId === otherId || msg.recipientId === otherId) {
+        setMsgs((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          if (msg.recipientId === currentUser.id) {
+            messagesApi.markRead(currentUser.id, otherId).catch(() => {});
+          }
+          return [...prev, msg];
+        });
+      }
+    });
+
+    // When the other person reads our messages, re-fetch to show read receipts
+    es.addEventListener('read', (e) => {
+      const { readerId } = JSON.parse(e.data);
+      if (readerId === otherId) {
+        messagesApi.getConversation(currentUser.id, otherId).then(setMsgs).catch(console.error);
+      }
+    });
+
+    return () => es.close();
   }, [currentUser?.id, otherId]);
 
   useEffect(() => {
@@ -51,7 +85,7 @@ export default function Conversation({ userId: otherId }) {
     if (!content.trim()) return;
     setSending(true);
     try {
-      const newMsg = await messagesApi.send({ senderId: currentUser.id, recipientId: otherId, content });
+      const newMsg = await messagesApi.send({ recipientId: otherId, content });
       setMsgs((prev) => [...prev, newMsg]);
       setContent('');
     } catch (err) {
@@ -60,6 +94,12 @@ export default function Conversation({ userId: otherId }) {
       setSending(false);
     }
   };
+
+  // Index of the last sent message that has been read by the recipient
+  const lastReadSentIndex = msgs.reduce(
+    (acc, m, i) => (m.senderId === currentUser.id && m.readAt != null ? i : acc),
+    -1
+  );
 
   return (
     <main className={styles.page}>
@@ -72,7 +112,7 @@ export default function Conversation({ userId: otherId }) {
           {msgs.length === 0 && (
             <p className={styles.empty}>No messages yet. Say hello!</p>
           )}
-          {msgs.map((m) => (
+          {msgs.map((m, i) => (
             <div
               key={m.id}
               className={`${styles.bubble} ${m.senderId === currentUser.id ? styles.sent : styles.received}`}
@@ -81,6 +121,9 @@ export default function Conversation({ userId: otherId }) {
               <time>
                 {new Date(m.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
               </time>
+              {i === lastReadSentIndex && (
+                <span className={styles.seen}>Seen</span>
+              )}
             </div>
           ))}
           <div ref={bottomRef} />

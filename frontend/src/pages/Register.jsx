@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { users } from '../api/client';
+import { users, auth } from '../api/client';
 import styles from './Register.module.css';
 
 export default function Register() {
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState(null);
-  const [done, setDone] = useState(false);
 
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -16,20 +15,17 @@ export default function Register() {
     setError(null);
     try {
       await users.create(form);
-      setDone(true);
+      try {
+        const loggedIn = await auth.login({ username: form.username, password: form.password });
+        localStorage.setItem('currentUser', JSON.stringify(loggedIn));
+        window.location.href = '/offers';
+      } catch {
+        window.location.href = '/login';
+      }
     } catch (err) {
       setError(err.message);
     }
   }
-
-  if (done) return (
-    <main className={styles.page}>
-      <div className={styles.card}>
-        <h2>Welcome to FreeWorld!</h2>
-        <p>Your account is ready. <a href="/offers">Browse offers</a> or <a href="/offers/new">make your first offer</a>.</p>
-      </div>
-    </main>
-  );
 
   return (
     <main className={styles.page}>

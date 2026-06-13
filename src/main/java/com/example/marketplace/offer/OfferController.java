@@ -1,5 +1,6 @@
 package com.example.marketplace.offer;
 
+import com.example.marketplace.auth.SecurityContext;
 import com.example.marketplace.offer.dto.OfferDtos;
 import com.example.marketplace.user.UserRepository;
 import jakarta.validation.Valid;
@@ -8,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -25,12 +26,7 @@ public class OfferController {
 
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody OfferDtos.Create in) {
-        UUID userId;
-        try {
-            userId = UUID.fromString(in.offeredById);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid user id."));
-        }
+        UUID userId = SecurityContext.authenticatedId();
 
         return userRepo.findById(userId)
                 .map(user -> {
@@ -47,7 +43,7 @@ public class OfferController {
                             .created(URI.create("/api/offers/" + saved.getId()))
                             .body((Object) toResponse(saved));
                 })
-                .orElse(ResponseEntity.badRequest().body(java.util.Map.of("error", "User not found.")));
+                .orElse(ResponseEntity.badRequest().body(Map.of("error", "User not found.")));
     }
 
     @GetMapping
@@ -56,7 +52,7 @@ public class OfferController {
             UUID uid;
             try { uid = UUID.fromString(offeredBy); }
             catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid user id."));
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid user id."));
             }
             return ResponseEntity.ok(offerRepo.findByOfferedBy_Id(uid).stream().map(this::toResponse).toList());
         }
@@ -70,11 +66,35 @@ public class OfferController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PutMapping("{id}")
+    public ResponseEntity<?> update(@PathVariable UUID id, @Valid @RequestBody OfferDtos.Update in) {
+        UUID callerId = SecurityContext.authenticatedId();
+        return offerRepo.findById(id)
+                .map(o -> {
+                    if (!o.getOfferedBy().getId().equals(callerId))
+                        return ResponseEntity.status(403).body((Object) Map.of("error", "Not your offer."));
+                    o.setTitle(in.title);
+                    o.setDescription(in.description);
+                    o.setRegion(in.region);
+                    o.setCategory(in.category);
+                    o.setQuantity(in.quantity);
+                    o.setImageUrl(in.imageUrl);
+                    return ResponseEntity.ok((Object) toResponse(offerRepo.save(o)));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        if (!offerRepo.existsById(id)) return ResponseEntity.notFound().build();
-        offerRepo.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> delete(@PathVariable UUID id) {
+        UUID callerId = SecurityContext.authenticatedId();
+        return offerRepo.findById(id)
+                .map(o -> {
+                    if (!o.getOfferedBy().getId().equals(callerId))
+                        return ResponseEntity.status(403).<Void>build();
+                    offerRepo.delete(o);
+                    return ResponseEntity.noContent().<Void>build();
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     private OfferDtos.Response toResponse(Offer o) {

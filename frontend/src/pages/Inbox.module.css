@@ -77,10 +77,34 @@
   text-overflow: ellipsis;
 }
 
+.meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
 .time {
   font-size: 0.8rem;
   color: #aaa;
-  flex-shrink: 0;
+}
+
+.unread .username { color: #1b5e20; }
+.unread .preview { color: #333; font-weight: 500; }
+
+.unreadBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e53935;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  padding: 0 4px;
 }
 
 .status,

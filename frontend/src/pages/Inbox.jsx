@@ -36,15 +36,20 @@ export default function Inbox() {
         <ul className={styles.list}>
           {conversations.map((c) => (
             <li key={c.userId}>
-              <a href={`/messages/${c.userId}`} className={styles.row}>
+              <a href={`/messages/${c.userId}`} className={`${styles.row} ${c.unreadCount > 0 ? styles.unread : ''}`}>
                 <div className={styles.avatar}>{c.username[0].toUpperCase()}</div>
                 <div className={styles.info}>
                   <span className={styles.username}>@{c.username}</span>
                   <span className={styles.preview}>{c.lastMessage}</span>
                 </div>
-                <time className={styles.time}>
-                  {new Date(c.lastMessageAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                </time>
+                <div className={styles.meta}>
+                  <time className={styles.time}>
+                    {new Date(c.lastMessageAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  </time>
+                  {c.unreadCount > 0 && (
+                    <span className={styles.unreadBadge}>{c.unreadCount > 99 ? '99+' : c.unreadCount}</span>
+                  )}
+                </div>
               </a>
             </li>
           ))}

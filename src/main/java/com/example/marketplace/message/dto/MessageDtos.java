@@ -7,8 +7,6 @@ public class MessageDtos {
 
     public static class Send {
         @NotBlank
-        public String senderId;
-        @NotBlank
         public String recipientId;
         @NotBlank
         @Size(max = 2000)
@@ -23,6 +21,7 @@ public class MessageDtos {
         public String recipientUsername;
         public String content;
         public String createdAt;
+        public String readAt; // null if unread
     }
 
     public static class ConversationSummary {
@@ -30,5 +29,6 @@ public class MessageDtos {
         public String username;
         public String lastMessage;
         public String lastMessageAt;
+        public long unreadCount;
     }
 }

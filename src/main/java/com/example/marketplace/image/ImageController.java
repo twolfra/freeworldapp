@@ -1,6 +1,5 @@
 package com.example.marketplace.image;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -8,20 +7,20 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/images")
 public class ImageController {
 
-    private static final Path UPLOAD_DIR = Paths.get("uploads");
-    private static final long MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+    private static final long MAX_BYTES = 5 * 1024 * 1024;
 
-    @PostConstruct
-    void init() throws IOException {
-        Files.createDirectories(UPLOAD_DIR);
+    private final LocalStorageService storage;
+
+    public ImageController(LocalStorageService storage) {
+        this.storage = storage;
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -34,18 +33,14 @@ public class ImageController {
         if (file.getSize() > MAX_BYTES)
             return ResponseEntity.badRequest().body(Map.of("error", "File must be under 5 MB."));
 
-        String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "image";
-        String ext = original.contains(".") ? original.substring(original.lastIndexOf('.')) : ".jpg";
-        String filename = UUID.randomUUID() + ext;
-        Files.copy(file.getInputStream(), UPLOAD_DIR.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
-
-        return ResponseEntity.ok(Map.of("url", "/api/images/" + filename));
+        String url = storage.store(file);
+        return ResponseEntity.ok(Map.of("url", url));
     }
 
     @GetMapping("/{filename:.+}")
     public ResponseEntity<byte[]> serve(@PathVariable String filename) throws IOException {
-        Path target = UPLOAD_DIR.resolve(filename).normalize().toAbsolutePath();
-        if (!target.startsWith(UPLOAD_DIR.toAbsolutePath()) || !Files.exists(target))
+        Path target = storage.resolve(filename);
+        if (!storage.isSafe(target) || !Files.exists(target))
             return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok()

@@ -1,6 +1,7 @@
 package com.example.marketplace.message;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,4 +19,14 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
            "WHERE m.sender.id = :userId OR m.recipient.id = :userId " +
            "ORDER BY m.createdAt DESC")
     List<Message> findAllForUser(@Param("userId") UUID userId);
+
+    @Modifying
+    @Query("UPDATE Message m SET m.readAt = CURRENT_TIMESTAMP WHERE m.recipient.id = :userId AND m.sender.id = :otherId AND m.readAt IS NULL")
+    int markConversationRead(@Param("userId") UUID userId, @Param("otherId") UUID otherId);
+
+    @Query("SELECT COUNT(m) FROM Message m WHERE m.recipient.id = :userId AND m.readAt IS NULL")
+    long countUnread(@Param("userId") UUID userId);
+
+    @Query("SELECT COUNT(m) FROM Message m WHERE m.recipient.id = :userId AND m.sender.id = :otherId AND m.readAt IS NULL")
+    long countUnreadFromSender(@Param("userId") UUID userId, @Param("otherId") UUID otherId);
 }

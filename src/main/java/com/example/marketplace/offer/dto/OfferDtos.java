@@ -15,8 +15,6 @@ public class OfferDtos {
         public String category;
         @NotNull @Min(1)
         public Integer quantity;
-        @NotBlank
-        public String offeredById;
         public String imageUrl;
     }
 
@@ -31,6 +29,7 @@ public class OfferDtos {
         public String category;
         @NotNull @Min(1)
         public Integer quantity;
+        public String imageUrl;
     }
 
     public static class Response {

@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 public class SubscriptionDtos {
 
     public static class Create {
-        @NotBlank public String subscriberId;
         @NotBlank public String subscribedToId;
     }
 

@@ -1,5 +1,6 @@
 package com.example.marketplace.subscription;
 
+import com.example.marketplace.auth.SecurityContext;
 import com.example.marketplace.offer.OfferRepository;
 import com.example.marketplace.request.RequestRepository;
 import com.example.marketplace.subscription.dto.SubscriptionDtos;
@@ -32,9 +33,9 @@ public class SubscriptionController {
 
     @PostMapping
     public ResponseEntity<?> subscribe(@Valid @RequestBody SubscriptionDtos.Create in) {
-        UUID subscriberId, subscribedToId;
+        UUID subscriberId = SecurityContext.authenticatedId();
+        UUID subscribedToId;
         try {
-            subscriberId   = UUID.fromString(in.subscriberId);
             subscribedToId = UUID.fromString(in.subscribedToId);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid user id."));
@@ -60,8 +61,9 @@ public class SubscriptionController {
     @DeleteMapping
     public ResponseEntity<?> unsubscribe(@RequestParam String subscriberId,
                                          @RequestParam String subscribedToId) {
-        UUID sid, tid;
-        try { sid = UUID.fromString(subscriberId); tid = UUID.fromString(subscribedToId); }
+        UUID sid = SecurityContext.authenticatedId();
+        UUID tid;
+        try { tid = UUID.fromString(subscribedToId); }
         catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid user id."));
         }

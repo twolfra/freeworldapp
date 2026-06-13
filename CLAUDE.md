@@ -11,7 +11,7 @@ A community marketplace where people give away, offer, and request goods and ser
 |---|---|
 | Backend | Spring Boot 3.5 · Java 17 · Spring Data JPA · PostgreSQL |
 | Frontend | React 19 · Vite · plain CSS Modules (no Tailwind, no component library) |
-| Auth | Custom: BCrypt password hashing, user stored in `localStorage` as JSON (`currentUser`). No JWT, no server-side session. All API calls are unauthenticated — the frontend passes `userId` in request bodies/params. |
+| Auth | Session tokens: BCrypt for passwords; login issues a UUID token stored server-side in `sessions` table (with 30-day expiry) and in `localStorage` as `currentUser.token`. All mutating requests AND sensitive GET endpoints (`/api/messages/conversations*`, `/api/messages/conversation*`, `/api/messages/unread-count*`) require `X-Session-Token` header. |
 | DB | PostgreSQL on `localhost:5432`, database `marketplace`, user `postgres`, password `postgres` |
 
 **Ports:** Spring Boot → `8080`, Vite dev server → `5173` (proxies `/api` to `:8080`)
@@ -30,13 +30,17 @@ cd frontend && npm run dev
 
 Hibernate `ddl-auto: update` — schema is auto-managed, no migrations needed in dev.
 
+Uploaded images are stored in `uploads/` at the repo root (created automatically on first run).
+
 ---
 
 ## Project structure
 
 ```
 freeworldapp/
+├── uploads/                    Image files served via /api/images/{filename}
 ├── src/main/java/com/example/marketplace/
+│   ├── image/              ImageController (upload + serve)
 │   ├── offer/              Offer entity, repo, controller, dto
 │   ├── request/            Request entity, repo, controller, dto
 │   ├── user/               User entity, repo, controller, AuthController, dto
@@ -46,7 +50,7 @@ freeworldapp/
 ├── src/main/resources/
 │   └── application.yml
 └── frontend/src/
-    ├── api/client.js       All fetch calls — auth, users, offers, requests, messages, subscriptions
+    ├── api/client.js       All fetch calls — auth, users, offers, requests, messages, subscriptions, images
     ├── components/
     │   ├── Navbar.jsx / .module.css
     └── pages/
@@ -95,7 +99,8 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 ### Auth
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/api/auth/login` | `{ username, password }` → UserResponse or 401 |
+| POST | `/api/auth/login` | `{ username, password }` → UserResponse (includes `token`) or 401 |
+| POST | `/api/auth/logout` | Deletes server-side session; `X-Session-Token` header (no body needed) |
 
 ### Users
 | Method | Path | Notes |
@@ -109,27 +114,38 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 ### Offers
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/api/offers` | `{ title, description, region, category, quantity, offeredById }` |
+| POST | `/api/offers` | `{ title, description, region, category, quantity, offeredById, imageUrl? }` |
 | GET | `/api/offers` | List all; optional `?offeredBy={uuid}` to filter by user |
-| GET | `/api/offers/:id` | Get one — response includes `offeredByUsername` |
+| GET | `/api/offers/:id` | Get one — response includes `offeredByUsername`, `imageUrl` |
+| PUT | `/api/offers/:id` | Update `{ title, description, region, category, quantity, imageUrl? }` — send current imageUrl to keep, null to remove |
 | DELETE | `/api/offers/:id` | Delete |
 
 ### Requests
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/api/requests` | `{ title, description, region, category, quantity, requestedById }` |
+| POST | `/api/requests` | `{ title, description, region, category, quantity, requestedById, imageUrl? }` |
 | GET | `/api/requests` | List all; optional `?requestedBy={uuid}` to filter by user |
-| GET | `/api/requests/:id` | Get one — response includes `requestedByUsername` |
+| GET | `/api/requests/:id` | Get one — response includes `requestedByUsername`, `imageUrl` |
+| PUT | `/api/requests/:id` | Update `{ title, description, region, category, quantity, imageUrl? }` — send current imageUrl to keep, null to remove |
 | DELETE | `/api/requests/:id` | Delete |
 
 **Categories (used in both):** Food & Drink, Clothing, Books & Media, Tools & Equipment, Furniture, Electronics, Skills & Services, Plants & Seeds, Childcare, Transport, Other
+
+### Images
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/images` | Multipart upload — field name `file`, image/* only, max 5 MB. Returns `{ url }` |
+| GET | `/api/images/:filename` | Serve file — correct Content-Type, 1-year cache, path traversal blocked |
 
 ### Messages
 | Method | Path | Notes |
 |---|---|---|
 | POST | `/api/messages` | `{ senderId, recipientId, content }` — 400 if sender == recipient |
-| GET | `/api/messages/conversations?userId=` | List conversation summaries for user |
+| GET | `/api/messages/conversations?userId=` | List conversation summaries for user — each includes `unreadCount` |
 | GET | `/api/messages/conversation?userId=&otherId=` | All messages between two users |
+| POST | `/api/messages/mark-read?userId=&otherId=` | Mark all messages from otherId to userId as read |
+| GET | `/api/messages/unread-count?userId=` | Returns `{ count: N }` — total unread messages for user |
+| GET | `/api/messages/stream?userId=&token=` | SSE stream — pushes `message` and `read` events; token validated server-side |
 
 ### Subscriptions
 | Method | Path | Notes |
@@ -146,10 +162,11 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 
 ```
 users           id(uuid PK), username(32), email(255), passwordHash(60), createdAt
+sessions        id(uuid PK), token(36 unique), user_id(FK→users), createdAt, expiresAt
 offers          id, title(140), description(4000), region(140), category(140),
-                quantity(int), offered_by_id(FK→users), createdAt
+                quantity(int), image_url(500 nullable), offered_by_id(FK→users), createdAt
 requests        id, title(140), description(4000), region(140), category(140),
-                quantity(int), requested_by_id(FK→users), createdAt
+                quantity(int), image_url(500 nullable), requested_by_id(FK→users), createdAt
 messages        id, sender_id(FK→users), recipient_id(FK→users), content(2000), createdAt
 subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), createdAt
                 UNIQUE(subscriber_id, subscribed_to_id)
@@ -161,9 +178,9 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 
 - **Auth check:** `JSON.parse(localStorage.getItem('currentUser') || 'null')` — used inline in every page that needs it. No context/provider.
 - **Navigation:** `<a href="/path">` hard links — no React Router, no `navigate()`. Pages re-render on full reload.
-- **API client:** `frontend/src/api/client.js` exports named objects (`auth`, `users`, `offers`, `requests`, `messages`, `subscriptions`). All return promises. Errors throw with message string parsed from Spring's validation format.
-- **CSS:** Each page has its own `.module.css`. `OfferList.module.css` is shared by both `OfferList` and `RequestList`. `RequestDetail.module.css` is shared by both detail pages.
-- **Message polling:** `Conversation.jsx` polls `/api/messages/conversation` every 5 seconds via `setInterval`.
+- **API client:** `frontend/src/api/client.js` exports named objects (`auth`, `users`, `offers`, `requests`, `messages`, `subscriptions`, `images`). All return promises. Errors throw with message string parsed from Spring's validation format. Multipart uploads use a separate `upload()` helper that omits the `Content-Type` header so the browser sets the multipart boundary automatically.
+- **CSS:** Each page has its own `.module.css`. `OfferList.module.css` is shared by both `OfferList` and `RequestList`. `RequestDetail.module.css` is shared by both detail pages. `OfferForm.module.css` is shared by both form pages.
+- **SSE connections:** Both `Navbar.jsx` (for unread badge) and `Conversation.jsx` open `EventSource` to `/api/messages/stream`. Fan-out in `SseService` (`Map<UUID, CopyOnWriteArrayList<SseEmitter>>`) delivers events to all open connections for the same user simultaneously.
 
 ---
 
@@ -171,6 +188,7 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 
 - [x] User registration and login
 - [x] Create, list, and view offers and requests
+- [x] Image upload on offers and requests (optional photo, stored in `uploads/`, shown on detail and list pages)
 - [x] Full-text search (title, description, region, category) on list pages
 - [x] Region dropdown filter on list pages (works alongside search)
 - [x] Offer/request detail pages with poster's username link → user profile
@@ -179,15 +197,33 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 - [x] Direct messaging — inbox, conversation view with chat bubbles, 5s polling, self-message blocked
 - [x] Subscriptions — subscribe/unsubscribe on profile pages, `/subscriptions` feed merges offers+requests from followed users
 - [x] Navbar shows Messages + Subscriptions links and `@username` chip when signed in
+- [x] Delete and edit (inline form) for own offers and requests — Edit/Delete buttons visible on detail page to the post owner; edit updates title, description, region, category, quantity, and image (replace or remove)
+- [x] Logout button in Navbar — clears localStorage and redirects to home
+- [x] Unread message count badge on "Messages" nav link (polls every 30s); per-conversation unread count in Inbox; messages marked read when conversation is opened
+- [x] Pagination on Offers and Requests list pages (12 per page, resets on filter change)
+- [x] Server-side session auth — UUID token issued on login, stored in localStorage, sent as `X-Session-Token` header; filter blocks all mutating requests without a valid token; controllers use session identity (not body userId) for ownership
+- [x] Real-time messaging via SSE — `GET /api/messages/stream?userId=&token=` replaces setInterval in Conversation; server pushes `message` events on send and `read` events on mark-read
+- [x] Read receipts — `readAt` field on every message response; Conversation shows "Seen" below the last sent message the recipient has read
+- [x] Image storage abstraction — `StorageService` interface + `LocalStorageService` implementation; swap bean for S3/GCS in production without touching controllers
+- [x] Pagination on Subscriptions feed (12 per page)
+- [x] Session expiry — sessions expire after 30 days; `AuthFilter` rejects and deletes expired sessions; SSE stream endpoint also checks expiry
+- [x] Sensitive GET auth protection — `GET /api/messages/conversations*`, `/api/messages/conversation*`, `/api/messages/unread-count*` now require `X-Session-Token` header; controllers verify `userId` param matches the session owner
+- [x] User account ownership checks — `PUT /api/users/:id` and `DELETE /api/users/:id` return 403 if the caller's session does not match the target user id
+- [x] Email not exposed in public user endpoints — `GET /api/users` and `GET /api/users/:id` return `PublicResponse` (id, username, createdAt) without email; email is only included in the login response
+- [x] SSE fan-out — `SseService` upgraded from single `Map<UUID, SseEmitter>` to `Map<UUID, CopyOnWriteArrayList<SseEmitter>>`; Navbar and Conversation can both hold live SSE connections for the same user without displacing each other
+- [x] Navbar unread badge uses SSE instead of 30s polling — Navbar opens its own `EventSource` and re-fetches unread count on `message` / `read` events
+- [x] Registration auto-login — `Register.jsx` calls `auth.login()` immediately after account creation and redirects to `/offers`; no extra login step required
 
 ---
 
 ## Known limitations / not yet implemented
 
-- No server-side authentication — any client can call any endpoint with any userId
-- No pagination on any list
-- No image uploads
-- No delete/edit UI for offers or requests (DELETE endpoint exists but no UI)
-- No read receipts or unread counts on messages
-- No logout button (clearing localStorage manually works)
-- Message polling is naive (setInterval, no WebSockets)
+- SSE stream (`/api/messages/stream`) requires token as query param because `EventSource` doesn't support custom headers — token is visible in server logs
+- Images are stored on local disk — swap `LocalStorageService` for an S3/GCS bean to make deployment stateless
+- No WebSocket bidirectional channel — SSE is one-directional (server → client); sending messages still uses HTTP POST
+- No CORS configuration — the API only works from the same origin (Vite dev proxy covers dev; a deployed frontend on a different domain would be blocked)
+- No rate limiting — registration and message endpoints are open to brute-force and spam; add a filter or Spring's `@RateLimiter` before going public
+- No email verification — accounts are active immediately after registration; a bad actor can register with any email address
+- Orphaned images — when an offer/request is deleted, or its image is replaced/removed, the old file stays in `uploads/` forever; add a cleanup step in `OfferController.delete` / `RequestController.delete` and in the update path
+- Hardcoded DB credentials in `application.yml` — move to environment variables or a secrets manager before deploying
+- Subscription feed GET is unauthenticated — `GET /api/subscriptions/feed?subscriberId=` can be read by anyone who knows the user's UUID
