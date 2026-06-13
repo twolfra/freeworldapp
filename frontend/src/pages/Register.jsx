@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { users } from '../api/client';
+import { t } from '../i18n';
 import styles from './Register.module.css';
 
 export default function Register() {
@@ -28,18 +29,16 @@ export default function Register() {
     return (
       <main className={styles.page}>
         <div className={styles.card}>
-          <h2>Check your inbox</h2>
-          <p>We sent a verification link to <strong>{registeredEmail}</strong>.</p>
+          <h2>{t('register.checkTitle')}</h2>
+          <p>{t('register.checkText')} <strong>{registeredEmail}</strong>.</p>
+          <p className={styles.sub}>{t('register.checkHint')}</p>
           <p className={styles.sub}>
-            Click the link in the email to activate your account, then sign in.
-          </p>
-          <p className={styles.sub}>
-            Didn't get it? Check your spam folder or{' '}
+            {t('register.checkSpam')}{' '}
             <a href={`/verify-email?resend=1&email=${encodeURIComponent(registeredEmail)}`}>
-              request a new link
+              {t('register.checkResend')}
             </a>.
           </p>
-          <a href="/login" className="btn-primary" style={{ textAlign: 'center' }}>Go to sign in</a>
+          <a href="/login" className="btn-primary" style={{ textAlign: 'center' }}>{t('register.checkGoLogin')}</a>
         </div>
       </main>
     );
@@ -48,23 +47,23 @@ export default function Register() {
   return (
     <main className={styles.page}>
       <form className={styles.card} onSubmit={handleSubmit}>
-        <h2>Join the Community</h2>
-        <p className={styles.sub}>No money. No trade. Just giving.</p>
+        <h2>{t('register.heading')}</h2>
+        <p className={styles.sub}>{t('register.subtitle')}</p>
         {error && <p className={styles.error}>{error}</p>}
         <label>
-          Username
+          {t('register.username')}
           <input name="username" value={form.username} onChange={handleChange} required minLength={3} maxLength={32} />
         </label>
         <label>
-          Email
+          {t('register.email')}
           <input name="email" type="email" value={form.email} onChange={handleChange} required />
         </label>
         <label>
-          Password
+          {t('register.password')}
           <input name="password" type="password" value={form.password} onChange={handleChange} required minLength={6} />
-          <span style={{ fontSize: '0.78rem', color: '#888' }}>At least 6 characters</span>
+          <span style={{ fontSize: '0.78rem', color: '#888' }}>{t('register.passwordHint')}</span>
         </label>
-        <button type="submit" className="btn-primary">Create Account</button>
+        <button type="submit" className="btn-primary">{t('register.submit')}</button>
       </form>
     </main>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { subscriptions as subsApi } from '../api/client';
+import { t, tCat, tp } from '../i18n';
 import styles from './Subscriptions.module.css';
 
 const PAGE_SIZE = 12;
@@ -21,11 +22,13 @@ export default function Subscriptions() {
 
   if (!currentUser) return (
     <main className={styles.page}>
-      <p className={styles.status}>Please <a href="/login">sign in</a> to see your subscriptions feed.</p>
+      <p className={styles.status}>
+        Please <a href="/login">{t('subs.signInLink')}</a> {t('subs.signIn').replace('Please {link} ', '')}
+      </p>
     </main>
   );
 
-  if (loading) return <p className={styles.status}>Loading…</p>;
+  if (loading) return <p className={styles.status}>{t('detail.loading')}</p>;
   if (error)   return <p className={styles.status}>Could not load feed: {error}</p>;
 
   const totalPages = Math.max(1, Math.ceil(feed.length / PAGE_SIZE));
@@ -35,10 +38,16 @@ export default function Subscriptions() {
   return (
     <main className={styles.page}>
       <div className={styles.header}>
-        <h2>Subscriptions</h2>
+        <h2>{t('subs.title')}</h2>
       </div>
       {feed.length === 0
-        ? <p className={styles.empty}>Nothing here yet. <a href="/offers">Browse offers</a> or <a href="/requests">requests</a> and subscribe to users you want to follow.</p>
+        ? <p className={styles.empty}>
+            {t('subs.emptyStart')}{' '}
+            <a href="/offers">{t('subs.browseOffers')}</a>{' '}
+            {t('subs.browseOr')}{' '}
+            <a href="/requests">{t('subs.browseRequests')}</a>{' '}
+            {t('subs.emptyEnd')}
+          </p>
         : <>
             <ul className={styles.feed}>
               {pageItems.map((item) => (
@@ -46,9 +55,9 @@ export default function Subscriptions() {
                   <a href={`/${item.type}s/${item.id}`} className={styles.card}>
                     <div className={styles.cardTop}>
                       <span className={`${styles.badge} ${item.type === 'offer' ? styles.badgeOffer : styles.badgeRequest}`}>
-                        {item.type === 'offer' ? 'Offer' : 'Request'}
+                        {item.type === 'offer' ? t('subs.offer') : t('subs.request')}
                       </span>
-                      <span className={styles.category}>{item.category}</span>
+                      <span className={styles.category}>{tCat(item.category)}</span>
                       <span className={styles.meta}>
                         by <a href={`/users/${item.authorId}`} className={styles.authorLink} onClick={(e) => e.stopPropagation()}>@{item.authorUsername}</a>
                         {' · '}
@@ -57,7 +66,7 @@ export default function Subscriptions() {
                     </div>
                     <h3>{item.title}</h3>
                     <p>{item.description}</p>
-                    <footer>{item.region} · qty {item.quantity}</footer>
+                    <footer>{item.region} · {t('list.qty')} {item.quantity}</footer>
                   </a>
                 </li>
               ))}
@@ -68,13 +77,13 @@ export default function Subscriptions() {
                   className={styles.pageBtn}
                   onClick={() => setPage((p) => p - 1)}
                   disabled={safePage === 1}
-                >← Prev</button>
-                <span className={styles.pageInfo}>Page {safePage} of {totalPages}</span>
+                >{t('list.pagePrev')}</button>
+                <span className={styles.pageInfo}>{tp('list.pageInfo', { n: safePage, total: totalPages })}</span>
                 <button
                   className={styles.pageBtn}
                   onClick={() => setPage((p) => p + 1)}
                   disabled={safePage === totalPages}
-                >Next →</button>
+                >{t('list.pageNext')}</button>
               </div>
             )}
           </>

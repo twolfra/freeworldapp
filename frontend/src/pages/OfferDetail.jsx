@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { offers as offersApi, images as imagesApi } from '../api/client';
+import { t, tCat } from '../i18n';
 import styles from './RequestDetail.module.css';
 
 const CATEGORIES = [
@@ -28,8 +29,8 @@ export default function OfferDetail({ id }) {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <p className={styles.status}>Loading…</p>;
-  if (error)   return <p className={styles.status}>Could not load offer: {error}</p>;
+  if (loading) return <p className={styles.status}>{t('detail.loading')}</p>;
+  if (error)   return <p className={styles.status}>{t('detail.loadErrOffer')}{error}</p>;
 
   const isOwnPost = currentUser?.id === offer.offeredById;
 
@@ -88,80 +89,80 @@ export default function OfferDetail({ id }) {
   }
 
   async function handleDelete() {
-    if (!window.confirm('Delete this offer? This cannot be undone.')) return;
+    if (!window.confirm(t('detail.confirmOffer'))) return;
     setDeleting(true);
     try {
       await offersApi.remove(id);
       window.location.href = '/offers';
     } catch (err) {
-      alert('Could not delete: ' + err.message);
+      alert(t('detail.deleteErr') + err.message);
       setDeleting(false);
     }
   }
 
   return (
     <main className={styles.page}>
-      <a href="/offers" className={styles.back} style={{ color: '#2e7d32' }}>← Back to Offers</a>
+      <a href="/offers" className={styles.back} style={{ color: '#2e7d32' }}>{t('detail.backOffers')}</a>
       <div className={styles.card}>
         {!editing && offer.imageUrl && <img src={offer.imageUrl} className={styles.image} alt={offer.title} />}
-        <span className={styles.category} style={{ color: '#2e7d32' }}>{offer.category}</span>
+        <span className={styles.category} style={{ color: '#2e7d32' }}>{tCat(offer.category)}</span>
         <h1>{offer.title}</h1>
         <div className={styles.authorRow}>
-          <span>Posted by</span>
+          <span>{t('detail.postedBy')}</span>
           <a href={`/users/${offer.offeredById}`} className={styles.authorLink}>
             @{offer.offeredByUsername}
           </a>
           {!isOwnPost && currentUser && (
             <a href={`/messages/${offer.offeredById}`} className={styles.contactBtn}>
-              Contact
+              {t('detail.contact')}
             </a>
           )}
           {!currentUser && (
-            <a href="/login" className={styles.contactBtn}>Sign in to contact</a>
+            <a href="/login" className={styles.contactBtn}>{t('detail.signInContact')}</a>
           )}
         </div>
         {isOwnPost && !editing && (
           <div className={styles.ownerActions}>
-            <button className={styles.editBtn} onClick={startEdit}>Edit</button>
+            <button className={styles.editBtn} onClick={startEdit}>{t('detail.edit')}</button>
             <button className={styles.deleteBtn} onClick={handleDelete} disabled={deleting}>
-              {deleting ? 'Deleting…' : 'Delete'}
+              {deleting ? t('detail.deleting') : t('detail.delete')}
             </button>
           </div>
         )}
         {editing ? (
           <form className={styles.editForm} onSubmit={handleSave}>
-            <h3>Edit Offer</h3>
+            <h3>{t('edit.offer')}</h3>
             {editError && <p className={styles.editError}>{editError}</p>}
             <label>
-              Title
+              {t('edit.title')}
               <input name="title" value={editForm.title} onChange={handleEditChange} required maxLength={140} />
             </label>
             <label>
-              Description
+              {t('edit.desc')}
               <textarea name="description" value={editForm.description} onChange={handleEditChange} required maxLength={4000} rows={4} />
             </label>
             <div className={styles.editFormRow}>
               <label>
-                Category
+                {t('edit.category')}
                 <select name="category" value={editForm.category} onChange={handleEditChange} required>
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{tCat(c)}</option>)}
                 </select>
               </label>
               <label>
-                Quantity
+                {t('edit.qty')}
                 <input name="quantity" type="number" value={editForm.quantity} onChange={handleEditChange} required min={1} />
               </label>
             </div>
             <label>
-              Region / Location
+              {t('edit.region')}
               <input name="region" value={editForm.region} onChange={handleEditChange} required maxLength={140} />
             </label>
             <label>
-              Photo
+              {t('edit.photo')}
               {imagePreview
                 ? <div className={styles.editImagePreview}>
                     <img src={imagePreview} alt="Preview" />
-                    <button type="button" className={styles.removeImageBtn} onClick={removeImage}>Remove photo</button>
+                    <button type="button" className={styles.removeImageBtn} onClick={removeImage}>{t('edit.removePhoto')}</button>
                   </div>
                 : <input type="file" accept="image/*" onChange={handleNewImage} className={styles.fileInput} />
               }
@@ -169,10 +170,10 @@ export default function OfferDetail({ id }) {
             </label>
             <div className={styles.editFormActions}>
               <button type="submit" className={styles.saveBtn} disabled={saving}>
-                {saving ? 'Saving…' : 'Save changes'}
+                {saving ? t('edit.saving') : t('edit.save')}
               </button>
               <button type="button" className={styles.cancelBtn} onClick={() => setEditing(false)}>
-                Cancel
+                {t('edit.cancel')}
               </button>
             </div>
           </form>
@@ -181,15 +182,15 @@ export default function OfferDetail({ id }) {
             <p className={styles.description}>{offer.description}</p>
             <dl className={styles.meta}>
               <div>
-                <dt>Region</dt>
+                <dt>{t('detail.region')}</dt>
                 <dd>{offer.region}</dd>
               </div>
               <div>
-                <dt>Quantity available</dt>
+                <dt>{t('detail.qtyAvail')}</dt>
                 <dd>{offer.quantity}</dd>
               </div>
               <div>
-                <dt>Posted</dt>
+                <dt>{t('detail.posted')}</dt>
                 <dd>{new Date(offer.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</dd>
               </div>
             </dl>

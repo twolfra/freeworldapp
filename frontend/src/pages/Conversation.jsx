@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { messages as messagesApi, users } from '../api/client';
+import { t } from '../i18n';
 import styles from './Conversation.module.css';
 
 export default function Conversation({ userId: otherId }) {
@@ -14,7 +15,7 @@ export default function Conversation({ userId: otherId }) {
 
   useEffect(() => {
     if (!currentUser) return;
-    users.get(otherId).then(setOtherUser).catch(() => setError('User not found.'));
+    users.get(otherId).then(setOtherUser).catch(() => setError(t('conv.userNotFound')));
   }, [otherId]);
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export default function Conversation({ userId: otherId }) {
 
     ws.onopen  = () => setWsReady(true);
     ws.onclose = () => { setWsReady(false); wsRef.current = null; };
-    ws.onerror = () => setError('Connection lost. Please refresh to reconnect.');
+    ws.onerror = () => setError(t('conv.connLost'));
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -67,14 +68,14 @@ export default function Conversation({ userId: otherId }) {
 
   if (!currentUser) return (
     <main className={styles.page}>
-      <p className={styles.status}>Please <a href="/login">sign in</a> to send messages.</p>
+      <p className={styles.status}>Please <a href="/login">{t('conv.signInLink')}</a> {t('conv.signIn').replace('Please {link} ', '')}</p>
     </main>
   );
 
   if (currentUser.id === otherId) return (
     <main className={styles.page}>
-      <a href="/messages" className={styles.back}>← Back to Messages</a>
-      <p className={styles.status}>You cannot message yourself.</p>
+      <a href="/messages" className={styles.back}>{t('conv.back')}</a>
+      <p className={styles.status}>{t('conv.cannotSelf')}</p>
     </main>
   );
 
@@ -93,14 +94,14 @@ export default function Conversation({ userId: otherId }) {
 
   return (
     <main className={styles.page}>
-      <a href="/messages" className={styles.back}>← Back to Messages</a>
+      <a href="/messages" className={styles.back}>{t('conv.back')}</a>
       <div className={styles.thread}>
         <div className={styles.threadHeader}>
           @{otherUser?.username ?? '…'}
         </div>
         <div className={styles.messages}>
           {msgs.length === 0 && (
-            <p className={styles.empty}>No messages yet. Say hello!</p>
+            <p className={styles.empty}>{t('conv.noMessages')}</p>
           )}
           {msgs.map((m, i) => (
             <div
@@ -112,7 +113,7 @@ export default function Conversation({ userId: otherId }) {
                 {new Date(m.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
               </time>
               {i === lastReadSentIndex && (
-                <span className={styles.seen}>Seen</span>
+                <span className={styles.seen}>{t('conv.seen')}</span>
               )}
             </div>
           ))}
@@ -124,11 +125,11 @@ export default function Conversation({ userId: otherId }) {
             className={styles.input}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder={wsReady ? 'Write a message…' : 'Connecting…'}
+            placeholder={wsReady ? t('conv.placeholder') : t('conv.connecting')}
             disabled={!wsReady}
           />
           <button className={styles.sendBtn} type="submit" disabled={!wsReady || !content.trim()}>
-            Send
+            {t('conv.send')}
           </button>
         </form>
       </div>

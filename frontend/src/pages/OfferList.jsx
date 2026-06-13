@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { offers as offersApi } from '../api/client';
+import { t, tCat, tp } from '../i18n';
 import styles from './OfferList.module.css';
 
 const PAGE_SIZE = 12;
@@ -20,8 +21,8 @@ export default function OfferList() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p className={styles.status}>Loading offers…</p>;
-  if (error)   return <p className={styles.status}>Could not load offers: {error}</p>;
+  if (loading) return <p className={styles.status}>{t('home.loading')}</p>;
+  if (error)   return <p className={styles.status}>{error}</p>;
 
   const regions = [...new Set(offers.map((o) => o.region))].sort();
   const q = query.trim().toLowerCase();
@@ -45,14 +46,14 @@ export default function OfferList() {
   return (
     <main className={styles.page}>
       <div className={styles.header}>
-        <h2>Offers<span className={styles.count}>{filtered.length} available</span></h2>
-        <a href="/offers/new" className="btn-accent">+ Give something away</a>
+        <h2>{t('offers.heading')}<span className={styles.count}>{tp('offers.count', { n: filtered.length })}</span></h2>
+        <a href="/offers/new" className="btn-accent">{t('offers.cta')}</a>
       </div>
       <div className={styles.filterBar}>
         <input
           className={styles.searchInput}
           type="search"
-          placeholder="Search by title, category…"
+          placeholder={t('list.searchPlaceholder')}
           value={query}
           onChange={handleFilterChange(setQuery)}
           autoComplete="off"
@@ -62,12 +63,12 @@ export default function OfferList() {
           value={region}
           onChange={handleFilterChange(setRegion)}
         >
-          <option value="">All regions</option>
+          <option value="">{t('list.allRegions')}</option>
           {regions.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
       </div>
       {filtered.length === 0
-        ? <p className={styles.empty}>No offers match your search.</p>
+        ? <p className={styles.empty}>{t('offers.noMatch')}</p>
         : <>
             <ul className={styles.grid}>
               {pageItems.map((o) => (
@@ -77,16 +78,16 @@ export default function OfferList() {
                       {o.imageUrl
                         ? <img src={o.imageUrl} className={styles.cardImage} alt={o.title} />
                         : <div className={styles.thumbEmpty}>🎁</div>}
-                      <span className={styles.categoryPill}>{o.category}</span>
+                      <span className={styles.categoryPill}>{tCat(o.category)}</span>
                     </div>
                     <div className={styles.body}>
                       <h3>{o.title}</h3>
                       <p className={styles.desc}>{o.description}</p>
-                      <span className={styles.price}>Free</span>
+                      <span className={styles.price}>{t('offers.priceTag')}</span>
                       <div className={styles.meta}>
                         <span>📍 {o.region}</span>
                         <span className={styles.dot}>·</span>
-                        <span>qty {o.quantity}</span>
+                        <span>{t('list.qty')} {o.quantity}</span>
                       </div>
                     </div>
                   </a>
@@ -99,13 +100,13 @@ export default function OfferList() {
                   className={styles.pageBtn}
                   onClick={() => setPage((p) => p - 1)}
                   disabled={safePage === 1}
-                >← Prev</button>
-                <span className={styles.pageInfo}>Page {safePage} of {totalPages}</span>
+                >{t('list.pagePrev')}</button>
+                <span className={styles.pageInfo}>{tp('list.pageInfo', { n: safePage, total: totalPages })}</span>
                 <button
                   className={styles.pageBtn}
                   onClick={() => setPage((p) => p + 1)}
                   disabled={safePage === totalPages}
-                >Next →</button>
+                >{t('list.pageNext')}</button>
               </div>
             )}
           </>

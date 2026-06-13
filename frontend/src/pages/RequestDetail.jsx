@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { requests as requestsApi, images as imagesApi } from '../api/client';
+import { t, tCat } from '../i18n';
 import styles from './RequestDetail.module.css';
 
 const CATEGORIES = [
@@ -28,8 +29,8 @@ export default function RequestDetail({ id }) {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <p className={styles.status}>Loading…</p>;
-  if (error)   return <p className={styles.status}>Could not load request: {error}</p>;
+  if (loading) return <p className={styles.status}>{t('detail.loading')}</p>;
+  if (error)   return <p className={styles.status}>{t('detail.loadErrRequest')}{error}</p>;
 
   const isOwnPost = currentUser?.id === request.requestedById;
 
@@ -88,80 +89,80 @@ export default function RequestDetail({ id }) {
   }
 
   async function handleDelete() {
-    if (!window.confirm('Delete this request? This cannot be undone.')) return;
+    if (!window.confirm(t('detail.confirmRequest'))) return;
     setDeleting(true);
     try {
       await requestsApi.remove(id);
       window.location.href = '/requests';
     } catch (err) {
-      alert('Could not delete: ' + err.message);
+      alert(t('detail.deleteErr') + err.message);
       setDeleting(false);
     }
   }
 
   return (
     <main className={styles.page}>
-      <a href="/requests" className={styles.back}>← Back to Requests</a>
+      <a href="/requests" className={styles.back}>{t('detail.backRequests')}</a>
       <div className={styles.card}>
         {!editing && request.imageUrl && <img src={request.imageUrl} className={styles.image} alt={request.title} />}
-        <span className={styles.category}>{request.category}</span>
+        <span className={styles.category}>{tCat(request.category)}</span>
         <h1>{request.title}</h1>
         <div className={styles.authorRow}>
-          <span>Posted by</span>
+          <span>{t('detail.postedBy')}</span>
           <a href={`/users/${request.requestedById}`} className={styles.authorLink}>
             @{request.requestedByUsername}
           </a>
           {!isOwnPost && currentUser && (
             <a href={`/messages/${request.requestedById}`} className={styles.contactBtn}>
-              Contact
+              {t('detail.contact')}
             </a>
           )}
           {!currentUser && (
-            <a href="/login" className={styles.contactBtn}>Sign in to contact</a>
+            <a href="/login" className={styles.contactBtn}>{t('detail.signInContact')}</a>
           )}
         </div>
         {isOwnPost && !editing && (
           <div className={styles.ownerActions}>
-            <button className={styles.editBtn} onClick={startEdit}>Edit</button>
+            <button className={styles.editBtn} onClick={startEdit}>{t('detail.edit')}</button>
             <button className={styles.deleteBtn} onClick={handleDelete} disabled={deleting}>
-              {deleting ? 'Deleting…' : 'Delete'}
+              {deleting ? t('detail.deleting') : t('detail.delete')}
             </button>
           </div>
         )}
         {editing ? (
           <form className={styles.editForm} onSubmit={handleSave}>
-            <h3>Edit Request</h3>
+            <h3>{t('edit.request')}</h3>
             {editError && <p className={styles.editError}>{editError}</p>}
             <label>
-              Title
+              {t('edit.title')}
               <input name="title" value={editForm.title} onChange={handleEditChange} required maxLength={140} />
             </label>
             <label>
-              Description
+              {t('edit.desc')}
               <textarea name="description" value={editForm.description} onChange={handleEditChange} required maxLength={4000} rows={4} />
             </label>
             <div className={styles.editFormRow}>
               <label>
-                Category
+                {t('edit.category')}
                 <select name="category" value={editForm.category} onChange={handleEditChange} required>
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{tCat(c)}</option>)}
                 </select>
               </label>
               <label>
-                Quantity
+                {t('edit.qty')}
                 <input name="quantity" type="number" value={editForm.quantity} onChange={handleEditChange} required min={1} />
               </label>
             </div>
             <label>
-              Region / Location
+              {t('edit.region')}
               <input name="region" value={editForm.region} onChange={handleEditChange} required maxLength={140} />
             </label>
             <label>
-              Photo
+              {t('edit.photo')}
               {imagePreview
                 ? <div className={styles.editImagePreview}>
                     <img src={imagePreview} alt="Preview" />
-                    <button type="button" className={styles.removeImageBtn} onClick={removeImage}>Remove photo</button>
+                    <button type="button" className={styles.removeImageBtn} onClick={removeImage}>{t('edit.removePhoto')}</button>
                   </div>
                 : <input type="file" accept="image/*" onChange={handleNewImage} className={styles.fileInput} />
               }
@@ -169,10 +170,10 @@ export default function RequestDetail({ id }) {
             </label>
             <div className={styles.editFormActions}>
               <button type="submit" className={styles.saveBtn} disabled={saving}>
-                {saving ? 'Saving…' : 'Save changes'}
+                {saving ? t('edit.saving') : t('edit.save')}
               </button>
               <button type="button" className={styles.cancelBtn} onClick={() => setEditing(false)}>
-                Cancel
+                {t('edit.cancel')}
               </button>
             </div>
           </form>
@@ -181,15 +182,15 @@ export default function RequestDetail({ id }) {
             <p className={styles.description}>{request.description}</p>
             <dl className={styles.meta}>
               <div>
-                <dt>Region</dt>
+                <dt>{t('detail.region')}</dt>
                 <dd>{request.region}</dd>
               </div>
               <div>
-                <dt>Quantity needed</dt>
+                <dt>{t('detail.qtyNeeded')}</dt>
                 <dd>{request.quantity}</dd>
               </div>
               <div>
-                <dt>Posted</dt>
+                <dt>{t('detail.posted')}</dt>
                 <dd>{new Date(request.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</dd>
               </div>
             </dl>

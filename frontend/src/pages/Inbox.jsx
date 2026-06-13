@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { messages as messagesApi } from '../api/client';
+import { t } from '../i18n';
 import styles from './Inbox.module.css';
 
 export default function Inbox() {
@@ -18,20 +19,22 @@ export default function Inbox() {
 
   if (!currentUser) return (
     <main className={styles.page}>
-      <p className={styles.status}>Please <a href="/login">sign in</a> to view your messages.</p>
+      <p className={styles.status}>
+        Please <a href="/login">{t('inbox.signInLink')}</a> {t('inbox.signIn').replace('Please {link} ', '')}
+      </p>
     </main>
   );
 
-  if (loading) return <p className={styles.status}>Loading…</p>;
+  if (loading) return <p className={styles.status}>{t('detail.loading')}</p>;
   if (error)   return <p className={styles.status}>Error: {error}</p>;
 
   return (
     <main className={styles.page}>
       <div className={styles.header}>
-        <h2>Messages</h2>
+        <h2>{t('inbox.title')}</h2>
       </div>
       {conversations.length === 0 ? (
-        <p className={styles.empty}>No conversations yet. Contact a user from an offer or request page.</p>
+        <p className={styles.empty}>{t('inbox.empty')}</p>
       ) : (
         <ul className={styles.list}>
           {conversations.map((c) => (

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { auth, messages as messagesApi } from '../api/client';
+import { t, getLang, setLang } from '../i18n';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
   const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
   const [unread, setUnread] = useState(0);
+  const lang = getLang();
 
   useEffect(() => {
     if (!currentUser?.token) return;
@@ -44,30 +46,37 @@ export default function Navbar() {
         </a>
 
         <nav className={styles.nav}>
-          <a href="/offers" className={styles.navLink}>Offers</a>
-          <a href="/requests" className={styles.navLink}>Requests</a>
+          <a href="/offers" className={styles.navLink}>{t('nav.offers')}</a>
+          <a href="/requests" className={styles.navLink}>{t('nav.requests')}</a>
           {currentUser && (
             <a href="/messages" className={styles.navLink}>
-              Messages
+              {t('nav.messages')}
               {unread > 0 && <span className={styles.badge}>{unread > 99 ? '99+' : unread}</span>}
             </a>
           )}
-          {currentUser && <a href="/subscriptions" className={styles.navLink}>Following</a>}
+          {currentUser && <a href="/subscriptions" className={styles.navLink}>{t('nav.following')}</a>}
         </nav>
 
         <div className={styles.actions}>
+          <button
+            className={styles.langToggle}
+            onClick={() => setLang(lang === 'de' ? 'en' : 'de')}
+            title={lang === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'}
+          >
+            {lang === 'de' ? 'EN' : 'DE'}
+          </button>
           {currentUser ? (
             <>
               <a href={`/users/${currentUser.id}`} className={styles.userChip}>
                 <span className={styles.avatar}>{currentUser.username.charAt(0).toUpperCase()}</span>
                 <span className={styles.userName}>{currentUser.username}</span>
               </a>
-              <button className={styles.signOut} onClick={signOut} title="Sign out">Sign out</button>
+              <button className={styles.signOut} onClick={signOut} title={t('nav.signOut')}>{t('nav.signOut')}</button>
             </>
           ) : (
             <>
-              <a href="/login" className={styles.navLink}>Sign in</a>
-              <a href="/register" className="btn-secondary">Join</a>
+              <a href="/login" className={styles.navLink}>{t('nav.signIn')}</a>
+              <a href="/register" className="btn-secondary">{t('nav.join')}</a>
             </>
           )}
         </div>

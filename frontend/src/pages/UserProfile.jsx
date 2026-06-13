@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { users, offers as offersApi, requests as requestsApi, subscriptions as subsApi } from '../api/client';
+import { t, tCat } from '../i18n';
 import styles from './UserProfile.module.css';
 
 export default function UserProfile({ id }) {
@@ -28,7 +29,7 @@ export default function UserProfile({ id }) {
         setUser(u); setOffers(o); setReqs(r);
         if (checkRes) setSubscribed(checkRes.subscribed);
       })
-      .catch(() => setError('User not found.'))
+      .catch(() => setError(t('profile.error')))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -48,7 +49,7 @@ export default function UserProfile({ id }) {
     }
   };
 
-  if (loading) return <p className={styles.status}>Loading…</p>;
+  if (loading) return <p className={styles.status}>{t('detail.loading')}</p>;
   if (error)   return <p className={styles.status}>{error}</p>;
 
   const memberSince = new Date(user.createdAt).toLocaleDateString(undefined, {
@@ -61,41 +62,41 @@ export default function UserProfile({ id }) {
         <div className={styles.avatar}>{user.username[0].toUpperCase()}</div>
         <div className={styles.heroInfo}>
           <h1 className={styles.username}>@{user.username}</h1>
-          <p className={styles.since}>Member since {memberSince}</p>
+          <p className={styles.since}>{t('profile.memberSince')} {memberSince}</p>
           <div className={styles.statsRow}>
-            <span className={styles.stat}>{offers.length} offer{offers.length !== 1 ? 's' : ''}</span>
-            <span className={styles.stat}>{reqs.length} request{reqs.length !== 1 ? 's' : ''}</span>
+            <span className={styles.stat}>{offers.length} {offers.length !== 1 ? t('profile.offers') : t('profile.offer')}</span>
+            <span className={styles.stat}>{reqs.length} {reqs.length !== 1 ? t('profile.requests') : t('profile.request')}</span>
             {!isSelf && currentUser && (
               <>
-                <a href={`/messages/${id}`} className={styles.msgBtn}>Contact</a>
+                <a href={`/messages/${id}`} className={styles.msgBtn}>{t('profile.contact')}</a>
                 <button
                   className={subscribed ? styles.subBtnActive : styles.subBtn}
                   onClick={handleSubscribe}
                   disabled={subLoading}
                 >
-                  {subscribed ? 'Subscribed ✓' : 'Subscribe'}
+                  {subscribed ? t('profile.subscribed') : t('profile.subscribe')}
                 </button>
               </>
             )}
             {!isSelf && !currentUser && (
-              <a href="/login" className={styles.msgBtn}>Sign in to contact</a>
+              <a href="/login" className={styles.msgBtn}>{t('profile.signInContact')}</a>
             )}
           </div>
         </div>
       </div>
 
       <section className={styles.section}>
-        <h2>Offers</h2>
+        <h2>{t('profile.offersSection')}</h2>
         {offers.length === 0
-          ? <p className={styles.empty}>No offers yet.</p>
+          ? <p className={styles.empty}>{t('profile.noOffers')}</p>
           : <ul className={styles.grid}>
               {offers.map((o) => (
                 <li key={o.id}>
                   <a href={`/offers/${o.id}`} className={styles.card}>
-                    <span className={styles.category} style={{ color: '#2e7d32' }}>{o.category}</span>
+                    <span className={styles.category} style={{ color: '#2e7d32' }}>{tCat(o.category)}</span>
                     <h3>{o.title}</h3>
                     <p>{o.description}</p>
-                    <footer>{o.region} · qty {o.quantity}</footer>
+                    <footer>{o.region} · {t('list.qty')} {o.quantity}</footer>
                   </a>
                 </li>
               ))}
@@ -104,17 +105,17 @@ export default function UserProfile({ id }) {
       </section>
 
       <section className={styles.section}>
-        <h2>Requests</h2>
+        <h2>{t('profile.requestsSection')}</h2>
         {reqs.length === 0
-          ? <p className={styles.empty}>No requests yet.</p>
+          ? <p className={styles.empty}>{t('profile.noRequests')}</p>
           : <ul className={styles.grid}>
               {reqs.map((r) => (
                 <li key={r.id}>
                   <a href={`/requests/${r.id}`} className={styles.card}>
-                    <span className={styles.category}>{r.category}</span>
+                    <span className={styles.category}>{tCat(r.category)}</span>
                     <h3>{r.title}</h3>
                     <p>{r.description}</p>
-                    <footer>{r.region} · qty {r.quantity}</footer>
+                    <footer>{r.region} · {t('list.qty')} {r.quantity}</footer>
                   </a>
                 </li>
               ))}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { requests, images as imagesApi } from '../api/client';
+import { t, tCat } from '../i18n';
 import styles from './OfferForm.module.css';
 
 const CATEGORIES = [
@@ -21,8 +22,8 @@ export default function RequestForm() {
   if (!currentUser) return (
     <main className={styles.page}>
       <div className={styles.card}>
-        <h2>Sign in first</h2>
-        <p>You need an account to make a request. <a href="/login">Sign in</a> or <a href="/register">join</a>.</p>
+        <h2>{t('form.signInTitle')}</h2>
+        <p>{t('form.signInRequest')} <a href="/login">{t('form.signIn')}</a> or <a href="/register">{t('form.join')}</a>.</p>
       </div>
     </main>
   );
@@ -61,8 +62,8 @@ export default function RequestForm() {
   if (done) return (
     <main className={styles.page}>
       <div className={styles.card}>
-        <h2>Request posted!</h2>
-        <p>Someone in the community may be able to help. <a href="/requests">See all requests</a> or <a href="/requests/new">post another</a>.</p>
+        <h2>{t('requestForm.doneTitle')}</h2>
+        <p>{t('requestForm.doneText')} <a href="/requests">{t('requestForm.doneSee')}</a> or <a href="/requests/new">{t('requestForm.doneAnother')}</a>.</p>
       </div>
     </main>
   );
@@ -70,50 +71,50 @@ export default function RequestForm() {
   return (
     <main className={styles.page}>
       <form className={styles.card} onSubmit={handleSubmit}>
-        <h2 style={{ color: '#1565c0' }}>Make a Request</h2>
-        <p className={styles.sub}>Requesting as <strong>{currentUser.username}</strong></p>
+        <h2 style={{ color: '#1565c0' }}>{t('requestForm.heading')}</h2>
+        <p className={styles.sub}>{t('requestForm.as')} <strong>{currentUser.username}</strong></p>
         {error && <p className={styles.error}>{error}</p>}
 
         <label>
-          Title
-          <input name="title" value={form.title} onChange={handleChange} required maxLength={140} placeholder="What do you need?" />
+          {t('form.title')}
+          <input name="title" value={form.title} onChange={handleChange} required maxLength={140} placeholder={t('requestForm.titlePlaceholder')} />
         </label>
 
         <label>
-          Description
-          <textarea name="description" value={form.description} onChange={handleChange} required maxLength={4000} rows={4} placeholder="Add any details that help someone understand your need." />
+          {t('form.desc')}
+          <textarea name="description" value={form.description} onChange={handleChange} required maxLength={4000} rows={4} placeholder={t('requestForm.descPlaceholder')} />
         </label>
 
         <div className={styles.row}>
           <label>
-            Category
+            {t('form.category')}
             <select name="category" value={form.category} onChange={handleChange} required>
-              <option value="">Select…</option>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              <option value="">{t('form.categoryDefault')}</option>
+              {CATEGORIES.map((c) => <option key={c} value={c}>{tCat(c)}</option>)}
             </select>
           </label>
           <label>
-            Quantity
+            {t('form.qty')}
             <input name="quantity" type="number" value={form.quantity} onChange={handleChange} required min={1} />
           </label>
         </div>
 
         <label>
-          Region / Location
-          <input name="region" value={form.region} onChange={handleChange} required maxLength={140} placeholder="e.g. Berlin, Online, North London" />
+          {t('form.region')}
+          <input name="region" value={form.region} onChange={handleChange} required maxLength={140} placeholder={t('form.regionPlaceholder')} />
         </label>
 
         <label className={styles.photoLabel}>
-          Photo <span className={styles.optional}>(optional)</span>
+          {t('form.photo')} <span className={styles.optional}>{t('form.photoOptional')}</span>
           <input type="file" accept="image/*" onChange={handleImage} className={styles.fileInput} />
           {preview
             ? <img src={preview} className={styles.preview} alt="Preview" />
-            : <div className={styles.photoPlaceholder}>📷 Click to add a photo</div>
+            : <div className={styles.photoPlaceholder}>{t('form.photoPlaceholder')}</div>
           }
         </label>
 
         <button type="submit" className="btn-primary" style={{ background: '#1565c0' }} disabled={submitting}>
-          {submitting ? 'Posting…' : 'Post Request'}
+          {submitting ? t('requestForm.submitting') : t('requestForm.submit')}
         </button>
       </form>
     </main>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { auth } from '../api/client';
+import { t } from '../i18n';
 import styles from './Register.module.css';
 
 export default function Login() {
@@ -23,7 +24,7 @@ export default function Login() {
       if (err.message && err.message.toLowerCase().includes('not verified')) {
         setUnverified(true);
       } else {
-        setError('Invalid username or password.');
+        setError(t('login.badCreds'));
       }
     }
   }
@@ -31,28 +32,28 @@ export default function Login() {
   return (
     <main className={styles.page}>
       <form className={styles.card} onSubmit={handleSubmit}>
-        <h2>Welcome back</h2>
-        <p className={styles.sub}>Sign in to your FreeWorld account.</p>
+        <h2>{t('login.heading')}</h2>
+        <p className={styles.sub}>{t('login.subtitle')}</p>
         {error && <p className={styles.error}>{error}</p>}
         {unverified && (
           <p className={styles.error}>
-            Email not verified.{' '}
+            {t('login.unverified')}{' '}
             <a href="/verify-email?resend=1" style={{ color: '#c62828' }}>
-              Resend verification email
+              {t('login.resend')}
             </a>
           </p>
         )}
         <label>
-          Username
+          {t('login.username')}
           <input name="username" value={form.username} onChange={handleChange} required />
         </label>
         <label>
-          Password
+          {t('login.password')}
           <input name="password" type="password" value={form.password} onChange={handleChange} required />
         </label>
-        <button type="submit" className="btn-primary">Sign In</button>
+        <button type="submit" className="btn-primary">{t('login.submit')}</button>
         <p style={{ fontSize: '0.88rem', textAlign: 'center', color: '#666' }}>
-          No account yet? <a href="/register" style={{ color: '#2e7d32' }}>Join the community</a>
+          {t('login.noAccount')} <a href="/register" style={{ color: '#2e7d32' }}>{t('login.join')}</a>
         </p>
       </form>
     </main>

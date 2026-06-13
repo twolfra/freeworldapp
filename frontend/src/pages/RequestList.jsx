@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { requests as requestsApi } from '../api/client';
+import { t, tCat, tp } from '../i18n';
 import styles from './OfferList.module.css';
 
 const PAGE_SIZE = 12;
@@ -20,8 +21,8 @@ export default function RequestList() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p className={styles.status}>Loading requests…</p>;
-  if (error)   return <p className={styles.status}>Could not load requests: {error}</p>;
+  if (loading) return <p className={styles.status}>{t('home.loading')}</p>;
+  if (error)   return <p className={styles.status}>{error}</p>;
 
   const regions = [...new Set(requests.map((r) => r.region))].sort();
   const q = query.trim().toLowerCase();
@@ -45,14 +46,14 @@ export default function RequestList() {
   return (
     <main className={styles.page}>
       <div className={styles.header}>
-        <h2>Requests<span className={styles.count}>{filtered.length} open</span></h2>
-        <a href="/requests/new" className="btn-accent">+ Ask for something</a>
+        <h2>{t('requests.heading')}<span className={styles.count}>{tp('requests.count', { n: filtered.length })}</span></h2>
+        <a href="/requests/new" className="btn-accent">{t('requests.cta')}</a>
       </div>
       <div className={styles.filterBar}>
         <input
           className={styles.searchInput}
           type="search"
-          placeholder="Search by title, category…"
+          placeholder={t('list.searchPlaceholder')}
           value={query}
           onChange={handleFilterChange(setQuery)}
           autoComplete="off"
@@ -62,12 +63,12 @@ export default function RequestList() {
           value={region}
           onChange={handleFilterChange(setRegion)}
         >
-          <option value="">All regions</option>
+          <option value="">{t('list.allRegions')}</option>
           {regions.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
       </div>
       {filtered.length === 0
-        ? <p className={styles.empty}>No requests match your search.</p>
+        ? <p className={styles.empty}>{t('requests.noMatch')}</p>
         : <>
             <ul className={styles.grid}>
               {pageItems.map((r) => (
@@ -77,16 +78,16 @@ export default function RequestList() {
                       {r.imageUrl
                         ? <img src={r.imageUrl} className={styles.cardImage} alt={r.title} />
                         : <div className={styles.thumbEmpty}>🙋</div>}
-                      <span className={styles.categoryPill} style={{ color: 'var(--blue)' }}>{r.category}</span>
+                      <span className={styles.categoryPill} style={{ color: 'var(--blue)' }}>{tCat(r.category)}</span>
                     </div>
                     <div className={styles.body}>
                       <h3>{r.title}</h3>
                       <p className={styles.desc}>{r.description}</p>
-                      <span className={styles.price} style={{ color: 'var(--blue)' }}>Wanted</span>
+                      <span className={styles.price} style={{ color: 'var(--blue)' }}>{t('requests.priceTag')}</span>
                       <div className={styles.meta}>
                         <span>📍 {r.region}</span>
                         <span className={styles.dot}>·</span>
-                        <span>qty {r.quantity}</span>
+                        <span>{t('list.qty')} {r.quantity}</span>
                       </div>
                     </div>
                   </a>
@@ -99,13 +100,13 @@ export default function RequestList() {
                   className={styles.pageBtn}
                   onClick={() => setPage((p) => p - 1)}
                   disabled={safePage === 1}
-                >← Prev</button>
-                <span className={styles.pageInfo}>Page {safePage} of {totalPages}</span>
+                >{t('list.pagePrev')}</button>
+                <span className={styles.pageInfo}>{tp('list.pageInfo', { n: safePage, total: totalPages })}</span>
                 <button
                   className={styles.pageBtn}
                   onClick={() => setPage((p) => p + 1)}
                   disabled={safePage === totalPages}
-                >Next →</button>
+                >{t('list.pageNext')}</button>
               </div>
             )}
           </>

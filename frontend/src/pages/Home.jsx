@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { offers as offersApi, requests as requestsApi } from '../api/client';
+import { t, tCat } from '../i18n';
 import styles from './Home.module.css';
 
 const CATEGORIES = [
@@ -50,18 +51,18 @@ export default function Home() {
       {/* ── Hero ── */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
-          <h1>Everything here is <span>free</span>.</h1>
-          <p>A community gift economy — no prices, no trades, no money.</p>
+          <h1>{t('home.title')} <span>{t('home.titleAccent')}</span>.</h1>
+          <p>{t('home.subtitle')}</p>
           <form className={styles.searchBar} onSubmit={search}>
             <span className={styles.searchIcon}>🔍</span>
             <input
               type="search"
-              placeholder="Search offers, categories, locations…"
+              placeholder={t('home.searchPlaceholder')}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               autoComplete="off"
             />
-            <button type="submit" className="btn-primary">Search</button>
+            <button type="submit" className="btn-primary">{t('home.searchBtn')}</button>
           </form>
         </div>
       </section>
@@ -73,13 +74,13 @@ export default function Home() {
         <aside className={styles.sidebar}>
 
           <div className={styles.sideBox}>
-            <h3 className={styles.sideTitle}>Categories</h3>
+            <h3 className={styles.sideTitle}>{t('home.categories')}</h3>
             <ul className={styles.catList}>
               {CATEGORIES.map((c) => (
                 <li key={c.name}>
                   <a href={`/offers?q=${encodeURIComponent(c.name)}`} className={styles.catRow}>
                     <span className={styles.catEmoji}>{c.icon}</span>
-                    <span>{c.name}</span>
+                    <span>{tCat(c.name)}</span>
                   </a>
                 </li>
               ))}
@@ -87,22 +88,22 @@ export default function Home() {
           </div>
 
           <div className={styles.sideBox}>
-            <h3 className={styles.sideTitle}>Community stats</h3>
+            <h3 className={styles.sideTitle}>{t('home.stats')}</h3>
             <div className={styles.stats}>
               <a href="/offers" className={styles.stat}>
                 <span className={styles.statNum} style={{ color: 'var(--green)' }}>{counts.offers}</span>
-                <span className={styles.statLabel}>free offers</span>
+                <span className={styles.statLabel}>{t('home.statOffers')}</span>
               </a>
               <a href="/requests" className={styles.stat}>
                 <span className={styles.statNum} style={{ color: 'var(--blue)' }}>{counts.requests}</span>
-                <span className={styles.statLabel}>open requests</span>
+                <span className={styles.statLabel}>{t('home.statRequests')}</span>
               </a>
             </div>
           </div>
 
           <div className={styles.sideCtas}>
-            <a href="/offers/new" className="btn-accent" style={{ width: '100%' }}>🎁 Give something away</a>
-            <a href="/requests/new" className="btn-secondary" style={{ width: '100%' }}>🙋 Ask for something</a>
+            <a href="/offers/new" className="btn-accent" style={{ width: '100%' }}>{t('home.give')}</a>
+            <a href="/requests/new" className="btn-secondary" style={{ width: '100%' }}>{t('home.ask')}</a>
           </div>
 
         </aside>
@@ -110,17 +111,17 @@ export default function Home() {
         {/* Main — recent listings */}
         <div className={styles.main}>
           <div className={styles.mainHeader}>
-            <h2 className={styles.mainTitle}>Recent listings</h2>
+            <h2 className={styles.mainTitle}>{t('home.recent')}</h2>
             <div className={styles.mainLinks}>
-              <a href="/offers" className={styles.viewAll}>All offers →</a>
-              <a href="/requests" className={styles.viewAllBlue}>All requests →</a>
+              <a href="/offers" className={styles.viewAll}>{t('home.allOffers')}</a>
+              <a href="/requests" className={styles.viewAllBlue}>{t('home.allRequests')}</a>
             </div>
           </div>
 
           {loading ? (
-            <p className={styles.empty}>Loading…</p>
+            <p className={styles.empty}>{t('home.loading')}</p>
           ) : recent.length === 0 ? (
-            <p className={styles.empty}>No listings yet — be the first to give something!</p>
+            <p className={styles.empty}>{t('home.empty')}</p>
           ) : (
             <div className={styles.grid}>
               {recent.map((item) => {
@@ -141,11 +142,11 @@ export default function Home() {
                       <span
                         className={styles.catPill}
                         style={{ color: isOffer ? 'var(--green-dark)' : 'var(--blue)' }}
-                      >{item.category}</span>
+                      >{tCat(item.category)}</span>
                       <span
                         className={styles.typeBadge}
                         style={{ background: isOffer ? 'var(--green)' : 'var(--blue)' }}
-                      >{isOffer ? 'Free' : 'Wanted'}</span>
+                      >{isOffer ? t('home.free') : t('home.wanted')}</span>
                     </div>
                     <div className={styles.body}>
                       <h3>{item.title}</h3>
@@ -153,7 +154,7 @@ export default function Home() {
                       <div className={styles.meta}>
                         <span>📍 {item.region}</span>
                         <span className={styles.dot}>·</span>
-                        <span>qty {item.quantity}</span>
+                        <span>{t('list.qty')} {item.quantity}</span>
                       </div>
                     </div>
                   </a>
