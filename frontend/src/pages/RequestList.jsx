@@ -5,8 +5,9 @@ import styles from './OfferList.module.css';
 const PAGE_SIZE = 12;
 
 export default function RequestList() {
+  const initialQuery = new URLSearchParams(window.location.search).get('q') || '';
   const [requests, setRequests] = useState([]);
-  const [query, setQuery]       = useState('');
+  const [query, setQuery]       = useState(initialQuery);
   const [region, setRegion]     = useState('');
   const [page, setPage]         = useState(1);
   const [loading, setLoading]   = useState(true);
@@ -44,8 +45,8 @@ export default function RequestList() {
   return (
     <main className={styles.page}>
       <div className={styles.header}>
-        <h2>Community Requests</h2>
-        <a href="/requests/new" className="btn-primary" style={{ borderRadius: 6, background: '#1565c0', color: '#fff', padding: '0.5rem 1.2rem', fontFamily: 'inherit' }}>+ Make a Request</a>
+        <h2>Requests<span className={styles.count}>{filtered.length} open</span></h2>
+        <a href="/requests/new" className="btn-accent">+ Ask for something</a>
       </div>
       <div className={styles.filterBar}>
         <input
@@ -72,11 +73,22 @@ export default function RequestList() {
               {pageItems.map((r) => (
                 <li key={r.id}>
                   <a href={`/requests/${r.id}`} className={styles.card}>
-                    {r.imageUrl && <img src={r.imageUrl} className={styles.cardImage} alt={r.title} />}
-                    <span className={styles.category} style={{ color: '#1565c0' }}>{r.category}</span>
-                    <h3>{r.title}</h3>
-                    <p>{r.description}</p>
-                    <footer>{r.region} · qty {r.quantity}</footer>
+                    <div className={styles.thumb} style={{ background: 'var(--blue-light)' }}>
+                      {r.imageUrl
+                        ? <img src={r.imageUrl} className={styles.cardImage} alt={r.title} />
+                        : <div className={styles.thumbEmpty}>🙋</div>}
+                      <span className={styles.categoryPill} style={{ color: 'var(--blue)' }}>{r.category}</span>
+                    </div>
+                    <div className={styles.body}>
+                      <h3>{r.title}</h3>
+                      <p className={styles.desc}>{r.description}</p>
+                      <span className={styles.price} style={{ color: 'var(--blue)' }}>Wanted</span>
+                      <div className={styles.meta}>
+                        <span>📍 {r.region}</span>
+                        <span className={styles.dot}>·</span>
+                        <span>qty {r.quantity}</span>
+                      </div>
+                    </div>
                   </a>
                 </li>
               ))}

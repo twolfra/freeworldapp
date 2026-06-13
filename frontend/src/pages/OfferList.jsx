@@ -5,8 +5,9 @@ import styles from './OfferList.module.css';
 const PAGE_SIZE = 12;
 
 export default function OfferList() {
+  const initialQuery = new URLSearchParams(window.location.search).get('q') || '';
   const [offers, setOffers]   = useState([]);
-  const [query, setQuery]     = useState('');
+  const [query, setQuery]     = useState(initialQuery);
   const [region, setRegion]   = useState('');
   const [page, setPage]       = useState(1);
   const [loading, setLoading] = useState(true);
@@ -44,8 +45,8 @@ export default function OfferList() {
   return (
     <main className={styles.page}>
       <div className={styles.header}>
-        <h2>Community Offers</h2>
-        <a href="/offers/new" className="btn-primary" style={{ borderRadius: 6, background: '#2e7d32', color: '#fff', padding: '0.5rem 1.2rem', fontFamily: 'inherit' }}>+ Make an Offer</a>
+        <h2>Offers<span className={styles.count}>{filtered.length} available</span></h2>
+        <a href="/offers/new" className="btn-accent">+ Give something away</a>
       </div>
       <div className={styles.filterBar}>
         <input
@@ -72,11 +73,22 @@ export default function OfferList() {
               {pageItems.map((o) => (
                 <li key={o.id}>
                   <a href={`/offers/${o.id}`} className={styles.card}>
-                    {o.imageUrl && <img src={o.imageUrl} className={styles.cardImage} alt={o.title} />}
-                    <span className={styles.category}>{o.category}</span>
-                    <h3>{o.title}</h3>
-                    <p>{o.description}</p>
-                    <footer>{o.region} · qty {o.quantity}</footer>
+                    <div className={styles.thumb}>
+                      {o.imageUrl
+                        ? <img src={o.imageUrl} className={styles.cardImage} alt={o.title} />
+                        : <div className={styles.thumbEmpty}>🎁</div>}
+                      <span className={styles.categoryPill}>{o.category}</span>
+                    </div>
+                    <div className={styles.body}>
+                      <h3>{o.title}</h3>
+                      <p className={styles.desc}>{o.description}</p>
+                      <span className={styles.price}>Free</span>
+                      <div className={styles.meta}>
+                        <span>📍 {o.region}</span>
+                        <span className={styles.dot}>·</span>
+                        <span>qty {o.quantity}</span>
+                      </div>
+                    </div>
                   </a>
                 </li>
               ))}

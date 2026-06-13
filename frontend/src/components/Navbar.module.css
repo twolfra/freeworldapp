@@ -1,65 +1,130 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  height: 64px;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* ---- Brand ---- */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.logoMark {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.logoText {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--green-dark);
+}
+.logoText span { color: var(--accent); }
+
+/* ---- Nav ---- */
 .nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 2rem;
-  height: 56px;
-  background: #2e7d32;
-  color: #fff;
+  gap: 0.4rem;
+  margin-right: auto;
 }
 
-.brand {
-  font-size: 1.2rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.links {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.95rem;
-}
-
-.links a:hover { text-decoration: underline; }
-
-.userChip {
-  padding: 0.2rem 0.7rem;
-  background: rgba(255,255,255,0.2);
-  border-radius: 20px;
-  font-weight: 600;
-}
-
-.messagesLink {
+.navLink {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
+  transition: background 0.15s, color 0.15s;
 }
+.navLink:hover { background: var(--green-light); color: var(--green-dark); }
 
 .badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #e53935;
+  background: var(--accent);
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   min-width: 18px;
   height: 18px;
   border-radius: 9px;
-  padding: 0 4px;
+  padding: 0 5px;
   line-height: 1;
 }
 
-.signOutBtn {
-  background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.4);
-  color: #fff;
-  border-radius: 6px;
-  padding: 0.2rem 0.7rem;
-  font-size: 0.9rem;
-  font-family: inherit;
-  cursor: pointer;
+/* ---- Right actions ---- */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-shrink: 0;
 }
 
-.signOutBtn:hover { background: rgba(255,255,255,0.25); }
+.userChip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.7rem 0.25rem 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+.userChip:hover { border-color: var(--green); background: var(--green-light); }
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.userName { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.signOut {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.4rem 0.3rem;
+}
+.signOut:hover { color: var(--ink); text-decoration: underline; }
+
+/* ---- Responsive ---- */
+@media (max-width: 760px) {
+  .inner { gap: 0.75rem; padding: 0 0.9rem; }
+  .nav { gap: 0; }
+  .navLink { padding: 0.5rem 0.55rem; font-size: 0.88rem; }
+  .userName, .signOut { display: none; }
+  .logoText { display: none; }
+}

@@ -36,29 +36,44 @@ export default function Navbar() {
   }
 
   return (
-    <nav className={styles.nav}>
-      <a href="/" className={styles.brand}>🌍 FreeWorld</a>
-      <div className={styles.links}>
-        <a href="/offers">Offers</a>
-        <a href="/requests">Requests</a>
-        <a href="/offers/new">Make an Offer</a>
-        <a href="/requests/new">Make a Request</a>
-        {currentUser && (
-          <a href="/messages" className={styles.messagesLink}>
-            Messages
-            {unread > 0 && <span className={styles.badge}>{unread > 99 ? '99+' : unread}</span>}
-          </a>
-        )}
-        {currentUser && <a href="/subscriptions">Subscriptions</a>}
-        {!currentUser && <a href="/login">Sign In</a>}
-        {!currentUser && <a href="/register">Join</a>}
-        {currentUser && (
-          <a href={`/users/${currentUser.id}`} className={styles.userChip}>@{currentUser.username}</a>
-        )}
-        {currentUser && (
-          <button className={styles.signOutBtn} onClick={signOut}>Sign out</button>
-        )}
+    <header className={styles.header}>
+      <div className={styles.inner}>
+        <a href="/" className={styles.brand}>
+          <span className={styles.logoMark}>🌍</span>
+          <span className={styles.logoText}>Free<span>World</span></span>
+        </a>
+
+        <nav className={styles.nav}>
+          <a href="/offers" className={styles.navLink}>Offers</a>
+          <a href="/requests" className={styles.navLink}>Requests</a>
+          {currentUser && (
+            <a href="/messages" className={styles.navLink}>
+              Messages
+              {unread > 0 && <span className={styles.badge}>{unread > 99 ? '99+' : unread}</span>}
+            </a>
+          )}
+          {currentUser && <a href="/subscriptions" className={styles.navLink}>Following</a>}
+        </nav>
+
+        <div className={styles.actions}>
+          {currentUser ? (
+            <>
+              <a href={`/users/${currentUser.id}`} className={styles.userChip}>
+                <span className={styles.avatar}>{currentUser.username.charAt(0).toUpperCase()}</span>
+                <span className={styles.userName}>{currentUser.username}</span>
+              </a>
+              <button className={styles.signOut} onClick={signOut} title="Sign out">Sign out</button>
+              <a href="/offers/new" className="btn-accent">+ Give something</a>
+            </>
+          ) : (
+            <>
+              <a href="/login" className={styles.navLink}>Sign in</a>
+              <a href="/register" className="btn-secondary">Join</a>
+              <a href="/offers/new" className="btn-accent">+ Give something</a>
+            </>
+          )}
+        </div>
       </div>
-    </nav>
+    </header>
   );
 }
