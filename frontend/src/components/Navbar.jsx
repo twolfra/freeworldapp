@@ -63,13 +63,11 @@ export default function Navbar() {
                 <span className={styles.userName}>{currentUser.username}</span>
               </a>
               <button className={styles.signOut} onClick={signOut} title="Sign out">Sign out</button>
-              <a href="/offers/new" className="btn-accent">+ Give something</a>
             </>
           ) : (
             <>
               <a href="/login" className={styles.navLink}>Sign in</a>
               <a href="/register" className="btn-secondary">Join</a>
-              <a href="/offers/new" className="btn-accent">+ Give something</a>
             </>
           )}
         </div>
