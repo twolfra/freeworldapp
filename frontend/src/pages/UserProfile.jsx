@@ -61,7 +61,7 @@ export default function UserProfile({ id }) {
       <div className={styles.hero}>
         <div className={styles.avatar}>{user.username[0].toUpperCase()}</div>
         <div className={styles.heroInfo}>
-          <h1 className={styles.username}>@{user.username}</h1>
+          <h1 className={styles.username}>{user.username}</h1>
           <p className={styles.since}>{t('profile.memberSince')} {memberSince}</p>
           <div className={styles.statsRow}>
             <span className={styles.stat}>{offers.length} {offers.length !== 1 ? t('profile.offers') : t('profile.offer')}</span>

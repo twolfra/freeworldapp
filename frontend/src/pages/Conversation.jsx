@@ -97,7 +97,7 @@ export default function Conversation({ userId: otherId }) {
       <a href="/messages" className={styles.back}>{t('conv.back')}</a>
       <div className={styles.thread}>
         <div className={styles.threadHeader}>
-          @{otherUser?.username ?? '…'}
+          {otherUser?.username ?? '…'}
         </div>
         <div className={styles.messages}>
           {msgs.length === 0 && (

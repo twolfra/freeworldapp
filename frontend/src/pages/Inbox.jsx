@@ -42,7 +42,7 @@ export default function Inbox() {
               <a href={`/messages/${c.userId}`} className={`${styles.row} ${c.unreadCount > 0 ? styles.unread : ''}`}>
                 <div className={styles.avatar}>{c.username[0].toUpperCase()}</div>
                 <div className={styles.info}>
-                  <span className={styles.username}>@{c.username}</span>
+                  <span className={styles.username}>{c.username}</span>
                   <span className={styles.preview}>{c.lastMessage}</span>
                 </div>
                 <div className={styles.meta}>

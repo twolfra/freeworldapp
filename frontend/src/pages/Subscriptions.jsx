@@ -59,7 +59,7 @@ export default function Subscriptions() {
                       </span>
                       <span className={styles.category}>{tCat(item.category)}</span>
                       <span className={styles.meta}>
-                        by <a href={`/users/${item.authorId}`} className={styles.authorLink} onClick={(e) => e.stopPropagation()}>@{item.authorUsername}</a>
+                        by <a href={`/users/${item.authorId}`} className={styles.authorLink} onClick={(e) => e.stopPropagation()}>{item.authorUsername}</a>
                         {' · '}
                         {new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
