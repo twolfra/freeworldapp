@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { offers as offersApi, images as imagesApi } from '../api/client';
+import { offers as offersApi, images as imagesApi, likes as likesApi } from '../api/client';
 import { t, tCat } from '../i18n';
 import styles from './RequestDetail.module.css';
 
@@ -20,6 +20,8 @@ export default function OfferDetail({ id }) {
   const [editError, setEditError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
   const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
 
   useEffect(() => {
@@ -28,6 +30,17 @@ export default function OfferDetail({ id }) {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (currentUser) {
+      likesApi.check('offer', id)
+        .then((data) => {
+          setLiked(data.liked);
+          setLikeCount(data.count);
+        })
+        .catch(() => {});
+    }
+  }, [id, currentUser]);
 
   if (loading) return <p className={styles.status}>{t('detail.loading')}</p>;
   if (error)   return <p className={styles.status}>{t('detail.loadErrOffer')}{error}</p>;
@@ -100,6 +113,26 @@ export default function OfferDetail({ id }) {
     }
   }
 
+  async function toggleLike() {
+    if (!currentUser) {
+      window.location.href = '/login';
+      return;
+    }
+    try {
+      if (liked) {
+        await likesApi.unlike('offer', id);
+        setLiked(false);
+        setLikeCount(c => c - 1);
+      } else {
+        await likesApi.like('offer', id);
+        setLiked(true);
+        setLikeCount(c => c + 1);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   return (
     <main className={styles.page}>
       <a href="/offers" className={styles.back} style={{ color: '#2e7d32' }}>{t('detail.backOffers')}</a>
@@ -120,6 +153,21 @@ export default function OfferDetail({ id }) {
           {!currentUser && (
             <a href="/login" className={styles.contactBtn}>{t('detail.signInContact')}</a>
           )}
+          <button
+            onClick={toggleLike}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              marginLeft: 'auto',
+              color: liked ? '#dc2626' : '#999',
+              fontWeight: 'bold',
+            }}
+            title={liked ? 'Unlike' : 'Like'}
+          >
+            {liked ? '❤' : '🤍'} {likeCount}
+          </button>
         </div>
         {isOwnPost && !editing && (
           <div className={styles.ownerActions}>

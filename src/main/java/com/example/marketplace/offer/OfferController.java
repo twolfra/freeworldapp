@@ -2,6 +2,8 @@ package com.example.marketplace.offer;
 
 import com.example.marketplace.auth.SecurityContext;
 import com.example.marketplace.image.StorageService;
+import com.example.marketplace.like.Like;
+import com.example.marketplace.like.LikeRepository;
 import com.example.marketplace.offer.dto.OfferDtos;
 import com.example.marketplace.user.UserRepository;
 import jakarta.validation.Valid;
@@ -20,11 +22,13 @@ public class OfferController {
     private final OfferRepository offerRepo;
     private final UserRepository userRepo;
     private final StorageService storage;
+    private final LikeRepository likeRepo;
 
-    public OfferController(OfferRepository offerRepo, UserRepository userRepo, StorageService storage) {
+    public OfferController(OfferRepository offerRepo, UserRepository userRepo, StorageService storage, LikeRepository likeRepo) {
         this.offerRepo = offerRepo;
         this.userRepo = userRepo;
         this.storage = storage;
+        this.likeRepo = likeRepo;
     }
 
     @PostMapping
@@ -98,6 +102,7 @@ public class OfferController {
                     if (!o.getOfferedBy().getId().equals(callerId))
                         return ResponseEntity.status(403).<Void>build();
                     String imageUrl = o.getImageUrl();
+                    likeRepo.deleteAllByTargetTypeAndTargetId(Like.TargetType.OFFER, id);
                     offerRepo.delete(o);
                     storage.delete(imageUrl);
                     return ResponseEntity.noContent().<Void>build();

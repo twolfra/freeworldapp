@@ -76,6 +76,7 @@ public class AuthFilter extends OncePerRequestFilter {
     private boolean isSensitivePath(String path) {
         return path.startsWith("/api/messages/conversation")
             || path.startsWith("/api/messages/unread-count")
+            || path.startsWith("/api/likes")
             || path.equals("/api/subscriptions/feed");
     }
 

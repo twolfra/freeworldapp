@@ -4,6 +4,7 @@ import com.example.marketplace.auth.SecurityContext;
 import com.example.marketplace.auth.SessionRepository;
 import com.example.marketplace.email.EmailService;
 import com.example.marketplace.image.StorageService;
+import com.example.marketplace.like.LikeRepository;
 import com.example.marketplace.message.MessageRepository;
 import com.example.marketplace.offer.OfferRepository;
 import com.example.marketplace.request.RequestRepository;
@@ -36,11 +37,12 @@ public class UserController {
     private final OfferRepository offerRepo;
     private final RequestRepository requestRepo;
     private final StorageService storageService;
+    private final LikeRepository likeRepo;
 
     public UserController(UserRepository userRepo, PasswordEncoder encoder, EmailService emailService,
                           SessionRepository sessionRepo, MessageRepository messageRepo,
                           SubscriptionRepository subscriptionRepo, OfferRepository offerRepo,
-                          RequestRepository requestRepo, StorageService storageService) {
+                          RequestRepository requestRepo, StorageService storageService, LikeRepository likeRepo) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.emailService = emailService;
@@ -50,6 +52,7 @@ public class UserController {
         this.offerRepo = offerRepo;
         this.requestRepo = requestRepo;
         this.storageService = storageService;
+        this.likeRepo = likeRepo;
     }
 
     @PostMapping
@@ -116,6 +119,7 @@ public class UserController {
         sessionRepo.deleteByUser_Id(id);
         subscriptionRepo.deleteAllInvolvingUser(id);
         messageRepo.deleteAllInvolvingUser(id);
+        likeRepo.deleteAllByUserId(id);
         offerRepo.deleteAll(offerRepo.findByOfferedBy_Id(id));
         requestRepo.deleteAll(requestRepo.findByRequestedBy_Id(id));
         userRepo.deleteById(id);

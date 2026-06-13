@@ -54,6 +54,7 @@ export default function Navbar() {
             </a>
           )}
           {currentUser && <a href="/subscriptions" className={styles.navLink}>{t('nav.following')}</a>}
+          {currentUser && <a href="/likes" className={styles.navLink}>{t('nav.likes')}</a>}
         </nav>
 
         <div className={styles.actions}>

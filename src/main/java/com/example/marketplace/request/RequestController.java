@@ -2,6 +2,8 @@ package com.example.marketplace.request;
 
 import com.example.marketplace.auth.SecurityContext;
 import com.example.marketplace.image.StorageService;
+import com.example.marketplace.like.Like;
+import com.example.marketplace.like.LikeRepository;
 import com.example.marketplace.request.dto.RequestDtos;
 import com.example.marketplace.user.UserRepository;
 import jakarta.validation.Valid;
@@ -20,11 +22,13 @@ public class RequestController {
     private final RequestRepository requestRepo;
     private final UserRepository userRepo;
     private final StorageService storage;
+    private final LikeRepository likeRepo;
 
-    public RequestController(RequestRepository requestRepo, UserRepository userRepo, StorageService storage) {
+    public RequestController(RequestRepository requestRepo, UserRepository userRepo, StorageService storage, LikeRepository likeRepo) {
         this.requestRepo = requestRepo;
         this.userRepo = userRepo;
         this.storage = storage;
+        this.likeRepo = likeRepo;
     }
 
     @PostMapping
@@ -97,6 +101,7 @@ public class RequestController {
                     if (!r.getRequestedBy().getId().equals(callerId))
                         return ResponseEntity.status(403).<Void>build();
                     String imageUrl = r.getImageUrl();
+                    likeRepo.deleteAllByTargetTypeAndTargetId(Like.TargetType.REQUEST, id);
                     requestRepo.delete(r);
                     storage.delete(imageUrl);
                     return ResponseEntity.noContent().<Void>build();

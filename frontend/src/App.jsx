@@ -10,6 +10,7 @@ import Inbox from './pages/Inbox';
 import Conversation from './pages/Conversation';
 import UserProfile from './pages/UserProfile';
 import Subscriptions from './pages/Subscriptions';
+import Likes from './pages/Likes';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import VerifyEmail from './pages/VerifyEmail';
@@ -23,6 +24,7 @@ function resolve(path) {
     '/requests/new': RequestForm,
     '/messages': Inbox,
     '/subscriptions': Subscriptions,
+    '/likes': Likes,
     '/register': Register,
     '/login': Login,
     '/verify-email': VerifyEmail,

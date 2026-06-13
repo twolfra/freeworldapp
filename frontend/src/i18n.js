@@ -28,7 +28,7 @@ const T = {
   en: {
     // Navbar
     'nav.offers': 'Offers', 'nav.requests': 'Requests',
-    'nav.messages': 'Messages', 'nav.following': 'Following',
+    'nav.messages': 'Messages', 'nav.following': 'Following', 'nav.likes': 'Likes',
     'nav.signIn': 'Sign in', 'nav.join': 'Join', 'nav.signOut': 'Sign out',
 
     // Home
@@ -170,6 +170,11 @@ const T = {
     'verify.sent': 'Verification email sent — check your inbox.',
     'verify.error': 'Something went wrong. Please try again.',
 
+    // Likes
+    'likes.title': 'Likes',
+    'likes.signIn': 'Please {link} to see your likes.',
+    'likes.empty': 'No liked posts yet. Browse offers or requests and like posts you love.',
+
     // Conversation
     'conv.back': '← Back to Messages',
     'conv.cannotSelf': 'You cannot message yourself.',
@@ -190,7 +195,7 @@ const T = {
   de: {
     // Navbar
     'nav.offers': 'Angebote', 'nav.requests': 'Gesuche',
-    'nav.messages': 'Nachrichten', 'nav.following': 'Abonniert',
+    'nav.messages': 'Nachrichten', 'nav.following': 'Abonniert', 'nav.likes': 'Likes',
     'nav.signIn': 'Anmelden', 'nav.join': 'Registrieren', 'nav.signOut': 'Abmelden',
 
     // Home
@@ -331,6 +336,11 @@ const T = {
     'verify.resendBtn': 'Bestätigungslink senden', 'verify.sending': 'Wird gesendet…',
     'verify.sent': 'Bestätigungslink gesendet — E-Mails prüfen.',
     'verify.error': 'Ein Fehler ist aufgetreten. Bitte erneut versuchen.',
+
+    // Likes
+    'likes.title': 'Likes',
+    'likes.signIn': 'Bitte {link}, um deine Likes zu sehen.',
+    'likes.empty': 'Keine Likes noch. Angebote oder Gesuche durchstöbern und Einträge liken, die dir gefallen.',
 
     // Conversation
     'conv.back': '← Zurück zu Nachrichten',

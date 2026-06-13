@@ -103,3 +103,11 @@ export const messages = {
   markRead:         (userId, otherId)  => request(`/messages/mark-read?userId=${userId}&otherId=${otherId}`, { method: 'POST' }),
   getUnreadCount:   (userId)           => request(`/messages/unread-count?userId=${userId}`),
 };
+
+export const likes = {
+  like:    (targetType, targetId) => request(`/likes?targetType=${targetType}&targetId=${targetId}`, { method: 'POST' }),
+  unlike:  (targetType, targetId) => request(`/likes?targetType=${targetType}&targetId=${targetId}`, { method: 'DELETE' }),
+  check:   (targetType, targetId) => request(`/likes/check?targetType=${targetType}&targetId=${targetId}`),
+  getUserLikes: (userId, targetType) =>
+    request(`/likes?userId=${userId}${targetType ? `&targetType=${targetType}` : ''}`),
+};
