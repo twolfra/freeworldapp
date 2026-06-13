@@ -91,6 +91,7 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 | `/subscriptions` | Subscriptions |
 | `/register` | Register |
 | `/login` | Login |
+| `/verify-email` | VerifyEmail |
 
 ---
 
@@ -99,8 +100,10 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 ### Auth
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/api/auth/login` | `{ username, password }` → UserResponse (includes `token`) or 401 |
+| POST | `/api/auth/login` | `{ username, password }` → UserResponse (includes `token`) or 401 (bad creds) or 403 (unverified email) |
 | POST | `/api/auth/logout` | Deletes server-side session; `X-Session-Token` header (no body needed) |
+| GET | `/api/auth/verify?token=` | Verifies email token; 200 on success, 404 invalid, 410 expired |
+| POST | `/api/auth/resend-verification` | `{ email }` → always 200; sends new link if email is registered and unverified |
 
 ### Users
 | Method | Path | Notes |
@@ -161,7 +164,9 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 ## Database schema (auto-managed by Hibernate)
 
 ```
-users           id(uuid PK), username(32), email(255), passwordHash(60), createdAt
+users           id(uuid PK), username(32), email(255), passwordHash(60), createdAt,
+                emailVerified(bool DEFAULT false), verificationToken(36 nullable),
+                verificationTokenExpiresAt(timestamp nullable)
 sessions        id(uuid PK), token(36 unique), user_id(FK→users), createdAt, expiresAt
 offers          id, title(140), description(4000), region(140), category(140),
                 quantity(int), image_url(500 nullable), offered_by_id(FK→users), createdAt
@@ -219,6 +224,7 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 - [x] Orphaned image cleanup — `StorageService` gains a `delete(url)` method; `OfferController` and `RequestController` call it on delete and on update when the image changes or is removed
 - [x] DB credentials from environment — `application.yml` now reads `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `PORT`, and `CORS_ALLOWED_ORIGINS` with safe localhost defaults for dev
 - [x] Subscription feed auth — `GET /api/subscriptions/feed` added to `AuthFilter`'s sensitive-path list; `SubscriptionController.feed()` verifies `subscriberId` matches the session owner
+- [x] Email verification — new accounts are unverified; `UserController.create()` issues a UUID token (24h expiry) and calls `EmailService.sendVerificationEmail()`; in dev without SMTP the link is logged to console; `GET /api/auth/verify?token=` verifies the account; `POST /api/auth/resend-verification` resends the link; login returns 403 for unverified accounts; `EmailVerificationMigration` auto-verifies legacy users (emailVerified=false AND verificationToken=null) on startup; configure SMTP via `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM`, `BASE_URL` env vars
 
 ---
 
@@ -226,6 +232,5 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 
 - WebSocket token visible in query params — `WebSocket` API shares the same limitation as `EventSource`; token appears in server access logs; acceptable trade-off until HTTP header auth is possible
 - Images are stored on local disk — swap `LocalStorageService` for an S3/GCS bean to make deployment stateless
-- No email verification — accounts are active immediately after registration; a bad actor can register with any email address
 - Rate limiter state is in-memory and per-instance — resets on restart and doesn't share across multiple backend nodes; replace with Redis-backed Bucket4j for production
 - User deletion leaves orphaned sessions, subscriptions, messages — add `ON DELETE CASCADE` to FK constraints or handle cleanup in `UserController.delete()`

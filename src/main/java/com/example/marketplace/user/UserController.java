@@ -1,6 +1,7 @@
 package com.example.marketplace.user;
 
 import com.example.marketplace.auth.SecurityContext;
+import com.example.marketplace.email.EmailService;
 import com.example.marketplace.user.dto.UserDtos;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +9,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -19,10 +22,12 @@ public class UserController {
 
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
+    private final EmailService emailService;
 
-    public UserController(UserRepository userRepo, PasswordEncoder encoder) {
+    public UserController(UserRepository userRepo, PasswordEncoder encoder, EmailService emailService) {
         this.userRepo = userRepo;
         this.encoder = encoder;
+        this.emailService = emailService;
     }
 
     @PostMapping
@@ -32,11 +37,18 @@ public class UserController {
         if (userRepo.existsByEmail(in.email))
             return ResponseEntity.badRequest().body(Map.of("error", "Email already registered."));
 
+        String token = UUID.randomUUID().toString();
+
         User u = new User();
         u.setUsername(in.username);
         u.setEmail(in.email);
         u.setPasswordHash(encoder.encode(in.password));
+        u.setEmailVerified(false);
+        u.setVerificationToken(token);
+        u.setVerificationTokenExpiresAt(Instant.now().plus(24, ChronoUnit.HOURS));
         u = userRepo.save(u);
+
+        emailService.sendVerificationEmail(u.getEmail(), token);
 
         return ResponseEntity.created(URI.create("/api/users/" + u.getId()))
                 .body(toPublicResponse(u));

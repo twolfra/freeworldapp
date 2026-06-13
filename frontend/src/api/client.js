@@ -48,8 +48,10 @@ async function request(path, options = {}) {
 }
 
 export const auth = {
-  login:  (body) => request('/auth/login',  { method: 'POST', body: JSON.stringify(body) }),
-  logout: ()     => request('/auth/logout', { method: 'POST' }),
+  login:               (body)  => request('/auth/login',  { method: 'POST', body: JSON.stringify(body) }),
+  logout:              ()      => request('/auth/logout', { method: 'POST' }),
+  verify:              (token) => request(`/auth/verify?token=${encodeURIComponent(token)}`),
+  resendVerification:  (email) => request('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }),
 };
 
 export const users = {

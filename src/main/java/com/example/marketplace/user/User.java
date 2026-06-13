@@ -31,6 +31,15 @@ public class User {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(nullable = false, columnDefinition = "boolean DEFAULT false")
+    private boolean emailVerified = false;
+
+    @Column(nullable = true, length = 36)
+    private String verificationToken;
+
+    @Column(nullable = true)
+    private Instant verificationTokenExpiresAt;
+
     @PrePersist
     void onCreate() { this.createdAt = Instant.now(); } // sets current timestamp of creation
 
@@ -39,8 +48,14 @@ public class User {
     public String getEmail() { return email; }
     public String getPasswordHash() { return passwordHash; }
     public Instant getCreatedAt() { return createdAt; }
+    public boolean isEmailVerified() { return emailVerified; }
+    public String getVerificationToken() { return verificationToken; }
+    public Instant getVerificationTokenExpiresAt() { return verificationTokenExpiresAt; }
 
     public void setUsername(String username) { this.username = username; }
     public void setEmail(String email) { this.email = email; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
+    public void setVerificationToken(String verificationToken) { this.verificationToken = verificationToken; }
+    public void setVerificationTokenExpiresAt(Instant verificationTokenExpiresAt) { this.verificationTokenExpiresAt = verificationTokenExpiresAt; }
 }

@@ -12,6 +12,7 @@ import UserProfile from './pages/UserProfile';
 import Subscriptions from './pages/Subscriptions';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import VerifyEmail from './pages/VerifyEmail';
 
 function resolve(path) {
   const exact = {
@@ -24,6 +25,7 @@ function resolve(path) {
     '/subscriptions': Subscriptions,
     '/register': Register,
     '/login': Login,
+    '/verify-email': VerifyEmail,
   };
   if (exact[path]) return { Page: exact[path], params: {} };
 
