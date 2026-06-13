@@ -1,22 +1,42 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { offers as offersApi, requests as requestsApi } from '../api/client';
 import styles from './Home.module.css';
 
 const CATEGORIES = [
-  { name: 'Food & Drink',       icon: '🍎' },
-  { name: 'Clothing',           icon: '👕' },
-  { name: 'Books & Media',      icon: '📚' },
-  { name: 'Tools & Equipment',  icon: '🔧' },
-  { name: 'Furniture',          icon: '🛋️' },
-  { name: 'Electronics',        icon: '💻' },
-  { name: 'Skills & Services',  icon: '🤝' },
-  { name: 'Plants & Seeds',     icon: '🌱' },
-  { name: 'Childcare',          icon: '🧸' },
-  { name: 'Transport',          icon: '🚲' },
-  { name: 'Other',              icon: '📦' },
+  { name: 'Food & Drink',      icon: '🍎' },
+  { name: 'Clothing',          icon: '👕' },
+  { name: 'Books & Media',     icon: '📚' },
+  { name: 'Tools & Equipment', icon: '🔧' },
+  { name: 'Furniture',         icon: '🛋️' },
+  { name: 'Electronics',       icon: '💻' },
+  { name: 'Skills & Services', icon: '🤝' },
+  { name: 'Plants & Seeds',    icon: '🌱' },
+  { name: 'Childcare',         icon: '🧸' },
+  { name: 'Transport',         icon: '🚲' },
+  { name: 'Other',             icon: '📦' },
 ];
 
 export default function Home() {
   const [q, setQ] = useState('');
+  const [recent, setRecent] = useState([]);
+  const [counts, setCounts] = useState({ offers: 0, requests: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([offersApi.list(), requestsApi.list()])
+      .then(([ofs, reqs]) => {
+        setCounts({ offers: ofs.length, requests: reqs.length });
+        const merged = [
+          ...ofs.map((o) => ({ ...o, _type: 'offer' })),
+          ...reqs.map((r) => ({ ...r, _type: 'request' })),
+        ]
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 9);
+        setRecent(merged);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   function search(e) {
     e.preventDefault();
@@ -27,59 +47,123 @@ export default function Home() {
 
   return (
     <main>
+      {/* ── Hero ── */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <h1>Everything here is <span>free</span>.</h1>
-          <p>A community gift economy — no prices, no trades, no money.
-            Offer what you can, find what you need.</p>
-
+          <p>A community gift economy — no prices, no trades, no money.</p>
           <form className={styles.searchBar} onSubmit={search}>
             <span className={styles.searchIcon}>🔍</span>
             <input
               type="search"
-              placeholder="What are you looking for?"
+              placeholder="Search offers, categories, locations…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               autoComplete="off"
             />
             <button type="submit" className="btn-primary">Search</button>
           </form>
+        </div>
+      </section>
 
-          <div className={styles.heroCtas}>
-            <a href="/offers" className={styles.heroLink}>Browse all offers →</a>
-            <a href="/requests" className={styles.heroLink}>See what people need →</a>
+      {/* ── Two-column body ── */}
+      <div className={styles.layout}>
+
+        {/* Sidebar */}
+        <aside className={styles.sidebar}>
+
+          <div className={styles.sideBox}>
+            <h3 className={styles.sideTitle}>Categories</h3>
+            <ul className={styles.catList}>
+              {CATEGORIES.map((c) => (
+                <li key={c.name}>
+                  <a href={`/offers?q=${encodeURIComponent(c.name)}`} className={styles.catRow}>
+                    <span className={styles.catEmoji}>{c.icon}</span>
+                    <span>{c.name}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
-      </section>
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Browse by category</h2>
-        <div className={styles.catGrid}>
-          {CATEGORIES.map((c) => (
-            <a key={c.name} href={`/offers?q=${encodeURIComponent(c.name)}`} className={styles.catTile}>
-              <span className={styles.catIcon}>{c.icon}</span>
-              <span className={styles.catName}>{c.name}</span>
-            </a>
-          ))}
-        </div>
-      </section>
+          <div className={styles.sideBox}>
+            <h3 className={styles.sideTitle}>Community stats</h3>
+            <div className={styles.stats}>
+              <a href="/offers" className={styles.stat}>
+                <span className={styles.statNum} style={{ color: 'var(--green)' }}>{counts.offers}</span>
+                <span className={styles.statLabel}>free offers</span>
+              </a>
+              <a href="/requests" className={styles.stat}>
+                <span className={styles.statNum} style={{ color: 'var(--blue)' }}>{counts.requests}</span>
+                <span className={styles.statLabel}>open requests</span>
+              </a>
+            </div>
+          </div>
 
-      <section className={styles.section}>
-        <div className={styles.splitCards}>
-          <a href="/offers/new" className={`${styles.bigCard} ${styles.give}`}>
-            <span className={styles.bigEmoji}>🎁</span>
-            <h3>Give something away</h3>
-            <p>Got something useful you no longer need? Pass it on to your community.</p>
-            <span className={styles.bigCta}>Make an offer →</span>
-          </a>
-          <a href="/requests/new" className={`${styles.bigCard} ${styles.ask}`}>
-            <span className={styles.bigEmoji}>🙋</span>
-            <h3>Ask for what you need</h3>
-            <p>Looking for something specific? Post a request and let neighbours help.</p>
-            <span className={styles.bigCta}>Make a request →</span>
-          </a>
+          <div className={styles.sideCtas}>
+            <a href="/offers/new" className="btn-accent" style={{ width: '100%' }}>🎁 Give something away</a>
+            <a href="/requests/new" className="btn-secondary" style={{ width: '100%' }}>🙋 Ask for something</a>
+          </div>
+
+        </aside>
+
+        {/* Main — recent listings */}
+        <div className={styles.main}>
+          <div className={styles.mainHeader}>
+            <h2 className={styles.mainTitle}>Recent listings</h2>
+            <div className={styles.mainLinks}>
+              <a href="/offers" className={styles.viewAll}>All offers →</a>
+              <a href="/requests" className={styles.viewAllBlue}>All requests →</a>
+            </div>
+          </div>
+
+          {loading ? (
+            <p className={styles.empty}>Loading…</p>
+          ) : recent.length === 0 ? (
+            <p className={styles.empty}>No listings yet — be the first to give something!</p>
+          ) : (
+            <div className={styles.grid}>
+              {recent.map((item) => {
+                const isOffer = item._type === 'offer';
+                return (
+                  <a
+                    key={`${item._type}-${item.id}`}
+                    href={isOffer ? `/offers/${item.id}` : `/requests/${item.id}`}
+                    className={styles.card}
+                  >
+                    <div
+                      className={styles.thumb}
+                      style={{ background: isOffer ? 'var(--green-light)' : 'var(--blue-light)' }}
+                    >
+                      {item.imageUrl
+                        ? <img src={item.imageUrl} className={styles.cardImg} alt={item.title} />
+                        : <div className={styles.thumbEmpty}>{isOffer ? '🎁' : '🙋'}</div>}
+                      <span
+                        className={styles.catPill}
+                        style={{ color: isOffer ? 'var(--green-dark)' : 'var(--blue)' }}
+                      >{item.category}</span>
+                      <span
+                        className={styles.typeBadge}
+                        style={{ background: isOffer ? 'var(--green)' : 'var(--blue)' }}
+                      >{isOffer ? 'Free' : 'Wanted'}</span>
+                    </div>
+                    <div className={styles.body}>
+                      <h3>{item.title}</h3>
+                      <p className={styles.desc}>{item.description}</p>
+                      <div className={styles.meta}>
+                        <span>📍 {item.region}</span>
+                        <span className={styles.dot}>·</span>
+                        <span>qty {item.quantity}</span>
+                      </div>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          )}
         </div>
-      </section>
+
+      </div>
     </main>
   );
 }
