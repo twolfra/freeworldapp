@@ -27,6 +27,16 @@ public class LocalStorageService implements StorageService {
         return "/api/images/" + filename;
     }
 
+    @Override
+    public void delete(String url) {
+        if (url == null || !url.startsWith("/api/images/")) return;
+        String filename = url.substring("/api/images/".length());
+        try {
+            Path target = resolve(filename);
+            if (isSafe(target)) Files.deleteIfExists(target);
+        } catch (IOException ignored) {}
+    }
+
     public Path resolve(String filename) {
         return UPLOAD_DIR.resolve(filename).normalize().toAbsolutePath();
     }

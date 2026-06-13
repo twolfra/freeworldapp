@@ -1,6 +1,7 @@
 package com.example.marketplace.request;
 
 import com.example.marketplace.auth.SecurityContext;
+import com.example.marketplace.image.StorageService;
 import com.example.marketplace.request.dto.RequestDtos;
 import com.example.marketplace.user.UserRepository;
 import jakarta.validation.Valid;
@@ -18,16 +19,17 @@ public class RequestController {
 
     private final RequestRepository requestRepo;
     private final UserRepository userRepo;
+    private final StorageService storage;
 
-    public RequestController(RequestRepository requestRepo, UserRepository userRepo) {
+    public RequestController(RequestRepository requestRepo, UserRepository userRepo, StorageService storage) {
         this.requestRepo = requestRepo;
         this.userRepo = userRepo;
+        this.storage = storage;
     }
 
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody RequestDtos.Create in) {
         UUID userId = SecurityContext.authenticatedId();
-
         return userRepo.findById(userId)
                 .map(user -> {
                     Request r = new Request();
@@ -73,13 +75,16 @@ public class RequestController {
                 .map(r -> {
                     if (!r.getRequestedBy().getId().equals(callerId))
                         return ResponseEntity.status(403).body((Object) Map.of("error", "Not your request."));
+                    String oldImage = r.getImageUrl();
                     r.setTitle(in.title);
                     r.setDescription(in.description);
                     r.setRegion(in.region);
                     r.setCategory(in.category);
                     r.setQuantity(in.quantity);
                     r.setImageUrl(in.imageUrl);
-                    return ResponseEntity.ok((Object) toResponse(requestRepo.save(r)));
+                    Request saved = requestRepo.save(r);
+                    if (oldImage != null && !oldImage.equals(in.imageUrl)) storage.delete(oldImage);
+                    return ResponseEntity.ok((Object) toResponse(saved));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -91,7 +96,9 @@ public class RequestController {
                 .map(r -> {
                     if (!r.getRequestedBy().getId().equals(callerId))
                         return ResponseEntity.status(403).<Void>build();
+                    String imageUrl = r.getImageUrl();
                     requestRepo.delete(r);
+                    storage.delete(imageUrl);
                     return ResponseEntity.noContent().<Void>build();
                 })
                 .orElse(ResponseEntity.notFound().build());

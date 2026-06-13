@@ -213,6 +213,11 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 - [x] SSE fan-out — `SseService` upgraded from single `Map<UUID, SseEmitter>` to `Map<UUID, CopyOnWriteArrayList<SseEmitter>>`; Navbar and Conversation can both hold live SSE connections for the same user without displacing each other
 - [x] Navbar unread badge uses SSE instead of 30s polling — Navbar opens its own `EventSource` and re-fetches unread count on `message` / `read` events
 - [x] Registration auto-login — `Register.jsx` calls `auth.login()` immediately after account creation and redirects to `/offers`; no extra login step required
+- [x] CORS configuration — `CorsConfig.java` (`WebMvcConfigurer`) allows configurable origins via `CORS_ALLOWED_ORIGINS` env var; defaults to `http://localhost:5173` in dev
+- [x] Rate limiting — `RateLimitFilter` (order 1) enforces sliding-window per-IP limits: 20 req/min on `/api/auth/login` + `/api/users`, 60 req/min on `/api/messages`; returns 429 on breach
+- [x] Orphaned image cleanup — `StorageService` gains a `delete(url)` method; `OfferController` and `RequestController` call it on delete and on update when the image changes or is removed
+- [x] DB credentials from environment — `application.yml` now reads `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `PORT`, and `CORS_ALLOWED_ORIGINS` with safe localhost defaults for dev
+- [x] Subscription feed auth — `GET /api/subscriptions/feed` added to `AuthFilter`'s sensitive-path list; `SubscriptionController.feed()` verifies `subscriberId` matches the session owner
 
 ---
 
@@ -221,9 +226,6 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 - SSE stream (`/api/messages/stream`) requires token as query param because `EventSource` doesn't support custom headers — token is visible in server logs
 - Images are stored on local disk — swap `LocalStorageService` for an S3/GCS bean to make deployment stateless
 - No WebSocket bidirectional channel — SSE is one-directional (server → client); sending messages still uses HTTP POST
-- No CORS configuration — the API only works from the same origin (Vite dev proxy covers dev; a deployed frontend on a different domain would be blocked)
-- No rate limiting — registration and message endpoints are open to brute-force and spam; add a filter or Spring's `@RateLimiter` before going public
 - No email verification — accounts are active immediately after registration; a bad actor can register with any email address
-- Orphaned images — when an offer/request is deleted, or its image is replaced/removed, the old file stays in `uploads/` forever; add a cleanup step in `OfferController.delete` / `RequestController.delete` and in the update path
-- Hardcoded DB credentials in `application.yml` — move to environment variables or a secrets manager before deploying
-- Subscription feed GET is unauthenticated — `GET /api/subscriptions/feed?subscriberId=` can be read by anyone who knows the user's UUID
+- Rate limiter state is in-memory and per-instance — resets on restart and doesn't share across multiple backend nodes; replace with Redis-backed Bucket4j for production
+- User deletion leaves orphaned sessions, subscriptions, messages — add `ON DELETE CASCADE` to FK constraints or handle cleanup in `UserController.delete()`

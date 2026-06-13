@@ -105,6 +105,10 @@ public class SubscriptionController {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid user id."));
         }
 
+        UUID callerId = SecurityContext.authenticatedId();
+        if (!callerId.equals(sid))
+            return ResponseEntity.status(403).body(Map.of("error", "Access denied."));
+
         List<UUID> followedIds = subRepo.findBySubscriber_Id(sid).stream()
                 .map(s -> s.getSubscribedTo().getId())
                 .collect(Collectors.toList());
