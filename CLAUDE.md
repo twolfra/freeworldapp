@@ -213,6 +213,7 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 - [x] SSE fan-out — `SseService` upgraded from single `Map<UUID, SseEmitter>` to `Map<UUID, CopyOnWriteArrayList<SseEmitter>>`; Navbar and Conversation can both hold live SSE connections for the same user without displacing each other
 - [x] Navbar unread badge uses SSE instead of 30s polling — Navbar opens its own `EventSource` and re-fetches unread count on `message` / `read` events
 - [x] Registration auto-login — `Register.jsx` calls `auth.login()` immediately after account creation and redirects to `/offers`; no extra login step required
+- [x] WebSocket bidirectional messaging — `spring-boot-starter-websocket` added; `ChatWebSocketHandler` replaces `SseService`; clients connect to `GET /ws/messages?userId=&token=`; sending uses `ws.send({type:"send", recipientId, content})`; server pushes `{type:"message"}` to both parties and `{type:"read"}` for receipts; `Conversation.jsx` sends via WebSocket instead of HTTP POST; `Navbar.jsx` also uses WebSocket for badge updates
 - [x] CORS configuration — `CorsConfig.java` (`WebMvcConfigurer`) allows configurable origins via `CORS_ALLOWED_ORIGINS` env var; defaults to `http://localhost:5173` in dev
 - [x] Rate limiting — `RateLimitFilter` (order 1) enforces sliding-window per-IP limits: 20 req/min on `/api/auth/login` + `/api/users`, 60 req/min on `/api/messages`; returns 429 on breach
 - [x] Orphaned image cleanup — `StorageService` gains a `delete(url)` method; `OfferController` and `RequestController` call it on delete and on update when the image changes or is removed
@@ -223,9 +224,8 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 
 ## Known limitations / not yet implemented
 
-- SSE stream (`/api/messages/stream`) requires token as query param because `EventSource` doesn't support custom headers — token is visible in server logs
+- WebSocket token visible in query params — `WebSocket` API shares the same limitation as `EventSource`; token appears in server access logs; acceptable trade-off until HTTP header auth is possible
 - Images are stored on local disk — swap `LocalStorageService` for an S3/GCS bean to make deployment stateless
-- No WebSocket bidirectional channel — SSE is one-directional (server → client); sending messages still uses HTTP POST
 - No email verification — accounts are active immediately after registration; a bad actor can register with any email address
 - Rate limiter state is in-memory and per-instance — resets on restart and doesn't share across multiple backend nodes; replace with Redis-backed Bucket4j for production
 - User deletion leaves orphaned sessions, subscriptions, messages — add `ON DELETE CASCADE` to FK constraints or handle cleanup in `UserController.delete()`

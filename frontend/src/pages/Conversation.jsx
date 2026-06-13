@@ -8,7 +8,8 @@ export default function Conversation({ userId: otherId }) {
   const [msgs, setMsgs] = useState([]);
   const [content, setContent] = useState('');
   const [error, setError] = useState(null);
-  const [sending, setSending] = useState(false);
+  const [wsReady, setWsReady] = useState(false);
+  const wsRef = useRef(null);
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -17,16 +18,9 @@ export default function Conversation({ userId: otherId }) {
   }, [otherId]);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser?.token) return;
 
-    // Force re-login for sessions created before token support was added
-    if (!currentUser.token) {
-      localStorage.removeItem('currentUser');
-      window.location.href = '/login';
-      return;
-    }
-
-    // Initial load + mark as read
+    // Initial history load
     messagesApi.getConversation(currentUser.id, otherId)
       .then((msgs) => {
         setMsgs(msgs);
@@ -34,33 +28,37 @@ export default function Conversation({ userId: otherId }) {
       })
       .catch(console.error);
 
-    // SSE for live updates — replaces setInterval polling
-    const es = new EventSource(
-      `/api/messages/stream?userId=${currentUser.id}&token=${currentUser.token}`
+    // WebSocket — bidirectional: send via ws.send(), receive via ws.onmessage
+    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const ws = new WebSocket(
+      `${proto}://${window.location.host}/ws/messages?userId=${currentUser.id}&token=${currentUser.token}`
     );
+    wsRef.current = ws;
 
-    es.addEventListener('message', (e) => {
-      const msg = JSON.parse(e.data);
-      if (msg.senderId === otherId || msg.recipientId === otherId) {
+    ws.onopen  = () => setWsReady(true);
+    ws.onclose = () => { setWsReady(false); wsRef.current = null; };
+    ws.onerror = () => setError('Connection lost. Please refresh to reconnect.');
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.type === 'message') {
+        if (data.senderId !== otherId && data.recipientId !== otherId) return;
         setMsgs((prev) => {
-          if (prev.some((m) => m.id === msg.id)) return prev;
-          if (msg.recipientId === currentUser.id) {
+          if (prev.some((m) => m.id === data.id)) return prev;
+          if (data.senderId === otherId) {
             messagesApi.markRead(currentUser.id, otherId).catch(() => {});
           }
-          return [...prev, msg];
+          return [...prev, data];
         });
+      } else if (data.type === 'read') {
+        if (data.readerId === otherId) {
+          messagesApi.getConversation(currentUser.id, otherId).then(setMsgs).catch(console.error);
+        }
       }
-    });
+    };
 
-    // When the other person reads our messages, re-fetch to show read receipts
-    es.addEventListener('read', (e) => {
-      const { readerId } = JSON.parse(e.data);
-      if (readerId === otherId) {
-        messagesApi.getConversation(currentUser.id, otherId).then(setMsgs).catch(console.error);
-      }
-    });
-
-    return () => es.close();
+    return () => { ws.close(); wsRef.current = null; };
   }, [currentUser?.id, otherId]);
 
   useEffect(() => {
@@ -80,22 +78,14 @@ export default function Conversation({ userId: otherId }) {
     </main>
   );
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!content.trim()) return;
-    setSending(true);
-    try {
-      const newMsg = await messagesApi.send({ recipientId: otherId, content });
-      setMsgs((prev) => [...prev, newMsg]);
-      setContent('');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSending(false);
-    }
+    const trimmed = content.trim();
+    if (!trimmed || !wsRef.current || !wsReady) return;
+    wsRef.current.send(JSON.stringify({ type: 'send', recipientId: otherId, content: trimmed }));
+    setContent('');
   };
 
-  // Index of the last sent message that has been read by the recipient
   const lastReadSentIndex = msgs.reduce(
     (acc, m, i) => (m.senderId === currentUser.id && m.readAt != null ? i : acc),
     -1
@@ -134,10 +124,10 @@ export default function Conversation({ userId: otherId }) {
             className={styles.input}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Write a message…"
-            disabled={sending}
+            placeholder={wsReady ? 'Write a message…' : 'Connecting…'}
+            disabled={!wsReady}
           />
-          <button className={styles.sendBtn} type="submit" disabled={sending || !content.trim()}>
+          <button className={styles.sendBtn} type="submit" disabled={!wsReady || !content.trim()}>
             Send
           </button>
         </form>

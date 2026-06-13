@@ -17,13 +17,16 @@ export default function Navbar() {
 
     refreshCount();
 
-    const es = new EventSource(
-      `/api/messages/stream?userId=${currentUser.id}&token=${currentUser.token}`
+    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const ws = new WebSocket(
+      `${proto}://${window.location.host}/ws/messages?userId=${currentUser.id}&token=${currentUser.token}`
     );
-    es.addEventListener('message', refreshCount);
-    es.addEventListener('read', refreshCount);
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'message' || data.type === 'read') refreshCount();
+    };
 
-    return () => es.close();
+    return () => ws.close();
   }, [currentUser?.id]);
 
   async function signOut() {

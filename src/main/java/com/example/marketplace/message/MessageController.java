@@ -1,19 +1,14 @@
 package com.example.marketplace.message;
 
 import com.example.marketplace.auth.SecurityContext;
-import com.example.marketplace.auth.SessionRepository;
 import com.example.marketplace.message.dto.MessageDtos;
 import com.example.marketplace.user.UserRepository;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.net.URI;
-import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,24 +19,21 @@ public class MessageController {
 
     private final MessageRepository messageRepo;
     private final UserRepository userRepo;
-    private final SseService sseService;
-    private final SessionRepository sessionRepo;
+    private final ChatWebSocketHandler wsHandler;
 
     public MessageController(MessageRepository messageRepo, UserRepository userRepo,
-                             SseService sseService, SessionRepository sessionRepo) {
+                             ChatWebSocketHandler wsHandler) {
         this.messageRepo = messageRepo;
         this.userRepo = userRepo;
-        this.sseService = sseService;
-        this.sessionRepo = sessionRepo;
+        this.wsHandler = wsHandler;
     }
 
     @PostMapping
     public ResponseEntity<?> send(@Valid @RequestBody MessageDtos.Send in) {
         UUID senderId = SecurityContext.authenticatedId();
         UUID recipientId;
-        try {
-            recipientId = UUID.fromString(in.recipientId);
-        } catch (IllegalArgumentException e) {
+        try { recipientId = UUID.fromString(in.recipientId); }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid user id."));
         }
 
@@ -60,7 +52,10 @@ public class MessageController {
         Message saved = messageRepo.save(m);
 
         MessageDtos.Response resp = toResponse(saved);
-        sseService.push(recipientId, "message", resp);
+        // Push via WebSocket to both parties (covers connected browser tabs)
+        Map<String, Object> wsPush = wsHandler.toMessagePayload(saved);
+        wsHandler.push(recipientId, wsPush);
+        wsHandler.push(senderId, wsPush);
 
         return ResponseEntity.created(URI.create("/api/messages/" + saved.getId())).body(resp);
     }
@@ -136,8 +131,7 @@ public class MessageController {
             return ResponseEntity.badRequest().build();
         }
         messageRepo.markConversationRead(uid, oid);
-        // Notify the sender that their messages were read
-        sseService.push(oid, "read", Map.of("readerId", uid.toString()));
+        wsHandler.push(oid, Map.of("type", "read", "readerId", uid.toString()));
         return ResponseEntity.noContent().build();
     }
 
@@ -154,24 +148,6 @@ public class MessageController {
             return ResponseEntity.status(403).body(Map.of("error", "Access denied."));
 
         return ResponseEntity.ok(Map.of("count", messageRepo.countUnread(uid)));
-    }
-
-    @GetMapping("/stream")
-    public SseEmitter stream(@RequestParam String userId,
-                             @RequestParam(required = false) String token) {
-        UUID uid;
-        try { uid = UUID.fromString(userId); }
-        catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-
-        boolean valid = token != null && sessionRepo.findByToken(token)
-                .map(s -> s.getUser().getId().equals(uid)
-                        && (s.getExpiresAt() == null || s.getExpiresAt().isAfter(Instant.now())))
-                .orElse(false);
-        if (!valid) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-
-        return sseService.subscribe(uid);
     }
 
     private MessageDtos.Response toResponse(Message m) {
