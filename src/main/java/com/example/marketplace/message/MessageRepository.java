@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -29,4 +30,9 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
 
     @Query("SELECT COUNT(m) FROM Message m WHERE m.recipient.id = :userId AND m.sender.id = :otherId AND m.readAt IS NULL")
     long countUnreadFromSender(@Param("userId") UUID userId, @Param("otherId") UUID otherId);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Message m WHERE m.sender.id = :userId OR m.recipient.id = :userId")
+    void deleteAllInvolvingUser(@Param("userId") UUID userId);
 }

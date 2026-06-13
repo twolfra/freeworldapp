@@ -225,6 +225,7 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 - [x] DB credentials from environment — `application.yml` now reads `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `PORT`, and `CORS_ALLOWED_ORIGINS` with safe localhost defaults for dev
 - [x] Subscription feed auth — `GET /api/subscriptions/feed` added to `AuthFilter`'s sensitive-path list; `SubscriptionController.feed()` verifies `subscriberId` matches the session owner
 - [x] Email verification — new accounts are unverified; `UserController.create()` issues a UUID token (24h expiry) and calls `EmailService.sendVerificationEmail()`; in dev without SMTP the link is logged to console; `GET /api/auth/verify?token=` verifies the account; `POST /api/auth/resend-verification` resends the link; login returns 403 for unverified accounts; `EmailVerificationMigration` auto-verifies legacy users (emailVerified=false AND verificationToken=null) on startup; configure SMTP via `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM`, `BASE_URL` env vars
+- [x] User deletion cleanup — `UserController.delete()` is `@Transactional` and removes sessions, subscriptions, messages, offers, and requests (plus their stored images via `StorageService`) before deleting the user row; no orphaned data left behind
 
 ---
 
@@ -233,4 +234,3 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 - WebSocket token visible in query params — `WebSocket` API shares the same limitation as `EventSource`; token appears in server access logs; acceptable trade-off until HTTP header auth is possible
 - Images are stored on local disk — swap `LocalStorageService` for an S3/GCS bean to make deployment stateless
 - Rate limiter state is in-memory and per-instance — resets on restart and doesn't share across multiple backend nodes; replace with Redis-backed Bucket4j for production
-- User deletion leaves orphaned sessions, subscriptions, messages — add `ON DELETE CASCADE` to FK constraints or handle cleanup in `UserController.delete()`

@@ -1,11 +1,18 @@
 package com.example.marketplace.user;
 
 import com.example.marketplace.auth.SecurityContext;
+import com.example.marketplace.auth.SessionRepository;
 import com.example.marketplace.email.EmailService;
+import com.example.marketplace.image.StorageService;
+import com.example.marketplace.message.MessageRepository;
+import com.example.marketplace.offer.OfferRepository;
+import com.example.marketplace.request.RequestRepository;
+import com.example.marketplace.subscription.SubscriptionRepository;
 import com.example.marketplace.user.dto.UserDtos;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -23,11 +30,26 @@ public class UserController {
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
     private final EmailService emailService;
+    private final SessionRepository sessionRepo;
+    private final MessageRepository messageRepo;
+    private final SubscriptionRepository subscriptionRepo;
+    private final OfferRepository offerRepo;
+    private final RequestRepository requestRepo;
+    private final StorageService storageService;
 
-    public UserController(UserRepository userRepo, PasswordEncoder encoder, EmailService emailService) {
+    public UserController(UserRepository userRepo, PasswordEncoder encoder, EmailService emailService,
+                          SessionRepository sessionRepo, MessageRepository messageRepo,
+                          SubscriptionRepository subscriptionRepo, OfferRepository offerRepo,
+                          RequestRepository requestRepo, StorageService storageService) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.emailService = emailService;
+        this.sessionRepo = sessionRepo;
+        this.messageRepo = messageRepo;
+        this.subscriptionRepo = subscriptionRepo;
+        this.offerRepo = offerRepo;
+        this.requestRepo = requestRepo;
+        this.storageService = storageService;
     }
 
     @PostMapping
@@ -79,13 +101,25 @@ public class UserController {
     }
 
     @DeleteMapping("{id}")
+    @Transactional
     public ResponseEntity<?> delete(@PathVariable UUID id) {
         UUID callerId = SecurityContext.authenticatedId();
         if (!callerId.equals(id))
             return ResponseEntity.status(403).body(Map.of("error", "You can only delete your own account."));
 
         if (!userRepo.existsById(id)) return ResponseEntity.notFound().build();
+
+        // Delete images from storage before removing the records
+        offerRepo.findByOfferedBy_Id(id).forEach(o -> storageService.delete(o.getImageUrl()));
+        requestRepo.findByRequestedBy_Id(id).forEach(r -> storageService.delete(r.getImageUrl()));
+
+        sessionRepo.deleteByUser_Id(id);
+        subscriptionRepo.deleteAllInvolvingUser(id);
+        messageRepo.deleteAllInvolvingUser(id);
+        offerRepo.deleteAll(offerRepo.findByOfferedBy_Id(id));
+        requestRepo.deleteAll(requestRepo.findByRequestedBy_Id(id));
         userRepo.deleteById(id);
+
         return ResponseEntity.noContent().build();
     }
 
