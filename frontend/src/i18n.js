@@ -33,8 +33,8 @@ const T = {
 
     // Home
     'home.title': 'Everything here is', 'home.titleAccent': 'free',
-    'home.subtitle': 'A community gift economy — no prices, no trades, no money.',
-    'home.searchPlaceholder': 'Search offers, categories, locations…',
+    'home.subtitle': 'Your community for a gift economy — no prices, no trades, no money.',
+    'home.searchPlaceholder': 'Search listings, categories, locations…',
     'home.searchBtn': 'Search',
     'home.categories': 'Categories',
     'home.stats': 'Community stats',
@@ -44,6 +44,10 @@ const T = {
     'home.allOffers': 'All offers →', 'home.allRequests': 'All requests →',
     'home.loading': 'Loading…', 'home.empty': 'No listings yet — be the first to give something!',
     'home.free': 'Free', 'home.wanted': 'Wanted',
+    'home.post': 'Post',
+    'home.typeListings': 'Listings', 'home.typeOffers': 'Offers', 'home.typeRequests': 'Requests',
+    'home.resultsFor': 'Results for "{q}"', 'home.noResults': 'No results for "{q}".',
+    'home.clearSearch': 'Show recent',
 
     // Lists
     'list.searchPlaceholder': 'Search by title, category…',
@@ -188,6 +192,10 @@ const T = {
     'conv.connLost': 'Connection lost. Please refresh to reconnect.',
     'conv.userNotFound': 'User not found.',
 
+    // Footer
+    'footer.impressum': 'Legal Notice', 'footer.datenschutz': 'Privacy Policy', 'footer.terms': 'Terms & Conditions',
+    'footer.copy': '© 2025 FreeWorld',
+
     // Shared
     'qty': 'qty',
   },
@@ -200,8 +208,8 @@ const T = {
 
     // Home
     'home.title': 'Hier ist alles', 'home.titleAccent': 'kostenlos',
-    'home.subtitle': 'Eine Gemeinschafts-Schenkökonomie — keine Preise, kein Tausch, kein Geld.',
-    'home.searchPlaceholder': 'Angebote, Kategorien, Orte suchen…',
+    'home.subtitle': 'Deine Community für eine Schenkökonomie — keine Preise, kein Tausch, kein Geld.',
+    'home.searchPlaceholder': 'Einträge, Kategorien, Orte suchen…',
     'home.searchBtn': 'Suchen',
     'home.categories': 'Kategorien',
     'home.stats': 'Community-Statistik',
@@ -211,6 +219,10 @@ const T = {
     'home.allOffers': 'Alle Angebote →', 'home.allRequests': 'Alle Gesuche →',
     'home.loading': 'Wird geladen…', 'home.empty': 'Noch keine Einträge — sei der Erste!',
     'home.free': 'Gratis', 'home.wanted': 'Gesucht',
+    'home.post': 'Einstellen',
+    'home.typeListings': 'Einträge', 'home.typeOffers': 'Angebote', 'home.typeRequests': 'Gesuche',
+    'home.resultsFor': 'Ergebnisse für „{q}"', 'home.noResults': 'Keine Ergebnisse für „{q}".',
+    'home.clearSearch': 'Neueste zeigen',
 
     // Lists
     'list.searchPlaceholder': 'Titel, Kategorie suchen…',
@@ -354,6 +366,10 @@ const T = {
     'conv.signInLink': 'anmelden',
     'conv.connLost': 'Verbindung unterbrochen. Bitte Seite neu laden.',
     'conv.userNotFound': 'Benutzer nicht gefunden.',
+
+    // Footer
+    'footer.impressum': 'Impressum', 'footer.datenschutz': 'Datenschutz', 'footer.terms': 'AGB',
+    'footer.copy': '© 2025 FreeWorld',
 
     // Shared
     'qty': 'Anz.',

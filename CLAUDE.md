@@ -92,6 +92,9 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 | `/register` | Register |
 | `/login` | Login |
 | `/verify-email` | VerifyEmail |
+| `/impressum` | Impressum |
+| `/datenschutz` | Datenschutz |
+| `/terms` | Terms |
 
 ---
 
@@ -230,11 +233,61 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 - [x] Kleinanzeigen-style UI redesign — CSS design-token system in `index.css` (`--green`/`--accent` coral CTA/`--blue` requests, pill buttons `.btn-primary`/`.btn-accent`/`.btn-secondary`/`.btn-ghost`); sticky white `Navbar` with logo, avatar chip, unread badge and coral "Give something" CTA; `Home` hero with search bar (routes to `/offers?q=`), category tiles, and split give/ask feature cards; `OfferList`/`RequestList` are now responsive card grids (`minmax(240px,1fr)`) with image/emoji thumbnails, category pills, bold "Free"/"Wanted" tags and location·qty meta; lists read `?q=` from the URL to seed search. Offers use green accent, requests use blue.
 - [x] German / English language toggle — `frontend/src/i18n.js` provides `t(key)`, `tp(key,params)`, `tCat(category)`; language persisted in `localStorage` as `fw_lang` (default `en`); DE/EN pill button in Navbar; all 14 pages fully translated; category API values stay English.
 - [x] Like/favorite posts — `Like` entity tracks which users liked which offers/requests via `targetType` (OFFER/REQUEST) and `targetId` (UUID); `LikeController` provides endpoints to like/unlike/check/list-user-likes; like buttons on detail pages show count and toggle state (❤/🤍); `/likes` page shows user's liked posts with pagination; cascade delete when users or posts are removed.
+- [x] Cloud Run deployment — multi-stage Dockerfile builds React + Spring Boot into one image; Spring Boot serves the SPA via `WebConfig.java` (SPA fallback: `/{spring:[^.]+}` → `forward:/index.html`); deployed to `europe-west3`
+- [x] Supabase PostgreSQL — external managed Postgres (free tier); connection via standard JDBC URL; no Cloud SQL needed
+- [x] GCS image storage — `GcsStorageService` active in production when `GCS_BUCKET` env var is set; bucket `freeworld-tw-images` is publicly readable; images served directly from `storage.googleapis.com`
+- [x] Transactional email via Brevo HTTP API — `EmailService` calls `https://api.brevo.com/v3/smtp/email` with `BREVO_API_KEY`; SMTP is NOT used (Cloud Run blocks outbound port 587); sender: `info@freeworldapp.de`; falls back to logging the verification link if `BREVO_API_KEY` is unset (dev mode)
+- [x] Secret Manager — `DB_PASSWORD` and `BREVO_API_KEY` stored as GCP secrets; referenced via `--set-secrets` in Cloud Run; `1040119781594-compute@developer.gserviceaccount.com` has `secretAccessor` role on both secrets
+- [x] Footer with legal pages — persistent `Footer` component in `App.jsx` (appears on every page); links to `/impressum` (Tim Wolfram, Torgauer Str. 20, 04315 Leipzig), `/datenschutz` (DSGVO-compliant privacy policy), `/terms` (German AGB template); footer i18n keys `footer.impressum/datenschutz/terms/copy` with EN/DE translations; home subheader changed to "Your community for a gift economy" / "Deine Community für eine Schenkökonomie"; legal page styles in `Legal.module.css`
+
+---
+
+## Production environment
+
+| Resource | Value |
+|---|---|
+| GCP project | `freeworld-tw` (account: `twolfram030@gmail.com`) |
+| Billing account | `0196C6-BA2C83-EE41C6` (under `twolfram030@gmail.com`) |
+| Cloud Run service | `freeworldapp` · region `europe-west3` |
+| Live URL | `https://freeworldapp-1040119781594.europe-west3.run.app` |
+| Database | Supabase · host `db.dqpjkomykecmisxfbapx.supabase.co` · db `postgres` · user `postgres` |
+| GCS bucket | `freeworld-tw-images` (public read, `europe-west3`) |
+| Email | Brevo HTTP API · sender `info@freeworldapp.de` · login `freeworldapp@web.de` |
+| Secrets | `db-password`, `brevo-api-key` in Secret Manager |
+
+### Redeploy command
+
+```bash
+gcloud run deploy freeworldapp \
+  --source . \
+  --region=europe-west3 \
+  --platform=managed \
+  --allow-unauthenticated \
+  --set-env-vars="DB_URL=jdbc:postgresql://db.dqpjkomykecmisxfbapx.supabase.co:5432/postgres" \
+  --set-env-vars="DB_USERNAME=postgres" \
+  --set-env-vars="GCS_BUCKET=freeworld-tw-images" \
+  --set-env-vars="BASE_URL=https://freeworldapp-1040119781594.europe-west3.run.app" \
+  --set-env-vars="CORS_ALLOWED_ORIGINS=https://freeworldapp-1040119781594.europe-west3.run.app" \
+  --set-env-vars="MAIL_FROM=info@freeworldapp.de" \
+  --set-secrets="DB_PASSWORD=db-password:latest,BREVO_API_KEY=brevo-api-key:latest" \
+  --project=freeworld-tw
+```
+
+### Useful ops commands
+
+```bash
+# View live logs
+gcloud run services logs read freeworldapp --region=europe-west3 --project=freeworld-tw --limit=50
+
+# Clear database (dev/reset)
+PGPASSWORD='<db-password>' psql "postgresql://postgres@db.dqpjkomykecmisxfbapx.supabase.co:5432/postgres" \
+  -c "TRUNCATE TABLE sessions, subscriptions, messages, likes, offers, requests, users RESTART IDENTITY CASCADE;"
+```
 
 ---
 
 ## Known limitations / not yet implemented
 
 - WebSocket token visible in query params — `WebSocket` API shares the same limitation as `EventSource`; token appears in server access logs; acceptable trade-off until HTTP header auth is possible
-- Images are stored on local disk — swap `LocalStorageService` for an S3/GCS bean to make deployment stateless
 - Rate limiter state is in-memory and per-instance — resets on restart and doesn't share across multiple backend nodes; replace with Redis-backed Bucket4j for production
+- Cloud Run scales to zero — first request after idle period has ~2–3s cold start delay
