@@ -69,7 +69,7 @@ export default function Datenschutz() {
           Tim Wolfram<br />
           Torgauer Str. 20<br />
           04315 Leipzig<br />
-          E-Mail: info@freeworldapp.de
+          Kontakt: <a href="/contact">Kontaktformular</a>
         </p>
 
         <h3>Widerruf Ihrer Einwilligung zur Datenverarbeitung</h3>
@@ -127,7 +127,7 @@ export default function Datenschutz() {
           Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der
           Verarbeitung und Datenübertragbarkeit Ihrer bei uns gespeicherten
           personenbezogenen Daten. Wenden Sie sich dazu an:
-          <a href="mailto:info@freeworldapp.de"> info@freeworldapp.de</a>.
+          <a href="/contact">Kontaktformular</a>.
         </p>
         <p>
           Sie haben außerdem das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu

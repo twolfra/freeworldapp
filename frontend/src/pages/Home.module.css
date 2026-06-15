@@ -52,6 +52,35 @@
 }
 .searchBar button { flex-shrink: 0; }
 
+/* CTA buttons */
+.sideCtas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.sideCtas a { justify-content: center; }
+
+.typeSelect {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0.55rem 0.3rem 0.55rem 0.2rem;
+  appearance: auto;
+}
+.typeSelect:focus { outline: none; }
+
+.searchDivider {
+  width: 1px;
+  height: 1.4rem;
+  background: rgba(0,0,0,0.12);
+  flex-shrink: 0;
+  align-self: center;
+}
+
 /* ════════ Two-column layout ════════ */
 .layout {
   max-width: 1180px;
@@ -69,7 +98,7 @@
   flex-direction: column;
   gap: 1rem;
   position: sticky;
-  top: 80px; /* below the 64px sticky navbar */
+  top: 80px;
 }
 
 .sideBox {
@@ -128,13 +157,6 @@
 .statNum { font-size: 1.6rem; font-weight: 800; line-height: 1; }
 .statLabel { font-size: 0.75rem; color: var(--muted); font-weight: 500; }
 
-/* CTA buttons */
-.sideCtas {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-.sideCtas a { justify-content: center; }
 
 /* ════════ Main content ════════ */
 .main { min-width: 0; }
@@ -153,6 +175,17 @@
 .viewAll     { font-size: 0.9rem; font-weight: 600; color: var(--green); }
 .viewAllBlue { font-size: 0.9rem; font-weight: 600; color: var(--blue); }
 .viewAll:hover, .viewAllBlue:hover { text-decoration: underline; }
+
+.clearBtn {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+}
+.clearBtn:hover { color: var(--ink); text-decoration: underline; }
 
 /* ════════ Card grid ════════ */
 .grid {
@@ -263,18 +296,9 @@
 }
 
 @media (max-width: 700px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-  .sidebar {
-    position: static;
-    /* collapse sidebar to horizontal category scroll on mobile */
-  }
-  .catList {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+  .catList { flex-direction: row; flex-wrap: wrap; gap: 0.4rem; }
   .catRow {
     background: var(--bg);
     border: 1px solid var(--line);

@@ -45,8 +45,6 @@ export default function Navbar() {
         </a>
 
         <nav className={styles.nav}>
-          <a href="/offers" className={styles.navLink}>{t('nav.offers')}</a>
-          <a href="/requests" className={styles.navLink}>{t('nav.requests')}</a>
           {currentUser && (
             <a href="/messages" className={styles.navLink}>
               {t('nav.messages')}

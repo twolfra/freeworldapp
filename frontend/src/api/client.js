@@ -111,3 +111,9 @@ export const likes = {
   getUserLikes: (userId, targetType) =>
     request(`/likes?userId=${userId}${targetType ? `&targetType=${targetType}` : ''}`),
 };
+
+
+export const contact = {
+  send: (name, email, message) =>
+    request('/contact', { method: 'POST', body: JSON.stringify({ name, email, message }) }),
+};

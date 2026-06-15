@@ -193,7 +193,14 @@ const T = {
     'conv.userNotFound': 'User not found.',
 
     // Footer
-    'footer.impressum': 'Legal Notice', 'footer.datenschutz': 'Privacy Policy', 'footer.terms': 'Terms & Conditions',
+    // Contact page
+    'contact.heading': 'Contact', 'contact.intro': 'Send us a message and we\'ll get back to you.',
+    'contact.name': 'Your name', 'contact.email': 'Your email address', 'contact.message': 'Message',
+    'contact.submit': 'Send message', 'contact.submitting': 'Sending…',
+    'contact.success': 'Message sent — thank you!',
+    'contact.error': 'Something went wrong. Please try again.',
+
+    'footer.contact': 'Contact', 'footer.impressum': 'Legal Notice', 'footer.datenschutz': 'Privacy Policy', 'footer.terms': 'Terms & Conditions',
     'footer.copy': '© 2025 FreeWorld',
 
     // Shared
@@ -368,7 +375,14 @@ const T = {
     'conv.userNotFound': 'Benutzer nicht gefunden.',
 
     // Footer
-    'footer.impressum': 'Impressum', 'footer.datenschutz': 'Datenschutz', 'footer.terms': 'AGB',
+    // Contact page
+    'contact.heading': 'Kontakt', 'contact.intro': 'Schreib uns eine Nachricht — wir melden uns.',
+    'contact.name': 'Dein Name', 'contact.email': 'Deine E-Mail-Adresse', 'contact.message': 'Nachricht',
+    'contact.submit': 'Nachricht senden', 'contact.submitting': 'Wird gesendet…',
+    'contact.success': 'Nachricht gesendet — vielen Dank!',
+    'contact.error': 'Etwas ist schiefgelaufen. Bitte erneut versuchen.',
+
+    'footer.contact': 'Kontakt', 'footer.impressum': 'Impressum', 'footer.datenschutz': 'Datenschutz', 'footer.terms': 'AGB',
     'footer.copy': '© 2025 FreeWorld',
 
     // Shared

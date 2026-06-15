@@ -1,6 +1,7 @@
 package com.example.marketplace.image;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -9,6 +10,7 @@ import java.nio.file.*;
 import java.util.UUID;
 
 @Service
+@ConditionalOnExpression("'${GCS_BUCKET:}' == ''")
 public class LocalStorageService implements StorageService {
 
     static final Path UPLOAD_DIR = Paths.get("uploads");

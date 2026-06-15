@@ -43,7 +43,8 @@ public class AuthFilter extends OncePerRequestFilter {
                 (path.equals("/api/auth/login")
               || path.equals("/api/auth/logout")
               || path.equals("/api/auth/resend-verification")
-              || path.equals("/api/users"))) {
+              || path.equals("/api/users")
+              || path.equals("/api/contact"))) {
             chain.doFilter(req, res);
             return;
         }

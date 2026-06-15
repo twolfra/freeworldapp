@@ -26,7 +26,7 @@ export default function OfferDetail({ id }) {
 
   useEffect(() => {
     offersApi.get(id)
-      .then(setOffer)
+      .then((o) => { setOffer(o); document.title = `${o.title} — FreeWorld`; })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [id]);

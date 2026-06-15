@@ -7,6 +7,7 @@ export default function Footer() {
       <div className={styles.inner}>
         <span className={styles.copy}>{t('footer.copy')}</span>
         <nav className={styles.links}>
+          <a href="/contact">{t('footer.contact')}</a>
           <a href="/impressum">{t('footer.impressum')}</a>
           <a href="/datenschutz">{t('footer.datenschutz')}</a>
           <a href="/terms">{t('footer.terms')}</a>

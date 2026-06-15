@@ -16,7 +16,7 @@ export default function Impressum() {
 
         <h2>Kontakt</h2>
         <p>
-          E-Mail: <a href="mailto:info@freeworldapp.de">info@freeworldapp.de</a>
+          Kontakt: <a href="/contact">Kontaktformular</a>
         </p>
 
         <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>

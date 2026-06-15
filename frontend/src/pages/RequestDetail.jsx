@@ -26,7 +26,7 @@ export default function RequestDetail({ id }) {
 
   useEffect(() => {
     requestsApi.get(id)
-      .then(setRequest)
+      .then((r) => { setRequest(r); document.title = `${r.title} — FreeWorld`; })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [id]);

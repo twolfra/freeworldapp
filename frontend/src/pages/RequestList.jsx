@@ -3,6 +3,12 @@ import { requests as requestsApi } from '../api/client';
 import { t, tCat, tp } from '../i18n';
 import styles from './OfferList.module.css';
 
+const CATEGORIES = [
+  'Food & Drink', 'Clothing', 'Books & Media', 'Tools & Equipment',
+  'Furniture', 'Electronics', 'Skills & Services', 'Plants & Seeds',
+  'Childcare', 'Transport', 'Other',
+];
+
 const PAGE_SIZE = 12;
 
 export default function RequestList() {
@@ -45,72 +51,99 @@ export default function RequestList() {
 
   return (
     <main className={styles.page}>
-      <div className={styles.header}>
-        <h2>{t('requests.heading')}<span className={styles.count}>{tp('requests.count', { n: filtered.length })}</span></h2>
-        <a href="/requests/new" className="btn-accent">{t('requests.cta')}</a>
-      </div>
-      <div className={styles.filterBar}>
-        <input
-          className={styles.searchInput}
-          type="search"
-          placeholder={t('list.searchPlaceholder')}
-          value={query}
-          onChange={handleFilterChange(setQuery)}
-          autoComplete="off"
-        />
-        <select
-          className={styles.filterSelect}
-          value={region}
-          onChange={handleFilterChange(setRegion)}
-        >
-          <option value="">{t('list.allRegions')}</option>
-          {regions.map((r) => <option key={r} value={r}>{r}</option>)}
-        </select>
-      </div>
-      {filtered.length === 0
-        ? <p className={styles.empty}>{t('requests.noMatch')}</p>
-        : <>
-            <ul className={styles.grid}>
-              {pageItems.map((r) => (
-                <li key={r.id}>
-                  <a href={`/requests/${r.id}`} className={styles.card}>
-                    <div className={styles.thumb} style={{ background: 'var(--blue-light)' }}>
-                      {r.imageUrl
-                        ? <img src={r.imageUrl} className={styles.cardImage} alt={r.title} />
-                        : <div className={styles.thumbEmpty} />}
-                      <span className={styles.categoryPill} style={{ color: 'var(--blue)' }}>{tCat(r.category)}</span>
-                    </div>
-                    <div className={styles.body}>
-                      <h3>{r.title}</h3>
-                      <p className={styles.desc}>{r.description}</p>
-                      <span className={styles.price} style={{ color: 'var(--blue)' }}>{t('requests.priceTag')}</span>
-                      <div className={styles.meta}>
-                        <span>{r.region}</span>
-                        <span className={styles.dot}>·</span>
-                        <span>{t('list.qty')} {r.quantity}</span>
-                      </div>
-                    </div>
+      {/* ── Two-column layout ── */}
+      <div className={styles.layout}>
+        {/* Sidebar */}
+        <aside className={styles.sidebar}>
+          <div className={styles.sideBox}>
+            <h3 className={styles.sideTitle}>{t('home.categories')}</h3>
+            <ul className={styles.catList}>
+              {CATEGORIES.map((c) => (
+                <li key={c}>
+                  <a href={`/requests?q=${encodeURIComponent(c)}`} className={styles.catRow}>
+                    {tCat(c)}
                   </a>
                 </li>
               ))}
             </ul>
-            {totalPages > 1 && (
-              <div className={styles.pagination}>
-                <button
-                  className={styles.pageBtn}
-                  onClick={() => setPage((p) => p - 1)}
-                  disabled={safePage === 1}
-                >{t('list.pagePrev')}</button>
-                <span className={styles.pageInfo}>{tp('list.pageInfo', { n: safePage, total: totalPages })}</span>
-                <button
-                  className={styles.pageBtn}
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={safePage === totalPages}
-                >{t('list.pageNext')}</button>
-              </div>
-            )}
-          </>
-      }
+          </div>
+        </aside>
+
+        {/* Main */}
+        <div className={styles.main}>
+          <div className={styles.header}>
+            <h2>{t('requests.heading')}<span className={styles.count}>{tp('requests.count', { n: filtered.length })}</span></h2>
+            <a href="/requests/new" className="btn-accent">{t('requests.cta')}</a>
+          </div>
+          <div className={styles.filterBar}>
+            <select
+              className={styles.filterSelect}
+              value="request"
+              onChange={(e) => {
+                const q = query ? `?q=${encodeURIComponent(query)}` : '';
+                if (e.target.value === 'listings') window.location.href = `/${q}`;
+                if (e.target.value === 'offer')    window.location.href = `/offers${q}`;
+              }}
+            >
+              <option value="listings">{t('home.typeListings')}</option>
+              <option value="offer">{t('home.typeOffers')}</option>
+              <option value="request">{t('home.typeRequests')}</option>
+            </select>
+            <input
+              className={styles.searchInput}
+              type="search"
+              placeholder={t('list.searchPlaceholder')}
+              value={query}
+              onChange={handleFilterChange(setQuery)}
+              autoComplete="off"
+            />
+            <select
+              className={styles.filterSelect}
+              value={region}
+              onChange={handleFilterChange(setRegion)}
+            >
+              <option value="">{t('list.allRegions')}</option>
+              {regions.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          {filtered.length === 0
+            ? <p className={styles.empty}>{t('requests.noMatch')}</p>
+            : <>
+                <ul className={styles.grid}>
+                  {pageItems.map((r) => (
+                    <li key={r.id}>
+                      <a href={`/requests/${r.id}`} className={styles.card}>
+                        <div className={styles.thumb} style={{ background: 'var(--blue-light)' }}>
+                          {r.imageUrl
+                            ? <img src={r.imageUrl} className={styles.cardImage} alt={r.title} />
+                            : <div className={styles.thumbEmpty} />}
+                          <span className={styles.categoryPill} style={{ color: 'var(--blue)' }}>{tCat(r.category)}</span>
+                        </div>
+                        <div className={styles.body}>
+                          <h3>{r.title}</h3>
+                          <p className={styles.desc}>{r.description}</p>
+                          <span className={styles.price} style={{ color: 'var(--blue)' }}>{t('requests.priceTag')}</span>
+                          <div className={styles.meta}>
+                            <span>{r.region}</span>
+                            <span className={styles.dot}>·</span>
+                            <span>{t('list.qty')} {r.quantity}</span>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                {totalPages > 1 && (
+                  <div className={styles.pagination}>
+                    <button className={styles.pageBtn} onClick={() => setPage((p) => p - 1)} disabled={safePage === 1}>{t('list.pagePrev')}</button>
+                    <span className={styles.pageInfo}>{tp('list.pageInfo', { n: safePage, total: totalPages })}</span>
+                    <button className={styles.pageBtn} onClick={() => setPage((p) => p + 1)} disabled={safePage === totalPages}>{t('list.pageNext')}</button>
+                  </div>
+                )}
+              </>
+          }
+        </div>
+      </div>
     </main>
   );
 }

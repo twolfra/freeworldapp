@@ -17,9 +17,9 @@ public class ImageController {
 
     private static final long MAX_BYTES = 5 * 1024 * 1024;
 
-    private final LocalStorageService storage;
+    private final StorageService storage;
 
-    public ImageController(LocalStorageService storage) {
+    public ImageController(StorageService storage) {
         this.storage = storage;
     }
 
@@ -39,8 +39,9 @@ public class ImageController {
 
     @GetMapping("/{filename:.+}")
     public ResponseEntity<byte[]> serve(@PathVariable String filename) throws IOException {
-        Path target = storage.resolve(filename);
-        if (!storage.isSafe(target) || !Files.exists(target))
+        Path uploadDir = LocalStorageService.UPLOAD_DIR.toAbsolutePath();
+        Path target = uploadDir.resolve(filename).normalize();
+        if (!target.startsWith(uploadDir) || !Files.exists(target))
             return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok()

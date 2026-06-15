@@ -91,6 +91,19 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-storage</artifactId>
+            <version>2.40.1</version>
+        </dependency>
+
+        <!-- Lets Cloud Run connect to Cloud SQL over the secure /cloudsql socket -->
+        <dependency>
+            <groupId>com.google.cloud.sql</groupId>
+            <artifactId>postgres-socket-factory</artifactId>
+            <version>1.20.1</version>
+        </dependency>
+
     </dependencies>
 
 	<build>

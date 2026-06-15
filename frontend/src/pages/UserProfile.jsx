@@ -27,6 +27,7 @@ export default function UserProfile({ id }) {
     Promise.all(fetches)
       .then(([u, o, r, checkRes]) => {
         setUser(u); setOffers(o); setReqs(r);
+        document.title = `${u.username} — FreeWorld`;
         if (checkRes) setSubscribed(checkRes.subscribed);
       })
       .catch(() => setError(t('profile.error')))

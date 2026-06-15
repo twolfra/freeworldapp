@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { offers as offersApi, requests as requestsApi } from '../api/client';
-import { t, tCat } from '../i18n';
+import { t, tp, tCat } from '../i18n';
 import styles from './Home.module.css';
 
 const CATEGORIES = [
@@ -10,10 +10,13 @@ const CATEGORIES = [
 ];
 
 export default function Home() {
-  const [q, setQ] = useState('');
-  const [recent, setRecent] = useState([]);
+  const initialQ = new URLSearchParams(window.location.search).get('q') || '';
+  const [q, setQ] = useState(initialQ);
+  const [type, setType] = useState('listings');
+  const [allItems, setAllItems] = useState([]);
   const [counts, setCounts] = useState({ offers: 0, requests: 0 });
   const [loading, setLoading] = useState(true);
+  const [activeSearch, setActiveSearch] = useState(initialQ);
 
   useEffect(() => {
     Promise.all([offersApi.list(), requestsApi.list()])
@@ -22,10 +25,8 @@ export default function Home() {
         const merged = [
           ...ofs.map((o) => ({ ...o, _type: 'offer' })),
           ...reqs.map((r) => ({ ...r, _type: 'request' })),
-        ]
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 9);
-        setRecent(merged);
+        ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setAllItems(merged);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -33,10 +34,28 @@ export default function Home() {
 
   function search(e) {
     e.preventDefault();
-    window.location.href = q.trim()
-      ? `/offers?q=${encodeURIComponent(q.trim())}`
-      : '/offers';
+    setActiveSearch(q.trim());
   }
+
+  function clearSearch() {
+    setActiveSearch('');
+    setQ('');
+  }
+
+  const displayItems = allItems
+    .filter((item) => type === 'listings' || item._type === type)
+    .filter((item) =>
+      !activeSearch ||
+      [item.title, item.description, item.region, item.category]
+        .join(' ').toLowerCase().includes(activeSearch.toLowerCase())
+    )
+    .slice(0, activeSearch ? undefined : 9);
+
+  const TYPES = [
+    ['listings', t('home.typeListings')],
+    ['offer',    t('home.typeOffers')],
+    ['request',  t('home.typeRequests')],
+  ];
 
   return (
     <main>
@@ -46,6 +65,16 @@ export default function Home() {
           <h1>{t('home.title')} <span>{t('home.titleAccent')}</span>.</h1>
           <p>{t('home.subtitle')}</p>
           <form className={styles.searchBar} onSubmit={search}>
+            <select
+              className={styles.typeSelect}
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+            >
+              {TYPES.map(([val, label]) => (
+                <option key={val} value={val}>{label}</option>
+              ))}
+            </select>
+            <div className={styles.searchDivider} />
             <input
               type="search"
               placeholder={t('home.searchPlaceholder')}
@@ -61,22 +90,24 @@ export default function Home() {
       {/* ── Two-column body ── */}
       <div className={styles.layout}>
 
-        {/* Sidebar */}
+        {/* Left sidebar — CTAs + categories + stats */}
         <aside className={styles.sidebar}>
-
+          <div className={styles.sideCtas}>
+            <a href="/offers/new" className="btn-accent" style={{ width: '100%' }}>{t('home.give')}</a>
+            <a href="/requests/new" className="btn-secondary" style={{ width: '100%' }}>{t('home.ask')}</a>
+          </div>
           <div className={styles.sideBox}>
             <h3 className={styles.sideTitle}>{t('home.categories')}</h3>
             <ul className={styles.catList}>
               {CATEGORIES.map((c) => (
                 <li key={c}>
-                  <a href={`/offers?q=${encodeURIComponent(c)}`} className={styles.catRow}>
+                  <a href={`/?q=${encodeURIComponent(c)}`} className={styles.catRow}>
                     {tCat(c)}
                   </a>
                 </li>
               ))}
             </ul>
           </div>
-
           <div className={styles.sideBox}>
             <h3 className={styles.sideTitle}>{t('home.stats')}</h3>
             <div className={styles.stats}>
@@ -90,31 +121,35 @@ export default function Home() {
               </a>
             </div>
           </div>
-
-          <div className={styles.sideCtas}>
-            <a href="/offers/new" className="btn-accent" style={{ width: '100%' }}>{t('home.give')}</a>
-            <a href="/requests/new" className="btn-secondary" style={{ width: '100%' }}>{t('home.ask')}</a>
-          </div>
-
         </aside>
 
-        {/* Main — recent listings */}
+        {/* Main — listings */}
         <div className={styles.main}>
           <div className={styles.mainHeader}>
-            <h2 className={styles.mainTitle}>{t('home.recent')}</h2>
+            <h2 className={styles.mainTitle}>
+              {activeSearch ? tp('home.resultsFor', { q: activeSearch }) : t('home.recent')}
+            </h2>
             <div className={styles.mainLinks}>
-              <a href="/offers" className={styles.viewAll}>{t('home.allOffers')}</a>
-              <a href="/requests" className={styles.viewAllBlue}>{t('home.allRequests')}</a>
+              {activeSearch ? (
+                <button className={styles.clearBtn} onClick={clearSearch}>{t('home.clearSearch')}</button>
+              ) : (
+                <>
+                  <a href="/offers" className={styles.viewAll}>{t('home.allOffers')}</a>
+                  <a href="/requests" className={styles.viewAllBlue}>{t('home.allRequests')}</a>
+                </>
+              )}
             </div>
           </div>
 
           {loading ? (
             <p className={styles.empty}>{t('home.loading')}</p>
-          ) : recent.length === 0 ? (
-            <p className={styles.empty}>{t('home.empty')}</p>
+          ) : displayItems.length === 0 ? (
+            <p className={styles.empty}>
+              {activeSearch ? tp('home.noResults', { q: activeSearch }) : t('home.empty')}
+            </p>
           ) : (
             <div className={styles.grid}>
-              {recent.map((item) => {
+              {displayItems.map((item) => {
                 const isOffer = item._type === 'offer';
                 return (
                   <a
