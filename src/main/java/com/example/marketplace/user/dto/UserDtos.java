@@ -34,6 +34,7 @@ public class UserDtos {
         public String username;
         public String email;
         public String createdAt;
+        public String role;  // USER or ADMIN
         public String token; // only populated on login
     }
 
@@ -42,5 +43,18 @@ public class UserDtos {
         public String id;
         public String username;
         public String createdAt;
+    }
+
+    /** Admin-only view of a user — includes email, role, block state and post counts. */
+    public static class AdminResponse {
+        public String id;
+        public String username;
+        public String email;
+        public String createdAt;
+        public String role;
+        public boolean blocked;
+        public String blockedAt;
+        public long offerCount;
+        public long requestCount;
     }
 }

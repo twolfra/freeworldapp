@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { offers as offersApi, images as imagesApi, likes as likesApi } from '../api/client';
+import { offers as offersApi, images as imagesApi, likes as likesApi, admin as adminApi } from '../api/client';
 import { t, tCat } from '../i18n';
+import ReportButton from '../components/ReportButton';
 import styles from './RequestDetail.module.css';
 
 const CATEGORIES = [
@@ -46,6 +47,19 @@ export default function OfferDetail({ id }) {
   if (error)   return <p className={styles.status}>{t('detail.loadErrOffer')}{error}</p>;
 
   const isOwnPost = currentUser?.id === offer.offeredById;
+  const isAdmin = currentUser?.role === 'ADMIN';
+
+  async function handleAdminDelete() {
+    if (!window.confirm(t('admin.confirmDelete'))) return;
+    setDeleting(true);
+    try {
+      await adminApi.deleteOffer(id);
+      window.location.href = '/offers';
+    } catch (err) {
+      alert(t('detail.deleteErr') + err.message);
+      setDeleting(false);
+    }
+  }
 
   function startEdit() {
     setEditForm({
@@ -168,12 +182,22 @@ export default function OfferDetail({ id }) {
           >
             {liked ? '❤' : '🤍'} {likeCount}
           </button>
+          {currentUser && !isOwnPost && (
+            <ReportButton targetType="OFFER" targetId={id} />
+          )}
         </div>
         {isOwnPost && !editing && (
           <div className={styles.ownerActions}>
             <button className={styles.editBtn} onClick={startEdit}>{t('detail.edit')}</button>
             <button className={styles.deleteBtn} onClick={handleDelete} disabled={deleting}>
               {deleting ? t('detail.deleting') : t('detail.delete')}
+            </button>
+          </div>
+        )}
+        {isAdmin && !isOwnPost && !editing && (
+          <div className={styles.ownerActions}>
+            <button className={styles.deleteBtn} onClick={handleAdminDelete} disabled={deleting}>
+              {deleting ? t('detail.deleting') : t('admin.deletePostBtn')}
             </button>
           </div>
         )}

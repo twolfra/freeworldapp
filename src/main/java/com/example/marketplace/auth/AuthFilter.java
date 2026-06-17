@@ -56,7 +56,7 @@ public class AuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        var sessionOpt = sessionRepo.findByToken(token);
+        var sessionOpt = sessionRepo.findByTokenWithUser(token);
         if (sessionOpt.isEmpty()) {
             reject(res, "Invalid or expired session.");
             return;
@@ -69,6 +69,12 @@ public class AuthFilter extends OncePerRequestFilter {
             return;
         }
 
+        // A blocked account's live sessions are rejected immediately, not just at next login.
+        if (session.getUser().isBlocked()) {
+            reject(res, "This account has been blocked.");
+            return;
+        }
+
         req.setAttribute("authenticatedUserId", session.getUser().getId());
         chain.doFilter(req, res);
     }
@@ -78,7 +84,8 @@ public class AuthFilter extends OncePerRequestFilter {
         return path.startsWith("/api/messages/conversation")
             || path.startsWith("/api/messages/unread-count")
             || path.startsWith("/api/likes")
-            || path.equals("/api/subscriptions/feed");
+            || path.equals("/api/subscriptions/feed")
+            || path.startsWith("/api/admin");
     }
 
     private void reject(HttpServletResponse res, String message) throws IOException {

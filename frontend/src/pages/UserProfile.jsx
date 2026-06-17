@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { users, offers as offersApi, requests as requestsApi, subscriptions as subsApi } from '../api/client';
 import { t, tCat } from '../i18n';
+import ReportButton from '../components/ReportButton';
 import styles from './UserProfile.module.css';
 
 export default function UserProfile({ id }) {
@@ -77,6 +78,7 @@ export default function UserProfile({ id }) {
                 >
                   {subscribed ? t('profile.subscribed') : t('profile.subscribe')}
                 </button>
+                <ReportButton targetType="USER" targetId={id} />
               </>
             )}
             {!isSelf && !currentUser && (

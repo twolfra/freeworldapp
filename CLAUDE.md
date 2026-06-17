@@ -95,6 +95,7 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 | `/impressum` | Impressum |
 | `/datenschutz` | Datenschutz |
 | `/terms` | Terms |
+| `/admin` | Admin (admin-only moderation panel) |
 
 ---
 
@@ -103,7 +104,7 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 ### Auth
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/api/auth/login` | `{ username, password }` → UserResponse (includes `token`) or 401 (bad creds) or 403 (unverified email) |
+| POST | `/api/auth/login` | `{ username, password }` → UserResponse (includes `token` and `role`) or 401 (bad creds) or 403 (unverified email **or blocked account**) |
 | POST | `/api/auth/logout` | Deletes server-side session; `X-Session-Token` header (no body needed) |
 | GET | `/api/auth/verify?token=` | Verifies email token; 200 on success, 404 invalid, 410 expired |
 | POST | `/api/auth/resend-verification` | `{ email }` → always 200; sends new link if email is registered and unverified |
@@ -162,6 +163,23 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 | GET | `/api/subscriptions/check?subscriberId=&subscribedToId=` | Returns `{ subscribed: bool }` |
 | GET | `/api/subscriptions/feed?subscriberId=` | Merged offers+requests from followed users, sorted newest first |
 
+### Reports
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/reports` | `{ targetType (OFFER/REQUEST/USER), targetId, reason (SPAM/INAPPROPRIATE/SCAM/HARASSMENT/OTHER), note? }` — any signed-in user; 404 unknown target, 400 self-report, 409 duplicate open report |
+
+### Admin (all require `X-Session-Token` of an ADMIN account — 403 otherwise)
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/admin/users` | List all users with email, role, blocked state, post counts (`AdminResponse`) |
+| POST | `/api/admin/users/:id/block` | Soft-block: sets `blocked=true`, kills sessions; 400 if blocking self |
+| POST | `/api/admin/users/:id/unblock` | Clears `blocked` |
+| DELETE | `/api/admin/offers/:id` | Delete any offer (clears likes, reports, image) |
+| DELETE | `/api/admin/requests/:id` | Delete any request (clears likes, reports, image) |
+| GET | `/api/admin/reports?status=` | Moderation queue; `status` defaults to OPEN, accepts OPEN/RESOLVED/DISMISSED/ALL; each row enriched with target title/author |
+| POST | `/api/admin/reports/:id/resolve` | Mark RESOLVED (stamps resolvedBy/resolvedAt) |
+| POST | `/api/admin/reports/:id/dismiss` | Mark DISMISSED |
+
 ---
 
 ## Database schema (auto-managed by Hibernate)
@@ -169,7 +187,9 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 ```
 users           id(uuid PK), username(32), email(255), passwordHash(60), createdAt,
                 emailVerified(bool DEFAULT false), verificationToken(36 nullable),
-                verificationTokenExpiresAt(timestamp nullable)
+                verificationTokenExpiresAt(timestamp nullable),
+                role(varchar(16) DEFAULT 'USER' — USER/ADMIN), blocked(bool DEFAULT false),
+                blockedAt(timestamp nullable)
 sessions        id(uuid PK), token(36 unique), user_id(FK→users), createdAt, expiresAt
 offers          id, title(140), description(4000), region(140), category(140),
                 quantity(int), image_url(500 nullable), offered_by_id(FK→users), createdAt
@@ -178,6 +198,9 @@ requests        id, title(140), description(4000), region(140), category(140),
 messages        id, sender_id(FK→users), recipient_id(FK→users), content(2000), createdAt
 subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), createdAt
                 UNIQUE(subscriber_id, subscribed_to_id)
+reports         id, reporter_id(FK→users), targetType(OFFER/REQUEST/USER), targetId(uuid),
+                reason(SPAM/INAPPROPRIATE/SCAM/HARASSMENT/OTHER), note(1000 nullable),
+                status(OPEN/RESOLVED/DISMISSED), createdAt, resolvedBy(uuid nullable), resolvedAt(nullable)
 ```
 
 ---
@@ -186,7 +209,7 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 
 - **Auth check:** `JSON.parse(localStorage.getItem('currentUser') || 'null')` — used inline in every page that needs it. No context/provider.
 - **Navigation:** `<a href="/path">` hard links — no React Router, no `navigate()`. Pages re-render on full reload.
-- **API client:** `frontend/src/api/client.js` exports named objects (`auth`, `users`, `offers`, `requests`, `messages`, `subscriptions`, `images`). All return promises. Errors throw with message string parsed from Spring's validation format. Multipart uploads use a separate `upload()` helper that omits the `Content-Type` header so the browser sets the multipart boundary automatically.
+- **API client:** `frontend/src/api/client.js` exports named objects (`auth`, `users`, `offers`, `requests`, `messages`, `subscriptions`, `images`, `likes`, `reports`, `admin`). All return promises. Errors throw with message string parsed from Spring's validation format. Multipart uploads use a separate `upload()` helper that omits the `Content-Type` header so the browser sets the multipart boundary automatically.
 - **CSS:** Each page has its own `.module.css`. `OfferList.module.css` is shared by both `OfferList` and `RequestList`. `RequestDetail.module.css` is shared by both detail pages. `OfferForm.module.css` is shared by both form pages.
 - **SSE connections:** Both `Navbar.jsx` (for unread badge) and `Conversation.jsx` open `EventSource` to `/api/messages/stream`. Fan-out in `SseService` (`Map<UUID, CopyOnWriteArrayList<SseEmitter>>`) delivers events to all open connections for the same user simultaneously.
 - **i18n:** `frontend/src/i18n.js` exports `t(key)`, `tp(key, params)` (with `{placeholder}` interpolation), and `tCat(englishCategoryName)`. Language stored in `localStorage` key `fw_lang` (defaults to `'en'`). `setLang(lang)` sets it and reloads. Navbar shows a DE/EN pill toggle. Category values sent to the API always stay in English; only display labels are translated.
@@ -239,6 +262,7 @@ subscriptions   id, subscriber_id(FK→users), subscribed_to_id(FK→users), cre
 - [x] Transactional email via Brevo HTTP API — `EmailService` calls `https://api.brevo.com/v3/smtp/email` with `BREVO_API_KEY`; SMTP is NOT used (Cloud Run blocks outbound port 587); sender: `info@freeworldapp.de`; falls back to logging the verification link if `BREVO_API_KEY` is unset (dev mode)
 - [x] Secret Manager — `DB_PASSWORD` and `BREVO_API_KEY` stored as GCP secrets; referenced via `--set-secrets` in Cloud Run; `1040119781594-compute@developer.gserviceaccount.com` has `secretAccessor` role on both secrets
 - [x] Footer with legal pages — persistent `Footer` component in `App.jsx` (appears on every page); links to `/impressum` (Tim Wolfram, Torgauer Str. 20, 04315 Leipzig), `/datenschutz` (DSGVO-compliant privacy policy), `/terms` (German AGB template); footer i18n keys `footer.impressum/datenschutz/terms/copy` with EN/DE translations; home subheader changed to "Your community for a gift economy" / "Deine Community für eine Schenkökonomie"; legal page styles in `Legal.module.css`
+- [x] Moderation & admin system — `User` gains `role` (USER/ADMIN), `blocked`, `blockedAt`. **Admin**: `AdminGuard` (in `auth/`) checks the caller's role on top of `SecurityContext`; `AdminController` (`/api/admin/**`) lets admins delete any offer/request, block/unblock users, and work a report queue. `AdminBootstrap` (ApplicationRunner) promotes accounts in the `ADMIN_EMAILS` env var to ADMIN on startup (case-insensitive, idempotent). Login response includes `role`; **soft block** = blocked users get 403 at login AND on any live session (`AuthFilter` checks `blocked`), their sessions are deleted on block, and their posts are filtered out of offer/request lists and the subscription feed. **Reporting**: `Report` entity (modeled on `Like` — `targetType` OFFER/REQUEST/USER + `targetId`, `reason`, `note`, `status` OPEN/RESOLVED/DISMISSED); `POST /api/reports` for any user (self-report blocked, duplicate open reports → 409); admins resolve/dismiss from the queue. **Frontend**: `role`-gated Admin nav link → `/admin` panel (`Admin.jsx`) with Reports queue + Users tabs; reusable `ReportButton.jsx` modal on offer/request detail pages and user profiles; admin-only Delete button on detail pages. Cleanup: deleting a post or user clears related reports.
 
 ---
 
@@ -269,9 +293,12 @@ gcloud run deploy freeworldapp \
   --set-env-vars="BASE_URL=https://freeworldapp-1040119781594.europe-west3.run.app" \
   --set-env-vars="CORS_ALLOWED_ORIGINS=https://freeworldapp-1040119781594.europe-west3.run.app" \
   --set-env-vars="MAIL_FROM=info@freeworldapp.de" \
+  --set-env-vars="ADMIN_EMAILS=twolfram030@gmail.com" \
   --set-secrets="DB_PASSWORD=db-password:latest,BREVO_API_KEY=brevo-api-key:latest" \
   --project=freeworld-tw
 ```
+
+> `ADMIN_EMAILS` is a comma-separated list of account emails promoted to ADMIN on startup. Replace/extend with the real admin address(es). A user must already be registered for promotion to take effect.
 
 ### Useful ops commands
 

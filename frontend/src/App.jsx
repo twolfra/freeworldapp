@@ -19,6 +19,7 @@ import Impressum from './pages/Impressum';
 import Datenschutz from './pages/Datenschutz';
 import Terms from './pages/Terms';
 import Contact from './pages/Contact';
+import Admin from './pages/Admin';
 
 const SUFFIX = ' — FreeWorld';
 
@@ -38,6 +39,7 @@ const TITLES = {
   '/datenschutz':   'Datenschutz' + SUFFIX,
   '/terms':         'Terms & Conditions' + SUFFIX,
   '/contact':       'Contact' + SUFFIX,
+  '/admin':         'Admin' + SUFFIX,
 };
 
 function resolve(path) {
@@ -57,6 +59,7 @@ function resolve(path) {
     '/datenschutz': Datenschutz,
     '/terms': Terms,
     '/contact': Contact,
+    '/admin': Admin,
   };
   if (exact[path]) return { Page: exact[path], params: {}, title: TITLES[path] };
 

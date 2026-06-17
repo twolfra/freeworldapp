@@ -7,6 +7,8 @@ import com.example.marketplace.image.StorageService;
 import com.example.marketplace.like.LikeRepository;
 import com.example.marketplace.message.MessageRepository;
 import com.example.marketplace.offer.OfferRepository;
+import com.example.marketplace.report.Report;
+import com.example.marketplace.report.ReportRepository;
 import com.example.marketplace.request.RequestRepository;
 import com.example.marketplace.subscription.SubscriptionRepository;
 import com.example.marketplace.user.dto.UserDtos;
@@ -38,11 +40,13 @@ public class UserController {
     private final RequestRepository requestRepo;
     private final StorageService storageService;
     private final LikeRepository likeRepo;
+    private final ReportRepository reportRepo;
 
     public UserController(UserRepository userRepo, PasswordEncoder encoder, EmailService emailService,
                           SessionRepository sessionRepo, MessageRepository messageRepo,
                           SubscriptionRepository subscriptionRepo, OfferRepository offerRepo,
-                          RequestRepository requestRepo, StorageService storageService, LikeRepository likeRepo) {
+                          RequestRepository requestRepo, StorageService storageService, LikeRepository likeRepo,
+                          ReportRepository reportRepo) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.emailService = emailService;
@@ -53,6 +57,7 @@ public class UserController {
         this.requestRepo = requestRepo;
         this.storageService = storageService;
         this.likeRepo = likeRepo;
+        this.reportRepo = reportRepo;
     }
 
     @PostMapping
@@ -115,6 +120,15 @@ public class UserController {
         // Delete images from storage before removing the records
         offerRepo.findByOfferedBy_Id(id).forEach(o -> storageService.delete(o.getImageUrl()));
         requestRepo.findByRequestedBy_Id(id).forEach(r -> storageService.delete(r.getImageUrl()));
+
+        // Reports filed by this user, reports targeting this user, and reports
+        // targeting any of this user's posts.
+        reportRepo.deleteAllByReporterId(id);
+        reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.USER, id);
+        offerRepo.findByOfferedBy_Id(id).forEach(o ->
+                reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.OFFER, o.getId()));
+        requestRepo.findByRequestedBy_Id(id).forEach(r ->
+                reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.REQUEST, r.getId()));
 
         sessionRepo.deleteByUser_Id(id);
         subscriptionRepo.deleteAllInvolvingUser(id);

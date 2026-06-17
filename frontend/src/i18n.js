@@ -29,6 +29,7 @@ const T = {
     // Navbar
     'nav.offers': 'Offers', 'nav.requests': 'Requests',
     'nav.messages': 'Messages', 'nav.following': 'Following', 'nav.likes': 'Likes',
+    'nav.admin': 'Admin',
     'nav.signIn': 'Sign in', 'nav.join': 'Join', 'nav.signOut': 'Sign out',
 
     // Home
@@ -192,6 +193,41 @@ const T = {
     'conv.connLost': 'Connection lost. Please refresh to reconnect.',
     'conv.userNotFound': 'User not found.',
 
+    // Report
+    'report.button': 'Report',
+    'report.title': 'Report this',
+    'report.intro': 'Tell us what\'s wrong. Our moderators will review it.',
+    'report.reasonLabel': 'Reason',
+    'report.noteLabel': 'Details (optional)',
+    'report.notePlaceholder': 'Add any context that helps us review this…',
+    'report.reason.SPAM': 'Spam or advertising',
+    'report.reason.INAPPROPRIATE': 'Inappropriate content',
+    'report.reason.SCAM': 'Scam or fraud',
+    'report.reason.HARASSMENT': 'Harassment or abuse',
+    'report.reason.OTHER': 'Other',
+    'report.cancel': 'Cancel', 'report.submit': 'Submit report', 'report.submitting': 'Sending…',
+    'report.thanksTitle': 'Thank you', 'report.thanksBody': 'This has been sent to our moderators.',
+    'report.close': 'Close',
+
+    // Admin
+    'admin.title': 'Moderation',
+    'admin.signIn': 'Please', 'admin.signInLink': 'sign in', 'admin.denied': 'Admin access required.',
+    'admin.tabReports': 'Reports', 'admin.tabUsers': 'Users',
+    'admin.loading': 'Loading…',
+    'admin.noReports': 'No open reports. All clear!',
+    'admin.reportedItem': 'Reported item', 'admin.author': 'Author', 'admin.reportedBy': 'Reported by',
+    'admin.target.OFFER': 'Offer', 'admin.target.REQUEST': 'Request', 'admin.target.USER': 'User',
+    'admin.targetGone': 'No longer exists',
+    'admin.deletePost': 'Delete post', 'admin.blockAuthor': 'Block author', 'admin.dismiss': 'Dismiss',
+    'admin.deletePostBtn': 'Delete (admin)',
+    'admin.confirmDelete': 'Delete this post? This cannot be undone.',
+    'admin.confirmBlock': 'Block this account? They will be signed out and unable to log in.',
+    'admin.confirmUnblock': 'Unblock this account?',
+    'admin.blocked': 'Blocked', 'admin.active': 'Active',
+    'admin.colUser': 'User', 'admin.colEmail': 'Email', 'admin.colRole': 'Role',
+    'admin.colPosts': 'Posts', 'admin.colStatus': 'Status',
+    'admin.block': 'Block', 'admin.unblock': 'Unblock', 'admin.you': 'You',
+
     // Footer
     // Contact page
     'contact.heading': 'Contact', 'contact.intro': 'Send us a message and we\'ll get back to you.',
@@ -211,6 +247,7 @@ const T = {
     // Navbar
     'nav.offers': 'Angebote', 'nav.requests': 'Gesuche',
     'nav.messages': 'Nachrichten', 'nav.following': 'Abonniert', 'nav.likes': 'Likes',
+    'nav.admin': 'Admin',
     'nav.signIn': 'Anmelden', 'nav.join': 'Registrieren', 'nav.signOut': 'Abmelden',
 
     // Home
@@ -373,6 +410,41 @@ const T = {
     'conv.signInLink': 'anmelden',
     'conv.connLost': 'Verbindung unterbrochen. Bitte Seite neu laden.',
     'conv.userNotFound': 'Benutzer nicht gefunden.',
+
+    // Report
+    'report.button': 'Melden',
+    'report.title': 'Dies melden',
+    'report.intro': 'Sag uns, was nicht stimmt. Unsere Moderatoren prüfen es.',
+    'report.reasonLabel': 'Grund',
+    'report.noteLabel': 'Details (optional)',
+    'report.notePlaceholder': 'Füge hilfreichen Kontext hinzu…',
+    'report.reason.SPAM': 'Spam oder Werbung',
+    'report.reason.INAPPROPRIATE': 'Unangemessener Inhalt',
+    'report.reason.SCAM': 'Betrug',
+    'report.reason.HARASSMENT': 'Belästigung oder Missbrauch',
+    'report.reason.OTHER': 'Sonstiges',
+    'report.cancel': 'Abbrechen', 'report.submit': 'Meldung senden', 'report.submitting': 'Wird gesendet…',
+    'report.thanksTitle': 'Danke', 'report.thanksBody': 'Dies wurde an unsere Moderatoren gesendet.',
+    'report.close': 'Schließen',
+
+    // Admin
+    'admin.title': 'Moderation',
+    'admin.signIn': 'Bitte', 'admin.signInLink': 'anmelden', 'admin.denied': 'Admin-Zugriff erforderlich.',
+    'admin.tabReports': 'Meldungen', 'admin.tabUsers': 'Nutzer',
+    'admin.loading': 'Wird geladen…',
+    'admin.noReports': 'Keine offenen Meldungen. Alles in Ordnung!',
+    'admin.reportedItem': 'Gemeldeter Eintrag', 'admin.author': 'Autor', 'admin.reportedBy': 'Gemeldet von',
+    'admin.target.OFFER': 'Angebot', 'admin.target.REQUEST': 'Gesuch', 'admin.target.USER': 'Nutzer',
+    'admin.targetGone': 'Existiert nicht mehr',
+    'admin.deletePost': 'Beitrag löschen', 'admin.blockAuthor': 'Autor sperren', 'admin.dismiss': 'Verwerfen',
+    'admin.deletePostBtn': 'Löschen (Admin)',
+    'admin.confirmDelete': 'Diesen Beitrag löschen? Dies kann nicht rückgängig gemacht werden.',
+    'admin.confirmBlock': 'Dieses Konto sperren? Der Nutzer wird abgemeldet und kann sich nicht mehr anmelden.',
+    'admin.confirmUnblock': 'Dieses Konto entsperren?',
+    'admin.blocked': 'Gesperrt', 'admin.active': 'Aktiv',
+    'admin.colUser': 'Nutzer', 'admin.colEmail': 'E-Mail', 'admin.colRole': 'Rolle',
+    'admin.colPosts': 'Beiträge', 'admin.colStatus': 'Status',
+    'admin.block': 'Sperren', 'admin.unblock': 'Entsperren', 'admin.you': 'Du',
 
     // Footer
     // Contact page

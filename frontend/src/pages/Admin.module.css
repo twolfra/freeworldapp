@@ -1,0 +1,172 @@
+.page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+.heading {
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+.status {
+  text-align: center;
+  color: #666;
+  padding: 2rem 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #e5e5e5;
+  margin-bottom: 1.25rem;
+}
+
+.tab, .tabActive {
+  background: none;
+  border: none;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #888;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tabActive {
+  color: var(--green, #2e7d32);
+  border-bottom-color: var(--green, #2e7d32);
+}
+
+/* ---- Reports ---- */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.reportCard {
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  background: #fff;
+}
+
+.reportHead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.reasonPill {
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.targetType {
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.reportBody p {
+  margin: 0.25rem 0;
+  font-size: 0.92rem;
+}
+
+.note {
+  color: #555;
+  font-style: italic;
+  border-left: 3px solid #ddd;
+  padding-left: 0.6rem;
+}
+
+.dim {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.reportActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.blockedTag {
+  background: #fde2e2;
+  color: #b91c1c;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  margin-left: 0.4rem;
+}
+
+.adminTag {
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+}
+
+/* ---- Buttons ---- */
+.dangerBtn, .warnBtn, .ghostBtn {
+  border: none;
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dangerBtn { background: #dc2626; color: #fff; }
+.warnBtn   { background: #f59e0b; color: #fff; }
+.ghostBtn  { background: #f1f1f1; color: #444; }
+
+.dangerBtn:disabled, .warnBtn:disabled, .ghostBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ---- Users table ---- */
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th, .table td {
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.table th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #555;
+}
+
+.blockedRow {
+  background: #fff8f8;
+}

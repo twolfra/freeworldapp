@@ -45,6 +45,10 @@ public class AuthController {
             return ResponseEntity.status(403)
                     .body(Map.of("error", "Email not verified. Please check your inbox."));
         }
+        if (u.isBlocked()) {
+            return ResponseEntity.status(403)
+                    .body(Map.of("error", "This account has been blocked. Contact support if you believe this is a mistake."));
+        }
         Session s = new Session();
         s.setToken(UUID.randomUUID().toString());
         s.setUser(u);
@@ -108,6 +112,7 @@ public class AuthController {
         out.username = u.getUsername();
         out.email = u.getEmail();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(u.getCreatedAt());
+        out.role = u.getRole().name();
         return out;
     }
 }

@@ -117,7 +117,8 @@ public class SubscriptionController {
 
         List<SubscriptionDtos.FeedItem> items = new ArrayList<>();
 
-        offerRepo.findByOfferedBy_IdIn(followedIds).forEach(o -> {
+        offerRepo.findByOfferedBy_IdIn(followedIds).stream()
+                .filter(o -> !o.getOfferedBy().isBlocked()).forEach(o -> {
             var item = new SubscriptionDtos.FeedItem();
             item.type            = "offer";
             item.id              = o.getId().toString();
@@ -132,7 +133,8 @@ public class SubscriptionController {
             items.add(item);
         });
 
-        requestRepo.findByRequestedBy_IdIn(followedIds).forEach(r -> {
+        requestRepo.findByRequestedBy_IdIn(followedIds).stream()
+                .filter(r -> !r.getRequestedBy().isBlocked()).forEach(r -> {
             var item = new SubscriptionDtos.FeedItem();
             item.type            = "request";
             item.id              = r.getId().toString();

@@ -117,3 +117,19 @@ export const contact = {
   send: (name, email, message) =>
     request('/contact', { method: 'POST', body: JSON.stringify({ name, email, message }) }),
 };
+
+export const reports = {
+  create: (targetType, targetId, reason, note) =>
+    request('/reports', { method: 'POST', body: JSON.stringify({ targetType, targetId, reason, note }) }),
+};
+
+export const admin = {
+  listUsers:     ()            => request('/admin/users'),
+  block:         (userId)      => request(`/admin/users/${userId}/block`,   { method: 'POST' }),
+  unblock:       (userId)      => request(`/admin/users/${userId}/unblock`, { method: 'POST' }),
+  deleteOffer:   (id)          => request(`/admin/offers/${id}`,   { method: 'DELETE' }),
+  deleteRequest: (id)          => request(`/admin/requests/${id}`, { method: 'DELETE' }),
+  listReports:   (status)      => request(`/admin/reports${status ? `?status=${status}` : ''}`),
+  resolveReport: (id)          => request(`/admin/reports/${id}/resolve`, { method: 'POST' }),
+  dismissReport: (id)          => request(`/admin/reports/${id}/dismiss`, { method: 'POST' }),
+};

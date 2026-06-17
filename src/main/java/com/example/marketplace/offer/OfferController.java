@@ -62,7 +62,9 @@ public class OfferController {
             }
             return ResponseEntity.ok(offerRepo.findByOfferedBy_Id(uid).stream().map(this::toResponse).toList());
         }
-        return ResponseEntity.ok(offerRepo.findAll().stream().map(this::toResponse).toList());
+        return ResponseEntity.ok(offerRepo.findAll().stream()
+                .filter(o -> !o.getOfferedBy().isBlocked())
+                .map(this::toResponse).toList());
     }
 
     @GetMapping("{id}")

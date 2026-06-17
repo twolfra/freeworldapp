@@ -62,7 +62,9 @@ public class RequestController {
             }
             return ResponseEntity.ok(requestRepo.findByRequestedBy_Id(uid).stream().map(this::toResponse).toList());
         }
-        return ResponseEntity.ok(requestRepo.findAll().stream().map(this::toResponse).toList());
+        return ResponseEntity.ok(requestRepo.findAll().stream()
+                .filter(r -> !r.getRequestedBy().isBlocked())
+                .map(this::toResponse).toList());
     }
 
     @GetMapping("{id}")

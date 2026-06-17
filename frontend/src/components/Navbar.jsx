@@ -53,6 +53,9 @@ export default function Navbar() {
           )}
           {currentUser && <a href="/subscriptions" className={styles.navLink}>{t('nav.following')}</a>}
           {currentUser && <a href="/likes" className={styles.navLink}>{t('nav.likes')}</a>}
+          {currentUser?.role === 'ADMIN' && (
+            <a href="/admin" className={styles.navLink}>{t('nav.admin')}</a>
+          )}
         </nav>
 
         <div className={styles.actions}>
