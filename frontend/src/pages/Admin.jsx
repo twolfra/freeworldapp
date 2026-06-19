@@ -174,6 +174,19 @@ function UsersTab({ currentUser }) {
     }
   }
 
+  async function deleteUser(u) {
+    if (!window.confirm(t('admin.confirmDeleteUser'))) return;
+    setBusy(u.id);
+    try {
+      await adminApi.deleteUser(u.id);
+      load();
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   if (error) return <p className={styles.status}>{error}</p>;
   if (!users) return <p className={styles.status}>{t('admin.loading')}</p>;
 
@@ -202,13 +215,23 @@ function UsersTab({ currentUser }) {
                 {u.id === currentUser.id ? (
                   <span className={styles.dim}>{t('admin.you')}</span>
                 ) : (
-                  <button
-                    className={u.blocked ? styles.warnBtn : styles.dangerBtn}
-                    disabled={busy === u.id}
-                    onClick={() => toggleBlock(u)}
-                  >
-                    {u.blocked ? t('admin.unblock') : t('admin.block')}
-                  </button>
+                  <>
+                    <button
+                      className={u.blocked ? styles.warnBtn : styles.dangerBtn}
+                      disabled={busy === u.id}
+                      onClick={() => toggleBlock(u)}
+                    >
+                      {u.blocked ? t('admin.unblock') : t('admin.block')}
+                    </button>
+                    <button
+                      className={styles.dangerBtn}
+                      disabled={busy === u.id}
+                      onClick={() => deleteUser(u)}
+                      style={{ marginLeft: '0.4rem' }}
+                    >
+                      {t('admin.deleteUser')}
+                    </button>
+                  </>
                 )}
               </td>
             </tr>

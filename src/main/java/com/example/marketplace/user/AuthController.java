@@ -113,6 +113,8 @@ public class AuthController {
         out.email = u.getEmail();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(u.getCreatedAt());
         out.role = u.getRole().name();
+        out.notifyOnMessage = u.isNotifyOnMessage();
+        out.language = u.getLanguage();
         return out;
     }
 }

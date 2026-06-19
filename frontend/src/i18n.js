@@ -124,6 +124,9 @@ const T = {
     'profile.error': 'User not found.',
     'profile.offer': 'offer', 'profile.offers': 'offers',
     'profile.request': 'request', 'profile.requests': 'requests',
+    'profile.settings': 'Settings',
+    'profile.notifyMessages': 'Email me about new messages',
+    'profile.notifyMessagesHint': 'Get an email when someone sends you a direct message and you\'re offline.',
 
     // Inbox
     'inbox.title': 'Messages',
@@ -227,6 +230,7 @@ const T = {
     'admin.colUser': 'User', 'admin.colEmail': 'Email', 'admin.colRole': 'Role',
     'admin.colPosts': 'Posts', 'admin.colStatus': 'Status',
     'admin.block': 'Block', 'admin.unblock': 'Unblock', 'admin.you': 'You',
+    'admin.deleteUser': 'Delete account', 'admin.confirmDeleteUser': 'Permanently delete this account and all their posts? This cannot be undone.',
 
     // Footer
     // Contact page
@@ -342,6 +346,9 @@ const T = {
     'profile.error': 'Benutzer nicht gefunden.',
     'profile.offer': 'Angebot', 'profile.offers': 'Angebote',
     'profile.request': 'Gesuch', 'profile.requests': 'Gesuche',
+    'profile.settings': 'Einstellungen',
+    'profile.notifyMessages': 'E-Mail bei neuen Nachrichten',
+    'profile.notifyMessagesHint': 'Erhalte eine E-Mail, wenn dir jemand eine Nachricht schickt und du offline bist.',
 
     // Inbox
     'inbox.title': 'Nachrichten',
@@ -445,6 +452,7 @@ const T = {
     'admin.colUser': 'Nutzer', 'admin.colEmail': 'E-Mail', 'admin.colRole': 'Rolle',
     'admin.colPosts': 'Beiträge', 'admin.colStatus': 'Status',
     'admin.block': 'Sperren', 'admin.unblock': 'Entsperren', 'admin.you': 'Du',
+    'admin.deleteUser': 'Konto löschen', 'admin.confirmDeleteUser': 'Dieses Konto und alle Beiträge dauerhaft löschen? Dies kann nicht rückgängig gemacht werden.',
 
     // Footer
     // Contact page

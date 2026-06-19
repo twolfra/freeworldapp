@@ -13,6 +13,7 @@ public class UserDtos {
         public String email;
         @NotBlank @Size(min = 6, max = 72)
         public String password;
+        public String language; // optional, "en" / "de"
     }
 
     public static class Update {
@@ -36,6 +37,8 @@ public class UserDtos {
         public String createdAt;
         public String role;  // USER or ADMIN
         public String token; // only populated on login
+        public boolean notifyOnMessage;
+        public String language;
     }
 
     /** Returned by public GET endpoints — no email exposed. */

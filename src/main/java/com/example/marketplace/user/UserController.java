@@ -76,6 +76,7 @@ public class UserController {
         u.setEmailVerified(false);
         u.setVerificationToken(token);
         u.setVerificationTokenExpiresAt(Instant.now().plus(24, ChronoUnit.HOURS));
+        if ("de".equalsIgnoreCase(in.language)) u.setLanguage("de");
         u = userRepo.save(u);
 
         emailService.sendVerificationEmail(u.getEmail(), token);

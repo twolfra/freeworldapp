@@ -20,12 +20,14 @@ public class MessageController {
     private final MessageRepository messageRepo;
     private final UserRepository userRepo;
     private final ChatWebSocketHandler wsHandler;
+    private final MessageNotificationService notificationService;
 
     public MessageController(MessageRepository messageRepo, UserRepository userRepo,
-                             ChatWebSocketHandler wsHandler) {
+                             ChatWebSocketHandler wsHandler, MessageNotificationService notificationService) {
         this.messageRepo = messageRepo;
         this.userRepo = userRepo;
         this.wsHandler = wsHandler;
+        this.notificationService = notificationService;
     }
 
     @PostMapping
@@ -56,6 +58,9 @@ public class MessageController {
         Map<String, Object> wsPush = wsHandler.toMessagePayload(saved);
         wsHandler.push(recipientId, wsPush);
         wsHandler.push(senderId, wsPush);
+
+        // Email the recipient if they aren't connected (handled async + presence-checked inside).
+        notificationService.notifyNewMessage(recipientId, senderId, saved.getContent());
 
         return ResponseEntity.created(URI.create("/api/messages/" + saved.getId())).body(resp);
     }

@@ -21,17 +21,20 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final MessageRepository messageRepo;
     private final UserRepository userRepo;
     private final ObjectMapper mapper;
+    private final MessageNotificationService notificationService;
 
     // Fan-out: one user may have multiple open tabs/connections
     private final Map<UUID, CopyOnWriteArrayList<WebSocketSession>> userSessions = new ConcurrentHashMap<>();
     private final Map<String, UUID> wsToUser = new ConcurrentHashMap<>();
 
     public ChatWebSocketHandler(SessionRepository sessionRepo, MessageRepository messageRepo,
-                                UserRepository userRepo, ObjectMapper mapper) {
+                                UserRepository userRepo, ObjectMapper mapper,
+                                MessageNotificationService notificationService) {
         this.sessionRepo = sessionRepo;
         this.messageRepo = messageRepo;
         this.userRepo = userRepo;
         this.mapper = mapper;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -79,6 +82,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         Map<String, Object> payload = toMessagePayload(saved);
         push(recipientId, payload);
         push(senderId, payload);   // confirms the message to the sender with server-assigned id/timestamp
+
+        // Email the recipient if they aren't connected (handled async + presence-checked inside).
+        notificationService.notifyNewMessage(recipientId, senderId, saved.getContent());
     }
 
     @Override
@@ -90,6 +96,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             list.remove(ws);
             if (list.isEmpty()) userSessions.remove(userId, list);
         }
+    }
+
+    /** True if the user has at least one live WebSocket connection (any tab/page). */
+    public boolean isOnline(UUID userId) {
+        CopyOnWriteArrayList<WebSocketSession> list = userSessions.get(userId);
+        return list != null && list.stream().anyMatch(WebSocketSession::isOpen);
     }
 
     /** Push an arbitrary payload to all open WebSocket sessions for userId. */

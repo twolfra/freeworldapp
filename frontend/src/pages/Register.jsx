@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { users } from '../api/client';
-import { t } from '../i18n';
+import { t, getLang } from '../i18n';
 import styles from './Register.module.css';
 
 export default function Register() {
@@ -17,7 +17,7 @@ export default function Register() {
     e.preventDefault();
     setError(null);
     try {
-      await users.create(form);
+      await users.create({ ...form, language: getLang() });
       setRegisteredEmail(form.email);
       setRegistered(true);
     } catch (err) {

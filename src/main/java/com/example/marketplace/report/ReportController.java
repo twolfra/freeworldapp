@@ -1,9 +1,11 @@
 package com.example.marketplace.report;
 
 import com.example.marketplace.auth.SecurityContext;
+import com.example.marketplace.email.EmailService;
 import com.example.marketplace.offer.OfferRepository;
 import com.example.marketplace.report.dto.ReportDtos;
 import com.example.marketplace.request.RequestRepository;
+import com.example.marketplace.user.Role;
 import com.example.marketplace.user.User;
 import com.example.marketplace.user.UserRepository;
 import jakarta.validation.Valid;
@@ -21,13 +23,16 @@ public class ReportController {
     private final UserRepository userRepo;
     private final OfferRepository offerRepo;
     private final RequestRepository requestRepo;
+    private final EmailService emailService;
 
     public ReportController(ReportRepository reportRepo, UserRepository userRepo,
-                            OfferRepository offerRepo, RequestRepository requestRepo) {
+                            OfferRepository offerRepo, RequestRepository requestRepo,
+                            EmailService emailService) {
         this.reportRepo = reportRepo;
         this.userRepo = userRepo;
         this.offerRepo = offerRepo;
         this.requestRepo = requestRepo;
+        this.emailService = emailService;
     }
 
     @PostMapping
@@ -84,6 +89,18 @@ public class ReportController {
         report.setNote(in.note);
         report.setStatus(Report.Status.OPEN);
         reportRepo.save(report);
+
+        // Notify all admins by email
+        String targetTitle = switch (type) {
+            case OFFER    -> offerRepo.findById(targetId).map(o -> o.getTitle()).orElse(targetId.toString());
+            case REQUEST  -> requestRepo.findById(targetId).map(r -> r.getTitle()).orElse(targetId.toString());
+            case USER     -> userRepo.findById(targetId).map(User::getUsername).orElse(targetId.toString());
+        };
+        userRepo.findAll().stream()
+                .filter(u -> u.getRole() == Role.ADMIN)
+                .forEach(admin -> emailService.sendNewReportEmail(
+                        admin.getEmail(), reporter.getUsername(),
+                        type.name(), targetTitle, reason.name()));
 
         return ResponseEntity.ok(Map.of("message", "Thanks — this has been reported to our moderators."));
     }

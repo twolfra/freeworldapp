@@ -50,8 +50,23 @@ public class User {
     @Column(nullable = true)
     private Instant blockedAt;
 
+    // Email notification preference for incoming direct messages.
+    @Column(nullable = false, columnDefinition = "boolean DEFAULT true")
+    private boolean notifyOnMessage = true;
+
+    // Stable per-user secret used for login-free one-click unsubscribe links.
+    @Column(nullable = true, length = 36)
+    private String unsubscribeToken;
+
+    // UI/email language preference (ISO code, e.g. "en" / "de").
+    @Column(nullable = false, length = 8, columnDefinition = "varchar(8) DEFAULT 'en'")
+    private String language = "en";
+
     @PrePersist
-    void onCreate() { this.createdAt = Instant.now(); } // sets current timestamp of creation
+    void onCreate() {
+        this.createdAt = Instant.now(); // sets current timestamp of creation
+        if (this.unsubscribeToken == null) this.unsubscribeToken = UUID.randomUUID().toString();
+    }
 
     public UUID getId() { return id; }
     public String getUsername() { return username; }
@@ -64,6 +79,9 @@ public class User {
     public Role getRole() { return role; }
     public boolean isBlocked() { return blocked; }
     public Instant getBlockedAt() { return blockedAt; }
+    public boolean isNotifyOnMessage() { return notifyOnMessage; }
+    public String getUnsubscribeToken() { return unsubscribeToken; }
+    public String getLanguage() { return language; }
 
     public void setUsername(String username) { this.username = username; }
     public void setEmail(String email) { this.email = email; }
@@ -74,4 +92,7 @@ public class User {
     public void setRole(Role role) { this.role = role; }
     public void setBlocked(boolean blocked) { this.blocked = blocked; }
     public void setBlockedAt(Instant blockedAt) { this.blockedAt = blockedAt; }
+    public void setNotifyOnMessage(boolean notifyOnMessage) { this.notifyOnMessage = notifyOnMessage; }
+    public void setUnsubscribeToken(String unsubscribeToken) { this.unsubscribeToken = unsubscribeToken; }
+    public void setLanguage(String language) { this.language = language; }
 }

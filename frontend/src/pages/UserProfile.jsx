@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { users, offers as offersApi, requests as requestsApi, subscriptions as subsApi } from '../api/client';
+import { users, offers as offersApi, requests as requestsApi, subscriptions as subsApi, notifications } from '../api/client';
 import { t, tCat } from '../i18n';
 import ReportButton from '../components/ReportButton';
 import styles from './UserProfile.module.css';
@@ -13,8 +13,27 @@ export default function UserProfile({ id }) {
   const [subLoading, setSubLoading] = useState(false);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
+  const [notifyOnMessage, setNotifyOnMessage] = useState(currentUser?.notifyOnMessage ?? true);
+  const [notifySaving, setNotifySaving]       = useState(false);
 
   const isSelf = currentUser?.id === id;
+
+  const handleToggleNotify = async () => {
+    const next = !notifyOnMessage;
+    setNotifySaving(true);
+    try {
+      await notifications.updatePreferences({ notifyOnMessage: next });
+      setNotifyOnMessage(next);
+      // Keep localStorage in sync so the toggle survives reloads.
+      const stored = JSON.parse(localStorage.getItem('currentUser') || 'null');
+      if (stored) {
+        stored.notifyOnMessage = next;
+        localStorage.setItem('currentUser', JSON.stringify(stored));
+      }
+    } finally {
+      setNotifySaving(false);
+    }
+  };
 
   useEffect(() => {
     const fetches = [
@@ -87,6 +106,22 @@ export default function UserProfile({ id }) {
           </div>
         </div>
       </div>
+
+      {isSelf && (
+        <section className={styles.section}>
+          <h2>{t('profile.settings')}</h2>
+          <label className={styles.notifyRow}>
+            <input
+              type="checkbox"
+              checked={notifyOnMessage}
+              onChange={handleToggleNotify}
+              disabled={notifySaving}
+            />
+            <span>{t('profile.notifyMessages')}</span>
+          </label>
+          <p className={styles.notifyHint}>{t('profile.notifyMessagesHint')}</p>
+        </section>
+      )}
 
       <section className={styles.section}>
         <h2>{t('profile.offersSection')}</h2>

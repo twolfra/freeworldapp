@@ -3,16 +3,19 @@ package com.example.marketplace.admin;
 import com.example.marketplace.auth.AdminGuard;
 import com.example.marketplace.auth.SecurityContext;
 import com.example.marketplace.auth.SessionRepository;
+import com.example.marketplace.email.EmailService;
 import com.example.marketplace.image.StorageService;
 import com.example.marketplace.like.Like;
 import com.example.marketplace.like.LikeRepository;
 import com.example.marketplace.offer.Offer;
 import com.example.marketplace.offer.OfferRepository;
+import com.example.marketplace.message.MessageRepository;
 import com.example.marketplace.report.Report;
 import com.example.marketplace.report.ReportRepository;
 import com.example.marketplace.report.dto.ReportDtos;
 import com.example.marketplace.request.Request;
 import com.example.marketplace.request.RequestRepository;
+import com.example.marketplace.subscription.SubscriptionRepository;
 import com.example.marketplace.user.User;
 import com.example.marketplace.user.UserRepository;
 import com.example.marketplace.user.dto.UserDtos;
@@ -37,11 +40,15 @@ public class AdminController {
     private final LikeRepository likeRepo;
     private final ReportRepository reportRepo;
     private final SessionRepository sessionRepo;
+    private final SubscriptionRepository subscriptionRepo;
+    private final MessageRepository messageRepo;
     private final StorageService storage;
+    private final EmailService emailService;
 
     public AdminController(AdminGuard adminGuard, UserRepository userRepo, OfferRepository offerRepo,
                            RequestRepository requestRepo, LikeRepository likeRepo, ReportRepository reportRepo,
-                           SessionRepository sessionRepo, StorageService storage) {
+                           SessionRepository sessionRepo, SubscriptionRepository subscriptionRepo,
+                           MessageRepository messageRepo, StorageService storage, EmailService emailService) {
         this.adminGuard = adminGuard;
         this.userRepo = userRepo;
         this.offerRepo = offerRepo;
@@ -49,7 +56,10 @@ public class AdminController {
         this.likeRepo = likeRepo;
         this.reportRepo = reportRepo;
         this.sessionRepo = sessionRepo;
+        this.subscriptionRepo = subscriptionRepo;
+        this.messageRepo = messageRepo;
         this.storage = storage;
+        this.emailService = emailService;
     }
 
     private static final ResponseEntity<Object> FORBIDDEN =
@@ -90,6 +100,35 @@ public class AdminController {
             userRepo.save(u);
             return ResponseEntity.ok((Object) toAdminResponse(u));
         }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/users/{id}")
+    @Transactional
+    public ResponseEntity<?> deleteUser(@PathVariable UUID id) {
+        if (!adminGuard.isAdmin()) return FORBIDDEN;
+        if (id.equals(SecurityContext.authenticatedId()))
+            return ResponseEntity.badRequest().body(Map.of("error", "You cannot delete your own account."));
+        if (!userRepo.existsById(id)) return ResponseEntity.notFound().build();
+
+        offerRepo.findByOfferedBy_Id(id).forEach(o -> storage.delete(o.getImageUrl()));
+        requestRepo.findByRequestedBy_Id(id).forEach(r -> storage.delete(r.getImageUrl()));
+
+        reportRepo.deleteAllByReporterId(id);
+        reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.USER, id);
+        offerRepo.findByOfferedBy_Id(id).forEach(o ->
+                reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.OFFER, o.getId()));
+        requestRepo.findByRequestedBy_Id(id).forEach(r ->
+                reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.REQUEST, r.getId()));
+
+        sessionRepo.deleteByUser_Id(id);
+        subscriptionRepo.deleteAllInvolvingUser(id);
+        messageRepo.deleteAllInvolvingUser(id);
+        likeRepo.deleteAllByUserId(id);
+        offerRepo.deleteAll(offerRepo.findByOfferedBy_Id(id));
+        requestRepo.deleteAll(requestRepo.findByRequestedBy_Id(id));
+        userRepo.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     // ---- Posts ----------------------------------------------------------
@@ -160,18 +199,24 @@ public class AdminController {
     /** Mirrors OfferController.delete: clears likes, reports, the row and its image. */
     private void removeOffer(Offer o) {
         String imageUrl = o.getImageUrl();
+        User owner = o.getOfferedBy();
+        String title = o.getTitle();
         likeRepo.deleteAllByTargetTypeAndTargetId(Like.TargetType.OFFER, o.getId());
         reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.OFFER, o.getId());
         offerRepo.delete(o);
         storage.delete(imageUrl);
+        emailService.sendPostRemovedEmail(owner.getEmail(), owner.getUsername(), title, "offer");
     }
 
     private void removeRequest(Request r) {
         String imageUrl = r.getImageUrl();
+        User owner = r.getRequestedBy();
+        String title = r.getTitle();
         likeRepo.deleteAllByTargetTypeAndTargetId(Like.TargetType.REQUEST, r.getId());
         reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.REQUEST, r.getId());
         requestRepo.delete(r);
         storage.delete(imageUrl);
+        emailService.sendPostRemovedEmail(owner.getEmail(), owner.getUsername(), title, "request");
     }
 
     private UserDtos.AdminResponse toAdminResponse(User u) {

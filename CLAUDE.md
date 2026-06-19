@@ -168,6 +168,13 @@ Client-side only — `App.jsx` uses regex matching on `window.location.pathname`
 |---|---|---|
 | POST | `/api/reports` | `{ targetType (OFFER/REQUEST/USER), targetId, reason (SPAM/INAPPROPRIATE/SCAM/HARASSMENT/OTHER), note? }` — any signed-in user; 404 unknown target, 400 self-report, 409 duplicate open report |
 
+### Notifications
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/notifications/unsubscribe?token=` | **Public** (login-free). Disables message-notification emails for the user owning the unsubscribe token; returns a small localized HTML confirmation page |
+| POST | `/api/notifications/unsubscribe?token=` | **Public**. Same effect; used by mail-client one-click unsubscribe (RFC 8058 `List-Unsubscribe-Post`) |
+| PUT | `/api/notifications/preferences` | `{ notifyOnMessage?: bool, language?: "en"/"de" }` — authenticated; updates the caller's own preferences |
+
 ### Admin (all require `X-Session-Token` of an ADMIN account — 403 otherwise)
 | Method | Path | Notes |
 |---|---|---|
@@ -189,7 +196,9 @@ users           id(uuid PK), username(32), email(255), passwordHash(60), created
                 emailVerified(bool DEFAULT false), verificationToken(36 nullable),
                 verificationTokenExpiresAt(timestamp nullable),
                 role(varchar(16) DEFAULT 'USER' — USER/ADMIN), blocked(bool DEFAULT false),
-                blockedAt(timestamp nullable)
+                blockedAt(timestamp nullable),
+                notifyOnMessage(bool DEFAULT true), unsubscribeToken(36 nullable),
+                language(varchar(8) DEFAULT 'en')
 sessions        id(uuid PK), token(36 unique), user_id(FK→users), createdAt, expiresAt
 offers          id, title(140), description(4000), region(140), category(140),
                 quantity(int), image_url(500 nullable), offered_by_id(FK→users), createdAt
@@ -263,6 +272,7 @@ reports         id, reporter_id(FK→users), targetType(OFFER/REQUEST/USER), tar
 - [x] Secret Manager — `DB_PASSWORD` and `BREVO_API_KEY` stored as GCP secrets; referenced via `--set-secrets` in Cloud Run; `1040119781594-compute@developer.gserviceaccount.com` has `secretAccessor` role on both secrets
 - [x] Footer with legal pages — persistent `Footer` component in `App.jsx` (appears on every page); links to `/impressum` (Tim Wolfram, Torgauer Str. 20, 04315 Leipzig), `/datenschutz` (DSGVO-compliant privacy policy), `/terms` (German AGB template); footer i18n keys `footer.impressum/datenschutz/terms/copy` with EN/DE translations; home subheader changed to "Your community for a gift economy" / "Deine Community für eine Schenkökonomie"; legal page styles in `Legal.module.css`
 - [x] Moderation & admin system — `User` gains `role` (USER/ADMIN), `blocked`, `blockedAt`. **Admin**: `AdminGuard` (in `auth/`) checks the caller's role on top of `SecurityContext`; `AdminController` (`/api/admin/**`) lets admins delete any offer/request, block/unblock users, and work a report queue. `AdminBootstrap` (ApplicationRunner) promotes accounts in the `ADMIN_EMAILS` env var to ADMIN on startup (case-insensitive, idempotent). Login response includes `role`; **soft block** = blocked users get 403 at login AND on any live session (`AuthFilter` checks `blocked`), their sessions are deleted on block, and their posts are filtered out of offer/request lists and the subscription feed. **Reporting**: `Report` entity (modeled on `Like` — `targetType` OFFER/REQUEST/USER + `targetId`, `reason`, `note`, `status` OPEN/RESOLVED/DISMISSED); `POST /api/reports` for any user (self-report blocked, duplicate open reports → 409); admins resolve/dismiss from the queue. **Frontend**: `role`-gated Admin nav link → `/admin` panel (`Admin.jsx`) with Reports queue + Users tabs; reusable `ReportButton.jsx` modal on offer/request detail pages and user profiles; admin-only Delete button on detail pages. Cleanup: deleting a post or user clears related reports.
+- [x] Email notification on new direct message — `User` gains `notifyOnMessage` (default true), `unsubscribeToken` (login-free unsubscribe secret, backfilled for legacy users by `EmailVerificationMigration`), and `language` (set at registration from the UI's `fw_lang`). `MessageNotificationService` (`@Async`, `@EnableAsync` on `AppApplication`) is called from **both** `ChatWebSocketHandler` and `MessageController.send` after a message is saved; it **skips** the email when the recipient has any live WebSocket connection (`ChatWebSocketHandler.isOnline`), has opted out, is unverified, or is blocked. `EmailService.sendNewMessageEmail` sends a DE/EN email with the sender's name, a 150-char content preview, a deep link to `/messages/{senderId}`, and a login-free unsubscribe link (mirrored in the `List-Unsubscribe` / `List-Unsubscribe-Post` headers). `NotificationController` exposes the public unsubscribe endpoints (GET → HTML page, POST → one-click) and an authenticated `PUT /api/notifications/preferences`. Login response now includes `notifyOnMessage` + `language`; in-app toggle lives on the user's own profile page (`UserProfile.jsx`, `profile.notify*` i18n keys). Circular bean dependency (service ↔ handler) broken with `@Lazy`.
 
 ---
 
@@ -293,7 +303,7 @@ gcloud run deploy freeworldapp \
   --set-env-vars="BASE_URL=https://freeworldapp-1040119781594.europe-west3.run.app" \
   --set-env-vars="CORS_ALLOWED_ORIGINS=https://freeworldapp-1040119781594.europe-west3.run.app" \
   --set-env-vars="MAIL_FROM=info@freeworldapp.de" \
-  --set-env-vars="ADMIN_EMAILS=twolfram030@gmail.com" \
+  --set-env-vars="ADMIN_EMAILS=wolframtim1994@gmail.com" \
   --set-secrets="DB_PASSWORD=db-password:latest,BREVO_API_KEY=brevo-api-key:latest" \
   --project=freeworld-tw
 ```
