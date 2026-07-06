@@ -8,11 +8,11 @@
 		<version>3.5.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.example</groupId>
-	<artifactId>demo</artifactId>
+	<groupId>de.freeworldapp</groupId>
+	<artifactId>freeworldapp</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>app</name>
-	<description>Demo project for Spring Boot</description>
+	<name>freeworldapp</name>
+	<description>FreeWorld — community marketplace for a gift economy</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -27,7 +27,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>17</java.version>
+		<java.version>21</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
