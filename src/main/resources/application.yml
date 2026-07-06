@@ -49,6 +49,9 @@ server:
       max-file-size: 5MB
       max-request-size: 10MB
 app:
+  security:
+    # true → Content-Security-Policy-Report-Only (trial mode); false → enforce
+    csp-report-only: ${CSP_REPORT_ONLY:false}
   admin:
     emails: ${ADMIN_EMAILS:}
   cors:
