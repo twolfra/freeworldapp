@@ -1,0 +1,33 @@
+name: Deploy to Cloud Run
+
+# Manual deployments only: trigger from the Actions tab, or push a v* tag.
+# Requires repository/environment secrets:
+#   GCP_SERVICE_ACCOUNT_KEY — JSON key of a service account with Cloud Run
+#                             deploy + Cloud Build permissions
+# and the (non-secret) configuration below kept in sync with production.
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy
+        run: |
+          gcloud run deploy freeworldapp \
+            --source . \
+            --region=europe-west3 \
+            --platform=managed \
+            --allow-unauthenticated \
+            --project=freeworld-tw
