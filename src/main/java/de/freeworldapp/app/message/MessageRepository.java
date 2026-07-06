@@ -46,4 +46,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     long countInterestedUsers(@Param("type") Message.ContextType type,
                               @Param("contextId") java.util.UUID contextId,
                               @Param("ownerId") java.util.UUID ownerId);
+
+    @Query("SELECT m FROM Message m WHERE m.sender.id = :userId OR m.recipient.id = :userId ORDER BY m.createdAt")
+    java.util.List<Message> findAllInvolvingUserOrdered(@Param("userId") java.util.UUID userId);
 }

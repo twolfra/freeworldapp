@@ -1,6 +1,7 @@
 package de.freeworldapp.app.auth;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -25,6 +26,10 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     }
 
     void deleteByUser_Id(UUID userId);
+
+    @Modifying
+    @Query("DELETE FROM Session s WHERE s.expiresAt < :cutoff")
+    int deleteByExpiresAtBefore(@Param("cutoff") java.time.Instant cutoff);
 
     void deleteByUser_IdAndTokenHashNot(UUID userId, String tokenHash);
 }

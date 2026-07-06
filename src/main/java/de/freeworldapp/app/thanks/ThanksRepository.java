@@ -11,5 +11,7 @@ public interface ThanksRepository extends JpaRepository<Thanks, UUID> {
 
     List<Thanks> findByToUser_IdOrderByCreatedAtDesc(UUID toUserId);
 
+    List<Thanks> findByFromUser_IdOrderByCreatedAtDesc(UUID fromUserId);
+
     void deleteByFromUser_IdOrToUser_Id(UUID fromUserId, UUID toUserId);
 }

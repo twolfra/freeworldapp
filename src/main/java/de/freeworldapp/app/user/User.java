@@ -62,6 +62,10 @@ public class User {
     @Column(nullable = false, length = 8, columnDefinition = "varchar(8) DEFAULT 'en'")
     private String language = "en";
 
+    // Anonymized self-deleted account: PII scrubbed, row kept for conversations.
+    @Column(nullable = false, columnDefinition = "boolean DEFAULT false")
+    private boolean deleted = false;
+
     // ---- Optional profile fields (AP 2.6) ----
     @Column(name = "display_name", length = 60)
     private String displayName;
@@ -104,6 +108,7 @@ public class User {
     public String getAvatarUrl() { return avatarUrl; }
     public String getPostalCode() { return postalCode; }
     public String getCity() { return city; }
+    public boolean isDeleted() { return deleted; }
 
     public void setUsername(String username) { this.username = username; }
     public void setEmail(String email) { this.email = email; }
@@ -122,4 +127,5 @@ public class User {
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
     public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
     public void setCity(String city) { this.city = city; }
+    public void setDeleted(boolean deleted) { this.deleted = deleted; }
 }

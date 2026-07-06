@@ -88,6 +88,7 @@ public class AuthFilter extends OncePerRequestFilter {
             || (path.startsWith("/api/offers/") && path.endsWith("/interested"))
             || path.startsWith("/api/messages/unread-count")
             || path.equals("/api/notifications")
+            || path.equals("/api/users/me/export")
             || path.startsWith("/api/likes")
             || path.equals("/api/subscriptions/feed")
             || path.startsWith("/api/admin");

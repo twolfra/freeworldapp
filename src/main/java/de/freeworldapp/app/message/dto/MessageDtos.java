@@ -24,6 +24,8 @@ public class MessageDtos {
         public String readAt; // null if unread
         public String contextType; // OFFER/REQUEST or null
         public String contextId;
+        public boolean senderDeleted;
+        public boolean recipientDeleted;
     }
 
     public static class ConversationSummary {
@@ -32,5 +34,6 @@ public class MessageDtos {
         public String lastMessage;
         public String lastMessageAt;
         public long unreadCount;
+        public boolean deleted; // the other account was anonymized
     }
 }
