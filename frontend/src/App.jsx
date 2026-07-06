@@ -19,6 +19,7 @@ import Subscriptions from './pages/Subscriptions';
 import Likes from './pages/Likes';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import Onboarding from './pages/Onboarding';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
@@ -43,6 +44,7 @@ const TITLES = {
   '/likes':         'Likes' + SUFFIX,
   '/register':      'Join FreeWorld',
   '/login':         'Sign in' + SUFFIX,
+  '/welcome':       'Welcome' + SUFFIX,
   '/forgot-password': 'Forgot password' + SUFFIX,
   '/reset-password':  'Reset password' + SUFFIX,
   '/verify-email':  'Verify email' + SUFFIX,
@@ -107,6 +109,7 @@ export default function App() {
             <Route path="/likes" element={<Likes />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/welcome" element={<Onboarding />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<Remount component={ResetPassword} by="search" />} />
             <Route path="/verify-email" element={<Remount component={VerifyEmail} by="search" />} />

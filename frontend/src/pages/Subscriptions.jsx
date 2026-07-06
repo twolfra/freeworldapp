@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { subscriptions as subsApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat, tp } from '../i18n';
-import { Card, Skeleton } from '../components/ui';
+import { Button, Card, EmptyState, Skeleton } from '../components/ui';
 import styles from './Subscriptions.module.css';
 
 const PAGE_SIZE = 12;
@@ -57,13 +57,12 @@ export default function Subscriptions() {
         <h2>{t('subs.title')}</h2>
       </div>
       {feed.length === 0
-        ? <p className={styles.empty}>
-            {t('subs.emptyStart')}{' '}
-            <Link to="/offers">{t('subs.browseOffers')}</Link>{' '}
-            {t('subs.browseOr')}{' '}
-            <Link to="/requests">{t('subs.browseRequests')}</Link>{' '}
-            {t('subs.emptyEnd')}
-          </p>
+        ? <EmptyState
+            icon="👥"
+            title={t('subs.emptyTitle')}
+            text={t('subs.emptyText')}
+            action={<Button as={Link} to="/offers" variant="secondary">{t('subs.browseOffers')}</Button>}
+          />
         : <>
             <ul className={styles.feed}>
               {pageItems.map((item) => (

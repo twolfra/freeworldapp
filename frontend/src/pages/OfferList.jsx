@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { offers as offersApi } from '../api/client';
 import { t, tCat, tp } from '../i18n';
-import { Badge, Card, Skeleton } from '../components/ui';
+import { Badge, Button, Card, EmptyState, Skeleton } from '../components/ui';
 import styles from './OfferList.module.css';
 
 const CATEGORIES = [
@@ -140,8 +140,23 @@ export default function OfferList() {
               {t('list.showGiven')}
             </label>
           </div>
-          {filtered.length === 0
-            ? <p className={styles.empty}>{t('offers.noMatch')}</p>
+          {offers.length === 0
+            ? <EmptyState
+                icon="🎁"
+                title={t('offers.emptyTitle')}
+                text={t('offers.emptyText')}
+                action={<Button as={Link} to="/offers/new" variant="accent">{t('home.give')}</Button>}
+              />
+            : filtered.length === 0
+            ? <EmptyState
+                icon="🔍"
+                title={t('offers.noMatch')}
+                action={
+                  <Button variant="secondary" onClick={() => { setQuery(''); setRegion(''); setPage(1); }}>
+                    {t('list.clearFilters')}
+                  </Button>
+                }
+              />
             : <>
                 <ul className={styles.grid}>
                   {pageItems.map((o) => (

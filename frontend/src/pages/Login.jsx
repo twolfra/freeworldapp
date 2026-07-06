@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { t } from '../i18n';
 import { Button } from '../components/ui';
+import { hasOnboarded } from './onboardingFlag';
 import styles from './Register.module.css';
 
 export default function Login() {
@@ -24,7 +25,8 @@ export default function Login() {
     setSubmitting(true);
     try {
       await login(form);
-      navigate('/offers');
+      // First sign-in on this device → run the mini-onboarding once.
+      navigate(hasOnboarded() ? '/offers' : '/welcome');
     } catch (err) {
       if (err.message && err.message.toLowerCase().includes('not verified')) {
         setUnverified(true);

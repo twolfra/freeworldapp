@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { likes as likesApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat, tp } from '../i18n';
-import { Card, Skeleton } from '../components/ui';
+import { Button, Card, EmptyState, Skeleton } from '../components/ui';
 import styles from './Subscriptions.module.css';
 
 const PAGE_SIZE = 12;
@@ -57,7 +57,12 @@ export default function Likes() {
         <h2>{t('likes.title')}</h2>
       </div>
       {likedPosts.length === 0
-        ? <p className={styles.empty}>{t('likes.empty')}</p>
+        ? <EmptyState
+            icon="🤍"
+            title={t('likes.emptyTitle')}
+            text={t('likes.emptyText')}
+            action={<Button as={Link} to="/offers" variant="secondary">{t('subs.browseOffers')}</Button>}
+          />
         : <>
             <ul className={styles.feed}>
               {pageItems.map((item) => (

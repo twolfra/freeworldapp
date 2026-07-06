@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { messages as messagesApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t } from '../i18n';
+import { Button, EmptyState } from '../components/ui';
 import styles from './Inbox.module.css';
 
 export default function Inbox() {
@@ -36,7 +37,12 @@ export default function Inbox() {
         <h2>{t('inbox.title')}</h2>
       </div>
       {conversations.length === 0 ? (
-        <p className={styles.empty}>{t('inbox.empty')}</p>
+        <EmptyState
+          icon="💬"
+          title={t('inbox.emptyTitle')}
+          text={t('inbox.emptyText')}
+          action={<Button as={Link} to="/offers" variant="secondary">{t('subs.browseOffers')}</Button>}
+        />
       ) : (
         <ul className={styles.list}>
           {conversations.map((c) => (

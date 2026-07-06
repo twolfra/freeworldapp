@@ -70,6 +70,7 @@ const T = {
     'list.pageInfo': 'Page {n} of {total}',
     'list.showGiven': 'Also show given away',
     'list.showFulfilled': 'Also show fulfilled',
+    'list.clearFilters': 'Clear filters',
 
     // Post lifecycle status
     'status.ACTIVE': 'Active', 'status.RESERVED': 'Reserved', 'status.GIVEN': 'Given away',
@@ -78,10 +79,14 @@ const T = {
 
     'offers.heading': 'Offers', 'offers.count': '{n} available',
     'offers.cta': '+ Give something away', 'offers.noMatch': 'No offers match your search.',
+    'offers.emptyTitle': 'Nothing here yet',
+    'offers.emptyText': 'Be the first to give something away to your community.',
     'offers.priceTag': 'Free',
 
     'requests.heading': 'Requests', 'requests.count': '{n} open',
     'requests.cta': '+ Ask for something', 'requests.noMatch': 'No requests match your search.',
+    'requests.emptyTitle': 'Nothing here yet',
+    'requests.emptyText': 'Be the first to ask your community for something.',
     'requests.priceTag': 'Wanted',
 
     // Detail
@@ -176,6 +181,8 @@ const T = {
     'inbox.signIn': 'Please {link} to view your messages.',
     'inbox.signInLink': 'sign in',
     'inbox.empty': 'No conversations yet. Contact a user from an offer or request page.',
+    'inbox.emptyTitle': 'No conversations yet',
+    'inbox.emptyText': 'Contact a user from an offer or request page to start chatting.',
 
     // Subscriptions
     'subs.title': 'Subscriptions',
@@ -184,6 +191,8 @@ const T = {
     'subs.emptyStart': 'Nothing here yet.',
     'subs.browseOffers': 'Browse offers', 'subs.browseOr': 'or', 'subs.browseRequests': 'requests',
     'subs.emptyEnd': 'and subscribe to users you want to follow.',
+    'subs.emptyTitle': 'No follows yet',
+    'subs.emptyText': 'Follow people you like and their new offers and requests will show up here.',
     'subs.offer': 'Offer', 'subs.request': 'Request',
 
     // Auth
@@ -208,6 +217,20 @@ const T = {
     'login.unverified': 'Email not verified.',
     'login.resend': 'Resend verification email',
     'login.forgot': 'Forgot password?',
+
+    // Onboarding (/welcome)
+    'onboarding.welcome': 'Welcome to FreeWorld!',
+    'onboarding.stepOf': 'Step {n} of {total}',
+    'onboarding.skip': 'Skip for now',
+    'onboarding.back': 'Back',
+    'onboarding.next': 'Next',
+    'onboarding.step1Title': 'Where are you?',
+    'onboarding.step1Text': 'Your city helps neighbors find your listings. Your postal code is never shown publicly.',
+    'onboarding.saveFailed': 'Could not save your location — you can add it later in Settings.',
+    'onboarding.step2Title': 'What interests you?',
+    'onboarding.step2Text': 'Pick the categories you care about.',
+    'onboarding.step3Title': 'Get started',
+    'onboarding.step3Text': 'You’re all set. How would you like to begin?',
 
     'forgot.heading': 'Forgot password',
     'forgot.subtitle': 'Enter your email address and we’ll send you a link to reset your password.',
@@ -250,6 +273,8 @@ const T = {
     'likes.title': 'Likes',
     'likes.signIn': 'Please {link} to see your likes.',
     'likes.empty': 'No liked posts yet. Browse offers or requests and like posts you love.',
+    'likes.emptyTitle': 'No likes yet',
+    'likes.emptyText': 'Tap the heart on offers or requests you love to find them again here.',
 
     // Conversation
     'conv.back': '← Back to Messages',
@@ -413,6 +438,7 @@ const T = {
     'list.pageInfo': 'Seite {n} von {total}',
     'list.showGiven': 'Auch Vergebenes zeigen',
     'list.showFulfilled': 'Auch Erfülltes zeigen',
+    'list.clearFilters': 'Filter zurücksetzen',
 
     // Post lifecycle status
     'status.ACTIVE': 'Aktiv', 'status.RESERVED': 'Reserviert', 'status.GIVEN': 'Verschenkt',
@@ -421,10 +447,14 @@ const T = {
 
     'offers.heading': 'Angebote', 'offers.count': '{n} verfügbar',
     'offers.cta': '+ Etwas verschenken', 'offers.noMatch': 'Keine Angebote gefunden.',
+    'offers.emptyTitle': 'Noch nichts hier',
+    'offers.emptyText': 'Sei die erste Person, die etwas an ihre Community verschenkt.',
     'offers.priceTag': 'Gratis',
 
     'requests.heading': 'Gesuche', 'requests.count': '{n} offen',
     'requests.cta': '+ Etwas suchen', 'requests.noMatch': 'Keine Gesuche gefunden.',
+    'requests.emptyTitle': 'Noch nichts hier',
+    'requests.emptyText': 'Sei die erste Person, die ihre Community um etwas bittet.',
     'requests.priceTag': 'Gesucht',
 
     // Detail
@@ -519,6 +549,8 @@ const T = {
     'inbox.signIn': 'Bitte {link}, um deine Nachrichten zu sehen.',
     'inbox.signInLink': 'anmelden',
     'inbox.empty': 'Noch keine Konversationen. Kontaktiere einen Nutzer von einem Angebot oder Gesuch.',
+    'inbox.emptyTitle': 'Noch keine Konversationen',
+    'inbox.emptyText': 'Kontaktiere einen Nutzer über ein Angebot oder Gesuch, um loszulegen.',
 
     // Subscriptions
     'subs.title': 'Abonnements',
@@ -527,6 +559,8 @@ const T = {
     'subs.emptyStart': 'Noch nichts hier.',
     'subs.browseOffers': 'Angebote durchstöbern', 'subs.browseOr': 'oder', 'subs.browseRequests': 'Gesuche',
     'subs.emptyEnd': 'und Nutzer abonnieren, denen du folgen möchtest.',
+    'subs.emptyTitle': 'Du folgst noch niemandem',
+    'subs.emptyText': 'Folge Nutzern, die dir gefallen — ihre neuen Angebote und Gesuche erscheinen dann hier.',
     'subs.offer': 'Angebot', 'subs.request': 'Gesuch',
 
     // Auth
@@ -551,6 +585,20 @@ const T = {
     'login.unverified': 'E-Mail nicht bestätigt.',
     'login.resend': 'Bestätigungslink erneut senden',
     'login.forgot': 'Passwort vergessen?',
+
+    // Onboarding (/welcome)
+    'onboarding.welcome': 'Willkommen bei FreeWorld!',
+    'onboarding.stepOf': 'Schritt {n} von {total}',
+    'onboarding.skip': 'Vorerst überspringen',
+    'onboarding.back': 'Zurück',
+    'onboarding.next': 'Weiter',
+    'onboarding.step1Title': 'Wo bist du?',
+    'onboarding.step1Text': 'Deine Stadt hilft Nachbarn, deine Einträge zu finden. Deine Postleitzahl wird nie öffentlich angezeigt.',
+    'onboarding.saveFailed': 'Standort konnte nicht gespeichert werden — du kannst ihn später in den Einstellungen hinzufügen.',
+    'onboarding.step2Title': 'Was interessiert dich?',
+    'onboarding.step2Text': 'Wähle die Kategorien, die dich interessieren.',
+    'onboarding.step3Title': 'Los geht’s',
+    'onboarding.step3Text': 'Alles bereit. Wie möchtest du starten?',
 
     'forgot.heading': 'Passwort vergessen',
     'forgot.subtitle': 'Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen deines Passworts.',
@@ -593,6 +641,8 @@ const T = {
     'likes.title': 'Likes',
     'likes.signIn': 'Bitte {link}, um deine Likes zu sehen.',
     'likes.empty': 'Keine Likes noch. Angebote oder Gesuche durchstöbern und Einträge liken, die dir gefallen.',
+    'likes.emptyTitle': 'Noch keine Likes',
+    'likes.emptyText': 'Tippe bei Angeboten oder Gesuchen auf das Herz, um sie hier wiederzufinden.',
 
     // Conversation
     'conv.back': '← Zurück zu Nachrichten',

@@ -54,11 +54,34 @@ describe('OfferList page', () => {
     expect(offersApi.list).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the translated empty state when there are no offers', async () => {
+  it('shows the nothing-here EmptyState with a post CTA when there are no offers at all', async () => {
     offersApi.list.mockResolvedValue([]);
     renderOfferList();
 
-    expect(await screen.findByText('No offers match your search.')).toBeInTheDocument();
+    expect(await screen.findByText('Nothing here yet')).toBeInTheDocument();
+    expect(screen.getByText('Be the first to give something away to your community.')).toBeInTheDocument();
+    const cta = screen.getByRole('link', { name: 'Give something away' });
+    expect(cta).toHaveAttribute('href', '/offers/new');
+    // The no-match variant must not show for a truly empty list.
+    expect(screen.queryByText('No offers match your search.')).not.toBeInTheDocument();
+  });
+
+  it('shows the no-match EmptyState and clears filters via its CTA', async () => {
+    const user = userEvent.setup();
+    offersApi.list.mockResolvedValue(mockOffers);
+    renderOfferList();
+
+    await screen.findByText('Free sofa');
+    await user.type(screen.getByPlaceholderText('Search by title, category…'), 'zzz-no-such-thing');
+
+    expect(screen.getByText('No offers match your search.')).toBeInTheDocument();
+    expect(screen.queryByText('Free sofa')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }));
+
+    expect(screen.getByText('Free sofa')).toBeInTheDocument();
+    expect(screen.getByText('Garden apples')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search by title, category…')).toHaveValue('');
   });
 
   it('filters the cards as the user types into the search box', async () => {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { requests as requestsApi } from '../api/client';
 import { t, tCat, tp } from '../i18n';
-import { Badge, Card, Skeleton } from '../components/ui';
+import { Badge, Button, Card, EmptyState, Skeleton } from '../components/ui';
 import styles from './OfferList.module.css';
 
 const CATEGORIES = [
@@ -140,8 +140,23 @@ export default function RequestList() {
               {t('list.showFulfilled')}
             </label>
           </div>
-          {filtered.length === 0
-            ? <p className={styles.empty}>{t('requests.noMatch')}</p>
+          {requests.length === 0
+            ? <EmptyState
+                icon="🙏"
+                title={t('requests.emptyTitle')}
+                text={t('requests.emptyText')}
+                action={<Button as={Link} to="/requests/new" variant="accent">{t('home.ask')}</Button>}
+              />
+            : filtered.length === 0
+            ? <EmptyState
+                icon="🔍"
+                title={t('requests.noMatch')}
+                action={
+                  <Button variant="secondary" onClick={() => { setQuery(''); setRegion(''); setPage(1); }}>
+                    {t('list.clearFilters')}
+                  </Button>
+                }
+              />
             : <>
                 <ul className={styles.grid}>
                   {pageItems.map((r) => (
