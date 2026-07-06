@@ -8,6 +8,7 @@ import de.freeworldapp.app.offer.dto.OfferDtos;
 import de.freeworldapp.app.user.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -97,6 +98,7 @@ public class OfferController {
     }
 
     @DeleteMapping("{id}")
+    @Transactional
     public ResponseEntity<?> delete(@PathVariable UUID id) {
         UUID callerId = SecurityContext.authenticatedId();
         return offerRepo.findById(id)
