@@ -65,9 +65,6 @@ public class RequestController {
                     r.setRegion(in.region);
                     r.setCategory(in.category);
                     r.setQuantity(in.quantity);
-                    String geoErr = applyGeo(r, in.postalCode);
-                    if (geoErr != null)
-                        return ResponseEntity.status(400).body((Object) Map.of("error", geoErr));
                     r.setImageUrl(in.imageUrl);
                     r.setRequestedBy(user);
                     String geoError = applyGeo(r, in.postalCode);

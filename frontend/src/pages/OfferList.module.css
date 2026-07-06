@@ -58,6 +58,94 @@
   box-shadow: 0 0 0 4px var(--green-ring);
 }
 
+/* ---------- Geo filter bar (AP 3.1/3.2) ---------- */
+.geoBar {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: -0.6rem 0 1.5rem;
+  flex-wrap: wrap;
+}
+
+.locationField {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+  max-width: 280px;
+}
+
+.locationInput {
+  padding: 0.65rem 2.2rem 0.65rem 1rem;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  font-size: 0.92rem;
+}
+.locationInput:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px var(--green-ring);
+  outline: none;
+}
+
+.clearLocationBtn {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: var(--line);
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.clearLocationBtn:hover { background: var(--border); color: var(--ink); }
+
+.pillGroup {
+  display: inline-flex;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+.pillBtn {
+  padding: 0.55rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+}
+.pillBtn:hover:not(:disabled):not(.pillBtnActive) { color: var(--green); }
+.pillBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pillBtnActive {
+  background: var(--green-light);
+  color: var(--green-dark);
+  cursor: default;
+}
+
+.distanceBadge {
+  margin-left: auto;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mapEmptyHint {
+  margin-bottom: 0.8rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 /* ---------- Card grid ---------- */
 .grid {
   list-style: none;
@@ -267,6 +355,11 @@
   transition: background 0.12s, color 0.12s;
 }
 .catRow:hover { background: var(--green-light); color: var(--green-dark); }
+.catRowActive {
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-weight: 600;
+}
 .main { min-width: 0; }
 
 @media (max-width: 780px) {
@@ -284,6 +377,8 @@
     font-size: 0.83rem;
   }
   .pageBtn { min-height: 44px; }      /* touch target */
+  .pillBtn { min-height: 44px; }      /* touch target */
+  .locationField { max-width: none; }
 }
 
 /* ---------- Lifecycle status (AP 2.3) ---------- */

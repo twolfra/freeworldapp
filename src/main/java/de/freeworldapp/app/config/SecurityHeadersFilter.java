@@ -23,7 +23,7 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
     // 'unsafe-inline' in style-src is required for React style={} attributes;
     // scripts stay external (Vite build), so script-src inherits 'self'.
     static final String CSP = "default-src 'self'; "
-            + "img-src 'self' https://storage.googleapis.com data: blob:; "
+            + "img-src 'self' https://storage.googleapis.com https://*.tile.openstreetmap.org data: blob:; "
             + "connect-src 'self' wss:; "
             + "style-src 'self' 'unsafe-inline'; "
             + "frame-ancestors 'none'; "

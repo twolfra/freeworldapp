@@ -4,6 +4,7 @@ import { offers as offersApi, images as imagesApi, likes as likesApi, admin as a
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat, tp } from '../i18n';
 import ReportButton from '../components/ReportButton';
+import PostalCodeInput from '../components/PostalCodeInput';
 import { Badge, Button, ConfirmModal, Modal, Textarea, useToast } from '../components/ui';
 import styles from './RequestDetail.module.css';
 
@@ -21,6 +22,8 @@ export default function OfferDetail() {
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(null);
+  const [editPostalText, setEditPostalText] = useState('');
+  const [editPostal, setEditPostal] = useState(null); // { plz, city, lat, lon } | null
   const [imagePreview, setImagePreview] = useState(null);
   const [newImageFile, setNewImageFile] = useState(null);
   const [editError, setEditError] = useState(null);
@@ -89,6 +92,15 @@ export default function OfferDetail() {
       quantity: offer.quantity,
       imageUrl: offer.imageUrl,
     });
+    // Prefill the location from the resolved PLZ/city; legacy posts fall back
+    // to their free-text region (kept as-is unless a new PLZ is picked).
+    if (offer.postalCode) {
+      setEditPostal({ plz: offer.postalCode, city: offer.city, lat: offer.lat, lon: offer.lon });
+      setEditPostalText(`${offer.postalCode} ${offer.city}`);
+    } else {
+      setEditPostal(null);
+      setEditPostalText(offer.region);
+    }
     setImagePreview(offer.imageUrl);
     setNewImageFile(null);
     setEditError(null);
@@ -123,7 +135,12 @@ export default function OfferDetail() {
         const res = await imagesApi.upload(newImageFile);
         imageUrl = res.url;
       }
-      const updated = await offersApi.update(id, { ...editForm, imageUrl });
+      const updated = await offersApi.update(id, {
+        ...editForm,
+        region: editPostal ? `${editPostal.plz} ${editPostal.city}` : editPostalText,
+        postalCode: editPostal?.plz ?? null,
+        imageUrl,
+      });
       setOffer(updated);
       setEditing(false);
       setNewImageFile(null);
@@ -340,8 +357,14 @@ export default function OfferDetail() {
               </label>
             </div>
             <label>
-              {t('edit.region')}
-              <input name="region" value={editForm.region} onChange={handleEditChange} required maxLength={140} />
+              {t('form.postal')}
+              <PostalCodeInput
+                value={editPostalText}
+                onChange={(text) => { setEditPostalText(text); setEditPostal(null); }}
+                onSelect={(item) => { setEditPostal(item); setEditPostalText(`${item.plz} ${item.city}`); }}
+                required
+              />
+              {editPostal && <span className={styles.resolvedCity}>{tp('form.postalResolved', { city: editPostal.city })}</span>}
             </label>
             <label>
               {t('edit.photo')}

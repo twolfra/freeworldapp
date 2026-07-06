@@ -63,6 +63,24 @@ class GeoSearchIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
+    void updateCanSetOrChangeThePostalCode() throws Exception {
+        AuthedUser user = signUp("geo_update");
+        String id = createOffer(user, "geo update me", "04315", "Other", null);
+
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .put("/api/offers/" + id)
+                        .header("X-Session-Token", user.token())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"title":"geo update me","description":"d","region":"x",
+                                 "category":"Other","quantity":1,"postalCode":"10115"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.city").value("Berlin"))
+                .andExpect(jsonPath("$.postalCode").value("10115"));
+    }
+
+    @Test
     void unknownPostalCodeIsRejected() throws Exception {
         AuthedUser user = signUp("geo_unknown");
         mvc.perform(post("/api/offers")

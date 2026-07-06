@@ -50,6 +50,14 @@ async function request(path, options = {}) {
   return res.json();
 }
 
+// Build a query string from a params object, skipping empty values.
+function buildQuery(params = {}) {
+  const pairs = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
+  return pairs.length ? `?${pairs.join('&')}` : '';
+}
+
 export const auth = {
   login:               (body)  => request('/auth/login',  { method: 'POST', body: JSON.stringify(body) }),
   logout:              ()      => request('/auth/logout', { method: 'POST' }),
@@ -96,6 +104,17 @@ export const requests = {
   remove:     (id)       => request(`/requests/${id}`, { method: 'DELETE' }),
   setStatus:  (id, status) =>
     request(`/requests/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
+};
+
+// Local PLZ table lookup (no external geocoding calls).
+export const geo = {
+  postal: (q) => request(`/geo/postal?q=${encodeURIComponent(q)}`),
+};
+
+// Unified search endpoint (AP 3.1 + 3.5). Accepted params: type, q, category,
+// lat, lon, radiusKm, sort (newest|nearest), withImage, includeCompleted, page, size.
+export const search = {
+  run: (params) => request(`/search${buildQuery(params)}`),
 };
 
 export const thanks = {

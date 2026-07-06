@@ -71,6 +71,23 @@ const T = {
     'list.showGiven': 'Also show given away',
     'list.showFulfilled': 'Also show fulfilled',
     'list.clearFilters': 'Clear filters',
+    'list.locationPlaceholder': 'Postal code or city',
+    'list.radiusLabel': 'Radius',
+    'list.sortLabel': 'Sort',
+    'list.sortNewest': 'Newest',
+    'list.sortNearest': 'Nearest',
+    'list.viewLabel': 'View',
+    'list.viewList': 'List',
+    'list.viewMap': 'Map',
+    'list.clearLocation': 'Clear location',
+
+    // Map view (AP 3.2)
+    'map.label': 'Map of results',
+    'map.more': '+{n} more',
+    'map.emptyGeo': 'No results with a location to show on the map yet.',
+
+    // Postal-code autocomplete
+    'postal.noResults': 'No matching postal code found.',
 
     // Post lifecycle status
     'status.ACTIVE': 'Active', 'status.RESERVED': 'Reserved', 'status.GIVEN': 'Given away',
@@ -138,6 +155,10 @@ const T = {
     'form.photoOptional': '(optional)', 'form.photoPlaceholder': 'Click to add a photo',
     'form.categoryDefault': 'Select…',
     'form.regionPlaceholder': 'e.g. Berlin, Online, North London',
+    'form.postal': 'Postal code / city',
+    'form.postalPlaceholder': 'e.g. 04315 or Leipzig',
+    'form.postalRequired': 'Please pick a location from the suggestions.',
+    'form.postalResolved': 'Location: {city}',
     'form.signInTitle': 'Sign in first',
     'form.signInOffer': 'You need an account to make an offer.',
     'form.signInRequest': 'You need an account to make a request.',
@@ -439,6 +460,23 @@ const T = {
     'list.showGiven': 'Auch Vergebenes zeigen',
     'list.showFulfilled': 'Auch Erfülltes zeigen',
     'list.clearFilters': 'Filter zurücksetzen',
+    'list.locationPlaceholder': 'PLZ oder Ort',
+    'list.radiusLabel': 'Umkreis',
+    'list.sortLabel': 'Sortierung',
+    'list.sortNewest': 'Neueste',
+    'list.sortNearest': 'Nächste',
+    'list.viewLabel': 'Ansicht',
+    'list.viewList': 'Liste',
+    'list.viewMap': 'Karte',
+    'list.clearLocation': 'Ort entfernen',
+
+    // Map view (AP 3.2)
+    'map.label': 'Karte der Ergebnisse',
+    'map.more': '+{n} weitere',
+    'map.emptyGeo': 'Noch keine Ergebnisse mit Ort für die Kartenansicht.',
+
+    // Postal-code autocomplete
+    'postal.noResults': 'Keine passende Postleitzahl gefunden.',
 
     // Post lifecycle status
     'status.ACTIVE': 'Aktiv', 'status.RESERVED': 'Reserviert', 'status.GIVEN': 'Verschenkt',
@@ -506,6 +544,10 @@ const T = {
     'form.photoOptional': '(optional)', 'form.photoPlaceholder': 'Klicken um Foto hinzuzufügen',
     'form.categoryDefault': 'Bitte wählen…',
     'form.regionPlaceholder': 'z.B. Berlin, Online, München',
+    'form.postal': 'PLZ / Ort',
+    'form.postalPlaceholder': 'z. B. 04315 oder Leipzig',
+    'form.postalRequired': 'Bitte wähle einen Ort aus den Vorschlägen.',
+    'form.postalResolved': 'Ort: {city}',
     'form.signInTitle': 'Zuerst anmelden',
     'form.signInOffer': 'Du benötigst ein Konto, um ein Angebot zu erstellen.',
     'form.signInRequest': 'Du benötigst ein Konto, um ein Gesuch zu erstellen.',

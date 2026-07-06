@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { requests as requestsApi, images as imagesApi, likes as likesApi, admin as adminApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
-import { t, tCat } from '../i18n';
+import { t, tCat, tp } from '../i18n';
 import ReportButton from '../components/ReportButton';
+import PostalCodeInput from '../components/PostalCodeInput';
 import { Button, ConfirmModal, useToast } from '../components/ui';
 import styles from './RequestDetail.module.css';
 
@@ -21,6 +22,8 @@ export default function RequestDetail() {
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(null);
+  const [editPostalText, setEditPostalText] = useState('');
+  const [editPostal, setEditPostal] = useState(null); // { plz, city, lat, lon } | null
   const [imagePreview, setImagePreview] = useState(null);
   const [newImageFile, setNewImageFile] = useState(null);
   const [editError, setEditError] = useState(null);
@@ -75,6 +78,15 @@ export default function RequestDetail() {
       quantity: request.quantity,
       imageUrl: request.imageUrl,
     });
+    // Prefill the location from the resolved PLZ/city; legacy posts fall back
+    // to their free-text region (kept as-is unless a new PLZ is picked).
+    if (request.postalCode) {
+      setEditPostal({ plz: request.postalCode, city: request.city, lat: request.lat, lon: request.lon });
+      setEditPostalText(`${request.postalCode} ${request.city}`);
+    } else {
+      setEditPostal(null);
+      setEditPostalText(request.region);
+    }
     setImagePreview(request.imageUrl);
     setNewImageFile(null);
     setEditError(null);
@@ -109,7 +121,12 @@ export default function RequestDetail() {
         const res = await imagesApi.upload(newImageFile);
         imageUrl = res.url;
       }
-      const updated = await requestsApi.update(id, { ...editForm, imageUrl });
+      const updated = await requestsApi.update(id, {
+        ...editForm,
+        region: editPostal ? `${editPostal.plz} ${editPostal.city}` : editPostalText,
+        postalCode: editPostal?.plz ?? null,
+        imageUrl,
+      });
       setRequest(updated);
       setEditing(false);
       setNewImageFile(null);
@@ -269,8 +286,14 @@ export default function RequestDetail() {
               </label>
             </div>
             <label>
-              {t('edit.region')}
-              <input name="region" value={editForm.region} onChange={handleEditChange} required maxLength={140} />
+              {t('form.postal')}
+              <PostalCodeInput
+                value={editPostalText}
+                onChange={(text) => { setEditPostalText(text); setEditPostal(null); }}
+                onSelect={(item) => { setEditPostal(item); setEditPostalText(`${item.plz} ${item.city}`); }}
+                required
+              />
+              {editPostal && <span className={styles.resolvedCity}>{tp('form.postalResolved', { city: editPostal.city })}</span>}
             </label>
             <label>
               {t('edit.photo')}

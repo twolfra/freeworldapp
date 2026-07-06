@@ -76,9 +76,6 @@ public class OfferController {
                     o.setRegion(in.region);
                     o.setCategory(in.category);
                     o.setQuantity(in.quantity);
-                    String geoErr = applyGeo(o, in.postalCode);
-                    if (geoErr != null)
-                        return ResponseEntity.status(400).body((Object) Map.of("error", geoErr));
                     o.setImageUrl(in.imageUrl);
                     o.setOfferedBy(user);
                     String geoError = applyGeo(o, in.postalCode);
@@ -254,6 +251,9 @@ public class OfferController {
                     o.setCategory(in.category);
                     o.setQuantity(in.quantity);
                     o.setImageUrl(in.imageUrl);
+                    String geoError = applyGeo(o, in.postalCode);
+                    if (geoError != null)
+                        return ResponseEntity.badRequest().body((Object) Map.of("error", geoError));
                     Offer saved = offerRepo.save(o);
                     // Delete the old image only if it was replaced or removed
                     if (oldImage != null && !oldImage.equals(in.imageUrl)) storage.delete(oldImage);

@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { offers, images as imagesApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
-import { t, tCat } from '../i18n';
+import { t, tCat, tp } from '../i18n';
 import { Button } from '../components/ui';
+import PostalCodeInput from '../components/PostalCodeInput';
 import styles from './OfferForm.module.css';
 
 const CATEGORIES = [
@@ -15,7 +16,9 @@ const CATEGORIES = [
 export default function OfferForm() {
   const { user: currentUser } = useAuth();
 
-  const [form, setForm]           = useState({ title: '', description: '', region: '', category: '', quantity: 1 });
+  const [form, setForm]           = useState({ title: '', description: '', category: '', quantity: 1 });
+  const [postalText, setPostalText] = useState('');
+  const [postal, setPostal]       = useState(null); // { plz, city, lat, lon } once picked
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview]     = useState(null);
   const [error, setError]         = useState(null);
@@ -46,6 +49,11 @@ export default function OfferForm() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
+    // Location is required via PLZ selection so every new post is geo-searchable.
+    if (!postal) {
+      setError(t('form.postalRequired'));
+      return;
+    }
     setSubmitting(true);
     try {
       let imageUrl = null;
@@ -53,7 +61,13 @@ export default function OfferForm() {
         const res = await imagesApi.upload(imageFile);
         imageUrl = res.url;
       }
-      await offers.create({ ...form, offeredById: currentUser.id, imageUrl });
+      await offers.create({
+        ...form,
+        region: `${postal.plz} ${postal.city}`,
+        postalCode: postal.plz,
+        offeredById: currentUser.id,
+        imageUrl,
+      });
       setDone(true);
     } catch (err) {
       setError(err.message);
@@ -103,8 +117,14 @@ export default function OfferForm() {
         </div>
 
         <label>
-          {t('form.region')}
-          <input name="region" value={form.region} onChange={handleChange} required maxLength={140} placeholder={t('form.regionPlaceholder')} />
+          {t('form.postal')}
+          <PostalCodeInput
+            value={postalText}
+            onChange={(text) => { setPostalText(text); setPostal(null); }}
+            onSelect={(item) => { setPostal(item); setPostalText(`${item.plz} ${item.city}`); }}
+            required
+          />
+          {postal && <span className={styles.resolvedCity}>{tp('form.postalResolved', { city: postal.city })}</span>}
         </label>
 
         <label className={styles.photoLabel}>
