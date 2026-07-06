@@ -247,17 +247,29 @@ function AccountSection() {
     }
   }
 
+  async function exportData() {
+    setExporting(true);
+    try {
+      await usersApi.exportData();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setExporting(false);
+    }
+  }
+
   async function deleteAccount() {
     setDeleting(true);
     try {
-      await usersApi.remove(user.id);
+      await usersApi.remove(user.id, deletePw);
       setConfirmDelete(false);
       // The server already deleted all sessions along with the account.
       await logout({ skipServer: true });
       navigate('/');
       toast.success(t('settings.deleted'));
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.status === 403 ? t('settings.deletePwWrong') : err.message);
+      setConfirmDelete(false);
       setDeleting(false);
     }
   }
@@ -322,10 +334,27 @@ function AccountSection() {
         </div>
       </form>
 
+      <div className={styles.form}>
+        <h2 className={styles.subheading}>{t('settings.exportHeading')}</h2>
+        <p className={styles.hint}>{t('settings.exportHint')}</p>
+        <div className={styles.formActions}>
+          <Button variant="secondary" loading={exporting} onClick={exportData}>
+            {t('settings.exportBtn')}
+          </Button>
+        </div>
+      </div>
+
       <div className={styles.dangerZone}>
         <h2 className={styles.dangerHeading}>{t('settings.dangerHeading')}</h2>
         <p className={styles.hint}>{t('settings.deleteHint')}</p>
-        <Button variant="danger" onClick={() => setConfirmDelete(true)}>
+        <Input
+          label={t('settings.deletePwLabel')}
+          type="password"
+          autoComplete="current-password"
+          value={deletePw}
+          onChange={(e) => setDeletePw(e.target.value)}
+        />
+        <Button variant="danger" disabled={!deletePw} onClick={() => setConfirmDelete(true)}>
           {t('settings.deleteBtn')}
         </Button>
       </div>

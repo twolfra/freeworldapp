@@ -39,11 +39,15 @@ async function request(path, options = {}) {
   if (res.status === 401) { handleUnauthorized(); throw new Error('Session expired.'); }
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    const msg = body?.error
+    let msg = body?.error
       ?? body?.errors?.map((e) => e.defaultMessage).join(', ')
       ?? `${res.status} ${res.statusText}`;
+    // correlation id (AP 4.5): lets an error toast be traced to the log line
+    const requestId = res.headers.get('X-Request-Id');
+    if (requestId && res.status >= 500) msg += ` (Ref: ${requestId})`;
     const err = new Error(msg);
     err.status = res.status;
+    err.requestId = requestId;
     throw err;
   }
   if (res.status === 204) return null;
@@ -77,7 +81,23 @@ export const users = {
   update: (id, body) => request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   // Partial profile update — omitted/null fields are kept, "" clears a field.
   updateProfile: (id, fields) => request(`/users/${id}/profile`, { method: 'PUT', body: JSON.stringify(fields) }),
-  remove: (id) => request(`/users/${id}`, { method: 'DELETE' }),
+  remove: (id, password) =>
+    request(`/users/${id}`, { method: 'DELETE', body: JSON.stringify({ password }) }),
+  // DSGVO export: fetches with auth and triggers a browser download
+  exportData: async () => {
+    const token = getToken();
+    const res = await fetch(`${BASE}/users/me/export`, {
+      headers: token ? { 'X-Session-Token': token } : {},
+    });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'freeworld-export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };
 
 export const offers = {
@@ -189,4 +209,5 @@ export const admin = {
   resolveReport: (id)          => request(`/admin/reports/${id}/resolve`, { method: 'POST' }),
   dismissReport: (id)          => request(`/admin/reports/${id}/dismiss`, { method: 'POST' }),
   audit:         ()            => request('/admin/audit'),
+  stats:         ()            => request('/admin/stats'),
 };
