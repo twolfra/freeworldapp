@@ -57,7 +57,7 @@ public class AuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        var sessionOpt = sessionRepo.findByTokenWithUser(token);
+        var sessionOpt = sessionRepo.findByRawTokenWithUser(token);
         if (sessionOpt.isEmpty()) {
             reject(res, "Invalid or expired session.");
             return;

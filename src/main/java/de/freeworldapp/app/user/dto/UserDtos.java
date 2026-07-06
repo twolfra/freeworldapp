@@ -23,6 +23,13 @@ public class UserDtos {
         public String email;
     }
 
+    public static class ChangePassword {
+        @NotBlank
+        public String oldPassword;
+        @NotBlank @Size(min = 10, max = 72)
+        public String newPassword;
+    }
+
     public static class Login {
         @NotBlank
         public String username;

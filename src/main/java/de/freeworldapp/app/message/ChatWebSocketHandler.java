@@ -133,7 +133,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
         if (token == null) return null;
         final String tok = token;
-        return sessionRepo.findByToken(tok)
+        return sessionRepo.findByRawToken(tok)
                 .filter(s -> s.getExpiresAt() == null || s.getExpiresAt().isAfter(Instant.now()))
                 .map(s -> s.getUser().getId())
                 .orElse(null);

@@ -34,7 +34,7 @@ public class LikeController {
             @RequestParam String targetType,
             @RequestParam UUID targetId,
             @RequestHeader("X-Session-Token") String token) {
-        var sessionOpt = sessionRepository.findByToken(token);
+        var sessionOpt = sessionRepository.findByRawToken(token);
         if (sessionOpt.isEmpty() || (sessionOpt.get().getExpiresAt() != null && sessionOpt.get().getExpiresAt().isBefore(Instant.now())))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         UUID userId = sessionOpt.get().getUser().getId();
@@ -78,7 +78,7 @@ public class LikeController {
             @RequestParam String targetType,
             @RequestParam UUID targetId,
             @RequestHeader("X-Session-Token") String token) {
-        var sessionOpt = sessionRepository.findByToken(token);
+        var sessionOpt = sessionRepository.findByRawToken(token);
         if (sessionOpt.isEmpty() || (sessionOpt.get().getExpiresAt() != null && sessionOpt.get().getExpiresAt().isBefore(Instant.now())))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         UUID userId = sessionOpt.get().getUser().getId();
@@ -103,7 +103,7 @@ public class LikeController {
             @RequestParam String targetType,
             @RequestParam UUID targetId,
             @RequestHeader("X-Session-Token") String token) {
-        var sessionOpt = sessionRepository.findByToken(token);
+        var sessionOpt = sessionRepository.findByRawToken(token);
         if (sessionOpt.isEmpty() || (sessionOpt.get().getExpiresAt() != null && sessionOpt.get().getExpiresAt().isBefore(Instant.now())))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         UUID userId = sessionOpt.get().getUser().getId();
@@ -123,7 +123,7 @@ public class LikeController {
             @RequestParam UUID userId,
             @RequestParam(required = false) String targetType,
             @RequestHeader("X-Session-Token") String token) {
-        var sessionOpt = sessionRepository.findByToken(token);
+        var sessionOpt = sessionRepository.findByRawToken(token);
         if (sessionOpt.isEmpty() || (sessionOpt.get().getExpiresAt() != null && sessionOpt.get().getExpiresAt().isBefore(Instant.now())))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         UUID sessionUserId = sessionOpt.get().getUser().getId();

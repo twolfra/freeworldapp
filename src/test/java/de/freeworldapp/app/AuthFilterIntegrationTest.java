@@ -84,7 +84,7 @@ class AuthFilterIntegrationTest extends IntegrationTestBase {
     @Test
     void expiredSessionIsRejectedAndDeleted() throws Exception {
         AuthedUser user = signUp("filter_expired");
-        Session session = sessionRepository.findByToken(user.token()).orElseThrow();
+        Session session = sessionRepository.findByRawToken(user.token()).orElseThrow();
         session.setExpiresAt(Instant.now().minusSeconds(60));
         sessionRepository.save(session);
 
@@ -94,7 +94,7 @@ class AuthFilterIntegrationTest extends IntegrationTestBase {
                         .content(OFFER_BODY))
                 .andExpect(status().isUnauthorized());
 
-        assertThat(sessionRepository.findByToken(user.token())).isEmpty();
+        assertThat(sessionRepository.findByRawToken(user.token())).isEmpty();
     }
 
     @Test
