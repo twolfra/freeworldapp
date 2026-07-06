@@ -34,6 +34,11 @@ const T = {
     'nav.settings': 'Settings',
     'nav.themeDark': 'Switch to dark mode', 'nav.themeLight': 'Switch to light mode',
 
+    // Mobile tab bar
+    'nav.tabBar': 'Main navigation',
+    'nav.discover': 'Discover', 'nav.search': 'Search',
+    'nav.give': 'Give', 'nav.profile': 'Profile',
+
     // Shared UI components
     'ui.confirm': 'Confirm', 'ui.cancel': 'Cancel',
     'ui.close': 'Close', 'ui.dismiss': 'Dismiss',
@@ -371,6 +376,11 @@ const T = {
     'nav.signIn': 'Anmelden', 'nav.join': 'Registrieren', 'nav.signOut': 'Abmelden',
     'nav.settings': 'Einstellungen',
     'nav.themeDark': 'Dunklen Modus aktivieren', 'nav.themeLight': 'Hellen Modus aktivieren',
+
+    // Mobile tab bar
+    'nav.tabBar': 'Hauptnavigation',
+    'nav.discover': 'Entdecken', 'nav.search': 'Suchen',
+    'nav.give': 'Geben', 'nav.profile': 'Profil',
 
     // Shared UI components
     'ui.confirm': 'Bestätigen', 'ui.cancel': 'Abbrechen',

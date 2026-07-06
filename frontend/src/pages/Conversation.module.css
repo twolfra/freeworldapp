@@ -131,6 +131,13 @@
   cursor: not-allowed;
 }
 
+/* Mobile: ≥44px touch targets; shrink the thread so the composer sits
+   above the fixed bottom TabBar (64px, see index.css body padding). */
+@media (max-width: 767px) {
+  .input, .sendBtn { min-height: 44px; }
+  .thread { height: calc(100vh - 234px); }
+}
+
 .status {
   text-align: center;
   margin-top: 3rem;

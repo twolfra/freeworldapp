@@ -4,6 +4,7 @@ import { AuthProvider } from './auth/AuthContext';
 import { ToastProvider } from './components/ui';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import TabBar from './components/TabBar';
 import Home from './pages/Home';
 import OfferList from './pages/OfferList';
 import OfferForm from './pages/OfferForm';
@@ -118,6 +119,7 @@ export default function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Footer />
+          <TabBar />
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>

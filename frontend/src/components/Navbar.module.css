@@ -166,11 +166,24 @@
 }
 .themeToggle:hover { border-color: var(--green); background: var(--bg-hover); }
 
-/* ---- Responsive ---- */
-@media (max-width: 760px) {
-  .inner { gap: 0.75rem; padding: 0 0.9rem; }
-  .nav { gap: 0; }
-  .navLink { padding: 0.5rem 0.55rem; font-size: 0.88rem; }
+/* ---- Responsive ----
+   Below 768px the mobile bottom TabBar takes over primary navigation,
+   so the Navbar's nav links are hidden and only brand + account actions
+   remain (with ≥44px touch targets). */
+@media (max-width: 767px) {
+  .inner { gap: 0.75rem; padding: 0 0.9rem; justify-content: space-between; }
+  .nav { display: none; }
   .userName, .signOut { display: none; }
-  .logoText { display: none; }
+  .actions { margin-left: auto; }
+  .navLink { min-height: 44px; padding: 0.5rem 0.8rem; }        /* Sign in link (signed out) */
+  .themeToggle, .langToggle, .settingsLink {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .langToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .userChip { min-height: 44px; }
 }

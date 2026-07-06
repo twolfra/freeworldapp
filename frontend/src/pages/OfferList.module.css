@@ -274,12 +274,16 @@
   .sidebar { position: static; }
   .catList { flex-direction: row; flex-wrap: wrap; gap: 0.4rem; }
   .catRow {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;                 /* touch target */
     background: var(--bg);
     border: 1px solid var(--line);
     border-radius: 999px;
-    padding: 0.25rem 0.7rem;
+    padding: 0.25rem 0.9rem;
     font-size: 0.83rem;
   }
+  .pageBtn { min-height: 44px; }      /* touch target */
 }
 
 /* ---------- Lifecycle status (AP 2.3) ---------- */
