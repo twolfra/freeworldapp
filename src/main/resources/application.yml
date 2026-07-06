@@ -29,6 +29,15 @@ spring:
           auth: ${MAIL_SMTP_AUTH:false}
           starttls:
             enable: ${MAIL_STARTTLS:false}
+# API docs (Swagger UI at /api/docs). Enabled by default for dev;
+# set SPRINGDOC_ENABLED=false in production to hide them.
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_ENABLED:true}
+    path: /api/docs/spec
+  swagger-ui:
+    enabled: ${SPRINGDOC_ENABLED:true}
+    path: /api/docs
 logging:
   level:
     org.hibernate.SQL: debug
