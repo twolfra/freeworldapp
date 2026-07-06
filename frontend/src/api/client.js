@@ -42,7 +42,9 @@ async function request(path, options = {}) {
     const msg = body?.error
       ?? body?.errors?.map((e) => e.defaultMessage).join(', ')
       ?? `${res.status} ${res.statusText}`;
-    throw new Error(msg);
+    const err = new Error(msg);
+    err.status = res.status;
+    throw err;
   }
   if (res.status === 204) return null;
   return res.json();
@@ -53,6 +55,9 @@ export const auth = {
   logout:              ()      => request('/auth/logout', { method: 'POST' }),
   verify:              (token) => request(`/auth/verify?token=${encodeURIComponent(token)}`),
   resendVerification:  (email) => request('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }),
+  forgotPassword:      (email) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword:       (token, newPassword) =>
+    request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
 };
 
 export const users = {
