@@ -12,6 +12,7 @@ import de.freeworldapp.app.report.Report;
 import de.freeworldapp.app.report.ReportRepository;
 import de.freeworldapp.app.request.RequestRepository;
 import de.freeworldapp.app.subscription.SubscriptionRepository;
+import de.freeworldapp.app.thanks.ThanksRepository;
 import de.freeworldapp.app.user.dto.UserDtos;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -43,13 +44,14 @@ public class UserController {
     private final StorageService storageService;
     private final LikeRepository likeRepo;
     private final ReportRepository reportRepo;
+    private final ThanksRepository thanksRepo;
 
     public UserController(UserRepository userRepo, PasswordEncoder encoder, EmailService emailService,
                           SessionRepository sessionRepo, PasswordResetTokenRepository resetRepo,
                           MessageRepository messageRepo,
                           SubscriptionRepository subscriptionRepo, OfferRepository offerRepo,
                           RequestRepository requestRepo, StorageService storageService, LikeRepository likeRepo,
-                          ReportRepository reportRepo) {
+                          ReportRepository reportRepo, ThanksRepository thanksRepo) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.emailService = emailService;
@@ -62,6 +64,7 @@ public class UserController {
         this.storageService = storageService;
         this.likeRepo = likeRepo;
         this.reportRepo = reportRepo;
+        this.thanksRepo = thanksRepo;
     }
 
     @PostMapping
@@ -113,6 +116,50 @@ public class UserController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    /** Owner-only partial profile update: null keeps, "" clears a field. */
+    @PutMapping("{id}/profile")
+    public ResponseEntity<?> updateProfile(@PathVariable UUID id, @Valid @RequestBody UserDtos.ProfileUpdate in) {
+        UUID callerId = SecurityContext.authenticatedId();
+        if (!callerId.equals(id))
+            return ResponseEntity.status(403).body(Map.of("error", "You can only update your own profile."));
+
+        return userRepo.findById(id).map(u -> {
+            if (in.displayName != null) u.setDisplayName(blankToNull(in.displayName));
+            if (in.bio != null) u.setBio(blankToNull(in.bio));
+            if (in.avatarUrl != null) {
+                String old = u.getAvatarUrl();
+                String next = blankToNull(in.avatarUrl);
+                if (old != null && !old.equals(next)) storageService.delete(old);
+                u.setAvatarUrl(next);
+            }
+            if (in.postalCode != null) u.setPostalCode(blankToNull(in.postalCode));
+            if (in.city != null) u.setCity(blankToNull(in.city));
+            return ResponseEntity.ok(toOwnResponse(userRepo.save(u)));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s.strip();
+    }
+
+    /** Full own-account view (used after profile updates so the client can sync). */
+    private UserDtos.Response toOwnResponse(User u) {
+        var out = new UserDtos.Response();
+        out.id = u.getId().toString();
+        out.username = u.getUsername();
+        out.email = u.getEmail();
+        out.createdAt = DateTimeFormatter.ISO_INSTANT.format(u.getCreatedAt());
+        out.role = u.getRole().name();
+        out.notifyOnMessage = u.isNotifyOnMessage();
+        out.language = u.getLanguage();
+        out.displayName = u.getDisplayName();
+        out.bio = u.getBio();
+        out.avatarUrl = u.getAvatarUrl();
+        out.postalCode = u.getPostalCode();
+        out.city = u.getCity();
+        return out;
+    }
+
     @DeleteMapping("{id}")
     @Transactional
     public ResponseEntity<?> delete(@PathVariable UUID id) {
@@ -137,6 +184,7 @@ public class UserController {
 
         sessionRepo.deleteByUser_Id(id);
         resetRepo.deleteByUser_Id(id);
+        thanksRepo.deleteByFromUser_IdOrToUser_Id(id, id);
         subscriptionRepo.deleteAllInvolvingUser(id);
         messageRepo.deleteAllInvolvingUser(id);
         likeRepo.deleteAllByUserId(id);
@@ -152,6 +200,10 @@ public class UserController {
         out.id = u.getId().toString();
         out.username = u.getUsername();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(u.getCreatedAt());
+        out.displayName = u.getDisplayName();
+        out.bio = u.getBio();
+        out.avatarUrl = u.getAvatarUrl();
+        out.city = u.getCity();
         return out;
     }
 }

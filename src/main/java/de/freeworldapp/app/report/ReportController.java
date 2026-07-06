@@ -5,6 +5,7 @@ import de.freeworldapp.app.email.EmailService;
 import de.freeworldapp.app.offer.OfferRepository;
 import de.freeworldapp.app.report.dto.ReportDtos;
 import de.freeworldapp.app.request.RequestRepository;
+import de.freeworldapp.app.thanks.ThanksRepository;
 import de.freeworldapp.app.user.Role;
 import de.freeworldapp.app.user.User;
 import de.freeworldapp.app.user.UserRepository;
@@ -24,15 +25,18 @@ public class ReportController {
     private final OfferRepository offerRepo;
     private final RequestRepository requestRepo;
     private final EmailService emailService;
+    private final ThanksRepository thanksRepo;
 
     public ReportController(ReportRepository reportRepo, UserRepository userRepo,
                             OfferRepository offerRepo, RequestRepository requestRepo,
-                            EmailService emailService) {
+                            EmailService emailService,
+                            ThanksRepository thanksRepo) {
         this.reportRepo = reportRepo;
         this.userRepo = userRepo;
         this.offerRepo = offerRepo;
         this.requestRepo = requestRepo;
         this.emailService = emailService;
+        this.thanksRepo = thanksRepo;
     }
 
     @PostMapping
@@ -65,6 +69,11 @@ public class ReportController {
                 if (request == null) return ResponseEntity.status(404).body(Map.of("error", "Request not found."));
                 ownerId = request.getRequestedBy().getId();
             }
+            case THANKS -> {
+                var thanks = thanksRepo.findById(targetId).orElse(null);
+                if (thanks == null) return ResponseEntity.status(404).body(Map.of("error", "Thanks not found."));
+                ownerId = thanks.getFromUser().getId();
+            }
             default -> { // USER
                 if (!userRepo.existsById(targetId)) return ResponseEntity.status(404).body(Map.of("error", "User not found."));
                 ownerId = targetId;
@@ -95,6 +104,8 @@ public class ReportController {
             case OFFER    -> offerRepo.findById(targetId).map(o -> o.getTitle()).orElse(targetId.toString());
             case REQUEST  -> requestRepo.findById(targetId).map(r -> r.getTitle()).orElse(targetId.toString());
             case USER     -> userRepo.findById(targetId).map(User::getUsername).orElse(targetId.toString());
+            case THANKS   -> thanksRepo.findById(targetId)
+                    .map(t -> "Thanks on \"" + t.getOfferTitle() + "\"").orElse(targetId.toString());
         };
         userRepo.findAll().stream()
                 .filter(u -> u.getRole() == Role.ADMIN)

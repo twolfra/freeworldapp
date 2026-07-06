@@ -62,6 +62,23 @@ public class User {
     @Column(nullable = false, length = 8, columnDefinition = "varchar(8) DEFAULT 'en'")
     private String language = "en";
 
+    // ---- Optional profile fields (AP 2.6) ----
+    @Column(name = "display_name", length = 60)
+    private String displayName;
+
+    @Column(length = 500)
+    private String bio;
+
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
+    // Never exposed publicly — used for geo features later.
+    @Column(name = "postal_code", length = 10)
+    private String postalCode;
+
+    @Column(length = 100)
+    private String city;
+
     @PrePersist
     void onCreate() {
         this.createdAt = Instant.now(); // sets current timestamp of creation
@@ -82,6 +99,11 @@ public class User {
     public boolean isNotifyOnMessage() { return notifyOnMessage; }
     public String getUnsubscribeToken() { return unsubscribeToken; }
     public String getLanguage() { return language; }
+    public String getDisplayName() { return displayName; }
+    public String getBio() { return bio; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public String getPostalCode() { return postalCode; }
+    public String getCity() { return city; }
 
     public void setUsername(String username) { this.username = username; }
     public void setEmail(String email) { this.email = email; }
@@ -95,4 +117,9 @@ public class User {
     public void setNotifyOnMessage(boolean notifyOnMessage) { this.notifyOnMessage = notifyOnMessage; }
     public void setUnsubscribeToken(String unsubscribeToken) { this.unsubscribeToken = unsubscribeToken; }
     public void setLanguage(String language) { this.language = language; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public void setBio(String bio) { this.bio = bio; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
+    public void setCity(String city) { this.city = city; }
 }

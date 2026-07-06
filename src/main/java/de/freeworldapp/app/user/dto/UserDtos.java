@@ -23,6 +23,20 @@ public class UserDtos {
         public String email;
     }
 
+    /** All optional; null leaves the field unchanged, "" clears it. */
+    public static class ProfileUpdate {
+        @Size(max = 60)
+        public String displayName;
+        @Size(max = 500)
+        public String bio;
+        @Size(max = 500)
+        public String avatarUrl;
+        @Size(max = 10)
+        public String postalCode;
+        @Size(max = 100)
+        public String city;
+    }
+
     public static class ResetPassword {
         @NotBlank
         public String token;
@@ -53,13 +67,22 @@ public class UserDtos {
         public String token; // only populated on login
         public boolean notifyOnMessage;
         public String language;
+        public String displayName;
+        public String bio;
+        public String avatarUrl;
+        public String postalCode;
+        public String city;
     }
 
-    /** Returned by public GET endpoints — no email exposed. */
+    /** Returned by public GET endpoints — no email, no postal code. */
     public static class PublicResponse {
         public String id;
         public String username;
         public String createdAt;
+        public String displayName;
+        public String bio;
+        public String avatarUrl;
+        public String city;
     }
 
     /** Admin-only view of a user — includes email, role, block state and post counts. */
