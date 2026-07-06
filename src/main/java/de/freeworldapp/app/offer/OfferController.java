@@ -10,6 +10,9 @@ import de.freeworldapp.app.message.ChatWebSocketHandler;
 import de.freeworldapp.app.message.Message;
 import de.freeworldapp.app.message.MessageNotificationService;
 import de.freeworldapp.app.message.MessageRepository;
+import de.freeworldapp.app.notification.Notification;
+import de.freeworldapp.app.notification.NotificationService;
+import de.freeworldapp.app.subscription.SubscriptionRepository;
 import de.freeworldapp.app.offer.dto.OfferDtos;
 import de.freeworldapp.app.user.UserRepository;
 import jakarta.validation.Valid;
@@ -35,10 +38,13 @@ public class OfferController {
     private final MessageRepository messageRepo;
     private final ChatWebSocketHandler wsHandler;
     private final MessageNotificationService notificationService;
+    private final NotificationService notificationCenter;
+    private final SubscriptionRepository subscriptionRepo;
 
     public OfferController(OfferRepository offerRepo, UserRepository userRepo, StorageService storage,
                            LikeRepository likeRepo, AdminGuard adminGuard, MessageRepository messageRepo,
                            ChatWebSocketHandler wsHandler, MessageNotificationService notificationService,
+                           NotificationService notificationCenter, SubscriptionRepository subscriptionRepo,
                            PlzGeoRepository plzRepo) {
         this.offerRepo = offerRepo;
         this.userRepo = userRepo;
@@ -49,6 +55,8 @@ public class OfferController {
         this.messageRepo = messageRepo;
         this.wsHandler = wsHandler;
         this.notificationService = notificationService;
+        this.notificationCenter = notificationCenter;
+        this.subscriptionRepo = subscriptionRepo;
     }
 
     @PostMapping
@@ -71,6 +79,13 @@ public class OfferController {
                     if (geoError != null)
                         return ResponseEntity.badRequest().body((Object) Map.of("error", geoError));
                     Offer saved = offerRepo.save(o);
+                    subscriptionRepo.findBySubscribedTo_Id(user.getId()).forEach(sub ->
+                            notificationCenter.notify(sub.getSubscriber().getId(),
+                                    Notification.Type.NEW_POST_FROM_SUB, Map.of(
+                                            "postType", "OFFER",
+                                            "postId", saved.getId().toString(),
+                                            "title", saved.getTitle(),
+                                            "username", user.getUsername())));
                     return ResponseEntity
                             .created(URI.create("/api/offers/" + saved.getId()))
                             .body((Object) toResponse(saved));
@@ -125,6 +140,10 @@ public class OfferController {
                         wsHandler.push(ownerId, payload);
                         wsHandler.push(callerId, payload);
                         notificationService.notifyNewMessage(ownerId, callerId, saved.getContent());
+                        notificationCenter.notify(ownerId, Notification.Type.INTEREST, Map.of(
+                                "offerId", id.toString(),
+                                "offerTitle", o.getTitle(),
+                                "fromUsername", caller.getUsername()));
                     }
                     return ResponseEntity.ok(Map.of(
                             "conversationWith", ownerId.toString(),

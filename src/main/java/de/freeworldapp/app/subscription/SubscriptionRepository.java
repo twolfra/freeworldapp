@@ -14,6 +14,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
     boolean existsBySubscriber_IdAndSubscribedTo_Id(UUID subscriberId, UUID subscribedToId);
     Optional<Subscription> findBySubscriber_IdAndSubscribedTo_Id(UUID subscriberId, UUID subscribedToId);
     List<Subscription> findBySubscriber_Id(UUID subscriberId);
+    List<Subscription> findBySubscribedTo_Id(UUID subscribedToId);
 
     @Modifying
     @Transactional

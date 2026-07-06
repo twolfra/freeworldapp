@@ -7,6 +7,7 @@ import de.freeworldapp.app.email.EmailService;
 import de.freeworldapp.app.image.StorageService;
 import de.freeworldapp.app.like.LikeRepository;
 import de.freeworldapp.app.message.MessageRepository;
+import de.freeworldapp.app.notification.NotificationRepository;
 import de.freeworldapp.app.offer.OfferRepository;
 import de.freeworldapp.app.report.Report;
 import de.freeworldapp.app.report.ReportRepository;
@@ -45,13 +46,15 @@ public class UserController {
     private final LikeRepository likeRepo;
     private final ReportRepository reportRepo;
     private final ThanksRepository thanksRepo;
+    private final NotificationRepository notificationRepo;
 
     public UserController(UserRepository userRepo, PasswordEncoder encoder, EmailService emailService,
                           SessionRepository sessionRepo, PasswordResetTokenRepository resetRepo,
                           MessageRepository messageRepo,
                           SubscriptionRepository subscriptionRepo, OfferRepository offerRepo,
                           RequestRepository requestRepo, StorageService storageService, LikeRepository likeRepo,
-                          ReportRepository reportRepo, ThanksRepository thanksRepo) {
+                          ReportRepository reportRepo, ThanksRepository thanksRepo,
+                          NotificationRepository notificationRepo) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.emailService = emailService;
@@ -65,6 +68,7 @@ public class UserController {
         this.likeRepo = likeRepo;
         this.reportRepo = reportRepo;
         this.thanksRepo = thanksRepo;
+        this.notificationRepo = notificationRepo;
     }
 
     @PostMapping
@@ -185,6 +189,7 @@ public class UserController {
         sessionRepo.deleteByUser_Id(id);
         resetRepo.deleteByUser_Id(id);
         thanksRepo.deleteByFromUser_IdOrToUser_Id(id, id);
+        notificationRepo.deleteByUser_Id(id);
         subscriptionRepo.deleteAllInvolvingUser(id);
         messageRepo.deleteAllInvolvingUser(id);
         likeRepo.deleteAllByUserId(id);

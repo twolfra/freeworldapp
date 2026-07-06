@@ -11,6 +11,7 @@ import de.freeworldapp.app.like.LikeRepository;
 import de.freeworldapp.app.offer.Offer;
 import de.freeworldapp.app.offer.OfferRepository;
 import de.freeworldapp.app.message.MessageRepository;
+import de.freeworldapp.app.notification.NotificationRepository;
 import de.freeworldapp.app.report.Report;
 import de.freeworldapp.app.report.ReportRepository;
 import de.freeworldapp.app.report.dto.ReportDtos;
@@ -49,13 +50,15 @@ public class AdminController {
     private final EmailService emailService;
     private final AdminAuditRepository auditRepo;
     private final ThanksRepository thanksRepo;
+    private final NotificationRepository notificationRepo;
 
     public AdminController(AdminGuard adminGuard, UserRepository userRepo, OfferRepository offerRepo,
                            RequestRepository requestRepo, LikeRepository likeRepo, ReportRepository reportRepo,
                            SessionRepository sessionRepo, PasswordResetTokenRepository resetRepo,
                            SubscriptionRepository subscriptionRepo,
                            MessageRepository messageRepo, StorageService storage, EmailService emailService,
-                           AdminAuditRepository auditRepo, ThanksRepository thanksRepo) {
+                           AdminAuditRepository auditRepo, ThanksRepository thanksRepo,
+                           NotificationRepository notificationRepo) {
         this.adminGuard = adminGuard;
         this.userRepo = userRepo;
         this.offerRepo = offerRepo;
@@ -70,6 +73,7 @@ public class AdminController {
         this.emailService = emailService;
         this.auditRepo = auditRepo;
         this.thanksRepo = thanksRepo;
+        this.notificationRepo = notificationRepo;
     }
 
     private static final ResponseEntity<Object> FORBIDDEN =
@@ -136,6 +140,7 @@ public class AdminController {
         sessionRepo.deleteByUser_Id(id);
         resetRepo.deleteByUser_Id(id);
         thanksRepo.deleteByFromUser_IdOrToUser_Id(id, id);
+        notificationRepo.deleteByUser_Id(id);
         subscriptionRepo.deleteAllInvolvingUser(id);
         messageRepo.deleteAllInvolvingUser(id);
         likeRepo.deleteAllByUserId(id);

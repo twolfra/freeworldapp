@@ -6,6 +6,9 @@ import de.freeworldapp.app.auth.SecurityContext;
 import de.freeworldapp.app.image.StorageService;
 import de.freeworldapp.app.like.Like;
 import de.freeworldapp.app.like.LikeRepository;
+import de.freeworldapp.app.notification.Notification;
+import de.freeworldapp.app.notification.NotificationService;
+import de.freeworldapp.app.subscription.SubscriptionRepository;
 import de.freeworldapp.app.request.dto.RequestDtos;
 import de.freeworldapp.app.user.UserRepository;
 import jakarta.validation.Valid;
@@ -28,16 +31,21 @@ public class RequestController {
     private final LikeRepository likeRepo;
     private final AdminGuard adminGuard;
     private final PlzGeoRepository plzRepo;
+    private final NotificationService notificationCenter;
+    private final SubscriptionRepository subscriptionRepo;
 
     public RequestController(RequestRepository requestRepo, UserRepository userRepo, StorageService storage,
                              LikeRepository likeRepo, AdminGuard adminGuard,
-                           PlzGeoRepository plzRepo) {
+                             PlzGeoRepository plzRepo,
+                             NotificationService notificationCenter, SubscriptionRepository subscriptionRepo) {
         this.requestRepo = requestRepo;
         this.userRepo = userRepo;
         this.storage = storage;
         this.likeRepo = likeRepo;
         this.adminGuard = adminGuard;
         this.plzRepo = plzRepo;
+        this.notificationCenter = notificationCenter;
+        this.subscriptionRepo = subscriptionRepo;
     }
 
     @PostMapping
@@ -60,6 +68,13 @@ public class RequestController {
                     if (geoError != null)
                         return ResponseEntity.badRequest().body((Object) Map.of("error", geoError));
                     Request saved = requestRepo.save(r);
+                    subscriptionRepo.findBySubscribedTo_Id(user.getId()).forEach(sub ->
+                            notificationCenter.notify(sub.getSubscriber().getId(),
+                                    Notification.Type.NEW_POST_FROM_SUB, Map.of(
+                                            "postType", "REQUEST",
+                                            "postId", saved.getId().toString(),
+                                            "title", saved.getTitle(),
+                                            "username", user.getUsername())));
                     return ResponseEntity
                             .created(URI.create("/api/requests/" + saved.getId()))
                             .body((Object) toResponse(saved));
