@@ -71,6 +71,7 @@ export default function Home() {
               className={styles.typeSelect}
               value={type}
               onChange={(e) => setType(e.target.value)}
+              aria-label={t('home.typeLabel')}
             >
               {TYPES.map(([val, label]) => (
                 <option key={val} value={val}>{label}</option>
@@ -80,6 +81,7 @@ export default function Home() {
             <input
               type="search"
               placeholder={t('home.searchPlaceholder')}
+              aria-label={t('home.searchPlaceholder')}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               autoComplete="off"
@@ -99,7 +101,8 @@ export default function Home() {
             <Link to="/requests/new" className="btn-secondary" style={{ width: '100%' }}>{t('home.ask')}</Link>
           </div>
           <div className={styles.sideBox}>
-            <h3 className={styles.sideTitle}>{t('home.categories')}</h3>
+            {/* h2: heading levels must not skip (h1 hero → h2), AP 4.2 */}
+            <h2 className={styles.sideTitle}>{t('home.categories')}</h2>
             <ul className={styles.catList}>
               {CATEGORIES.map((c) => (
                 <li key={c}>
@@ -111,7 +114,7 @@ export default function Home() {
             </ul>
           </div>
           <div className={styles.sideBox}>
-            <h3 className={styles.sideTitle}>{t('home.stats')}</h3>
+            <h2 className={styles.sideTitle}>{t('home.stats')}</h2>
             <div className={styles.stats}>
               <Link to="/offers" className={styles.stat}>
                 <span className={styles.statNum} style={{ color: 'var(--green)' }}>{counts.offers}</span>

@@ -100,13 +100,17 @@ describe('Settings page', () => {
     renderSettings();
 
     await user.click(screen.getByRole('button', { name: 'Account' }));
-    await user.click(screen.getByRole('button', { name: 'Delete account' }));
+    // deletion requires the current password first (AP 4.4)
+    const deleteBtn = screen.getByRole('button', { name: 'Delete account' });
+    expect(deleteBtn).toBeDisabled();
+    await user.type(screen.getByLabelText('Confirm with your password'), 'password123');
+    await user.click(deleteBtn);
 
     // Modal open, nothing deleted yet.
     expect(usersApi.remove).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Delete forever' }));
 
-    expect(usersApi.remove).toHaveBeenCalledWith('u1');
+    expect(usersApi.remove).toHaveBeenCalledWith('u1', 'password123');
     // The session is gone server-side, so no logout call is made…
     expect(authApi.logout).not.toHaveBeenCalled();
     // …but the user is signed out locally and navigated home.

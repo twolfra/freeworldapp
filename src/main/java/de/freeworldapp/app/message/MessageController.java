@@ -45,7 +45,8 @@ public class MessageController {
         var sender    = userRepo.findById(senderId);
         var recipient = userRepo.findById(recipientId);
         if (sender.isEmpty())    return ResponseEntity.badRequest().body(Map.of("error", "Sender not found."));
-        if (recipient.isEmpty()) return ResponseEntity.badRequest().body(Map.of("error", "Recipient not found."));
+        if (recipient.isEmpty() || recipient.get().isDeleted())
+            return ResponseEntity.badRequest().body(Map.of("error", "Recipient not found."));
 
         Message m = new Message();
         m.setSender(sender.get());
@@ -97,6 +98,7 @@ public class MessageController {
                     s.lastMessage   = latest.getContent();
                     s.lastMessageAt = DateTimeFormatter.ISO_INSTANT.format(latest.getCreatedAt());
                     s.unreadCount   = messageRepo.countUnreadFromSender(uid, partner.getId());
+                    s.deleted       = partner.isDeleted();
                     return s;
                 })
                 .collect(Collectors.toList());
@@ -166,6 +168,8 @@ public class MessageController {
         out.createdAt        = DateTimeFormatter.ISO_INSTANT.format(m.getCreatedAt());
         out.readAt           = m.getReadAt() != null
                 ? DateTimeFormatter.ISO_INSTANT.format(m.getReadAt()) : null;
+        out.senderDeleted    = m.getSender().isDeleted();
+        out.recipientDeleted = m.getRecipient().isDeleted();
         out.contextType      = m.getContextType() != null ? m.getContextType().name() : null;
         out.contextId        = m.getContextId() != null ? m.getContextId().toString() : null;
         return out;

@@ -50,6 +50,7 @@ public class UserController {
     private final ThanksRepository thanksRepo;
     private final NotificationRepository notificationRepo;
     private final PostImageService postImages;
+    private final AccountDeletionService deletionService;
 
     public UserController(UserRepository userRepo, PasswordEncoder encoder, EmailService emailService,
                           SessionRepository sessionRepo, PasswordResetTokenRepository resetRepo,
@@ -57,7 +58,8 @@ public class UserController {
                           SubscriptionRepository subscriptionRepo, OfferRepository offerRepo,
                           RequestRepository requestRepo, StorageService storageService, LikeRepository likeRepo,
                           ReportRepository reportRepo, ThanksRepository thanksRepo,
-                          NotificationRepository notificationRepo, PostImageService postImages) {
+                          NotificationRepository notificationRepo, PostImageService postImages,
+                          AccountDeletionService deletionService) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.emailService = emailService;
@@ -73,6 +75,7 @@ public class UserController {
         this.thanksRepo = thanksRepo;
         this.notificationRepo = notificationRepo;
         this.postImages = postImages;
+        this.deletionService = deletionService;
     }
 
     @PostMapping
@@ -102,12 +105,16 @@ public class UserController {
 
     @GetMapping
     public List<UserDtos.PublicResponse> list() {
-        return userRepo.findAll().stream().map(this::toPublicResponse).toList();
+        return userRepo.findAll().stream()
+                .filter(u -> !u.isDeleted())
+                .map(this::toPublicResponse).toList();
     }
 
     @GetMapping("{id}")
     public ResponseEntity<UserDtos.PublicResponse> get(@PathVariable UUID id) {
-        return userRepo.findById(id).map(u -> ResponseEntity.ok(toPublicResponse(u)))
+        return userRepo.findById(id)
+                .filter(u -> !u.isDeleted())
+                .map(u -> ResponseEntity.ok(toPublicResponse(u)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -168,45 +175,25 @@ public class UserController {
         return out;
     }
 
+    /**
+     * DSGVO self-deletion: requires the current password and ANONYMIZES the
+     * account (messages stay for the other side as "Deleted account").
+     */
     @DeleteMapping("{id}")
-    @Transactional
-    public ResponseEntity<?> delete(@PathVariable UUID id) {
+    public ResponseEntity<?> delete(@PathVariable UUID id,
+                                    @RequestBody(required = false) Map<String, String> body) {
         UUID callerId = SecurityContext.authenticatedId();
         if (!callerId.equals(id))
             return ResponseEntity.status(403).body(Map.of("error", "You can only delete your own account."));
 
-        if (!userRepo.existsById(id)) return ResponseEntity.notFound().build();
+        User u = userRepo.findById(id).orElse(null);
+        if (u == null || u.isDeleted()) return ResponseEntity.notFound().build();
 
-        // Delete images from storage before removing the records
-        offerRepo.findByOfferedBy_Id(id).forEach(o -> {
-            storageService.delete(o.getImageUrl());
-            postImages.deleteAll(PostImage.TargetType.OFFER, o.getId());
-        });
-        requestRepo.findByRequestedBy_Id(id).forEach(r -> {
-            storageService.delete(r.getImageUrl());
-            postImages.deleteAll(PostImage.TargetType.REQUEST, r.getId());
-        });
+        String password = body != null ? body.get("password") : null;
+        if (password == null || !encoder.matches(password, u.getPasswordHash()))
+            return ResponseEntity.status(403).body(Map.of("error", "Password incorrect."));
 
-        // Reports filed by this user, reports targeting this user, and reports
-        // targeting any of this user's posts.
-        reportRepo.deleteAllByReporterId(id);
-        reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.USER, id);
-        offerRepo.findByOfferedBy_Id(id).forEach(o ->
-                reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.OFFER, o.getId()));
-        requestRepo.findByRequestedBy_Id(id).forEach(r ->
-                reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.REQUEST, r.getId()));
-
-        sessionRepo.deleteByUser_Id(id);
-        resetRepo.deleteByUser_Id(id);
-        thanksRepo.deleteByFromUser_IdOrToUser_Id(id, id);
-        notificationRepo.deleteByUser_Id(id);
-        subscriptionRepo.deleteAllInvolvingUser(id);
-        messageRepo.deleteAllInvolvingUser(id);
-        likeRepo.deleteAllByUserId(id);
-        offerRepo.deleteAll(offerRepo.findByOfferedBy_Id(id));
-        requestRepo.deleteAll(requestRepo.findByRequestedBy_Id(id));
-        userRepo.deleteById(id);
-
+        deletionService.anonymize(u);
         return ResponseEntity.noContent().build();
     }
 

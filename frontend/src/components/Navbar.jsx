@@ -64,6 +64,7 @@ export default function Navbar() {
             className={styles.langToggle}
             onClick={() => setLang(lang === 'de' ? 'en' : 'de')}
             title={lang === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'}
+            aria-label={lang === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'}
           >
             {lang === 'de' ? 'EN' : 'DE'}
           </button>

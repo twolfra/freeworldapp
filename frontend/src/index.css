@@ -19,8 +19,13 @@
   --bg-elevated:  #ffffff;
   --bg-hover:     rgba(0, 0, 0, 0.05);
   --text:         #16181c;
-  --text-muted:   #6b7280;
+  /* 4.77:1 on --bg, 5.30:1 on --bg-elevated (WCAG AA ≥ 4.5:1).
+     The previous #6b7280 was 4.35:1 on --bg. */
+  --text-muted:   #646c7a;
   --border:       #e4e6ea;
+
+  /* Keyboard focus ring (AP 4.2) — 4.84:1 against --bg (≥ 3:1 non-text). */
+  --focus-ring:   var(--green);
 
   /* Status */
   --success:      #1f7a3d;
@@ -91,8 +96,11 @@
   --bg-elevated:  #1e2025;
   --bg-hover:     rgba(255, 255, 255, 0.07);
   --text:         #e8eaed;
-  --text-muted:   #9aa0a8;
+  --text-muted:   #9aa0a8;  /* 6.99:1 on --bg, 6.18:1 on --bg-elevated */
   --border:       #33363c;
+
+  /* The base --green is too dim on the dark bg; 7.40:1 against --bg. */
+  --focus-ring:   #4db877;
 
   --success:      #4db877;
   --success-soft: rgba(77, 184, 119, 0.14);
@@ -185,6 +193,17 @@ button { font-family: inherit; }
 }
 .btn-ghost:hover { background: var(--bg-hover); }
 
+/* ---------- Focus visibility (AP 4.2) ----------
+   Keyboard focus gets a visible ring on every interactive element;
+   pointer clicks don't (:focus-visible). Components with their own
+   focus indicator (e.g. ui/Input's border + box-shadow ring) win via
+   higher-specificity `:focus { outline: none }` rules, so rings never
+   double up. Works in both themes via the --focus-ring token. */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 /* ---------- Form controls ---------- */
 input, textarea, select {
   font-family: inherit;
@@ -194,4 +213,13 @@ input, textarea, select {
 
 input:focus, textarea:focus, select:focus {
   outline: none;
+}
+
+/* Raw form controls rely on border-color changes for pointer focus, which
+   is too subtle for keyboard navigation — restore the ring there. Same
+   specificity as the reset above; source order makes this rule win, while
+   class-based component rules (0,2,0) still take precedence. */
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }

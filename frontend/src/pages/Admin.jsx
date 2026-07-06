@@ -49,10 +49,17 @@ export default function Admin() {
         >
           {t('admin.tabAudit')}
         </button>
+        <button
+          className={tab === 'stats' ? styles.tabActive : styles.tab}
+          onClick={() => setTab('stats')}
+        >
+          {t('admin.tabStats')}
+        </button>
       </div>
       {tab === 'reports' && <ReportsTab currentUser={currentUser} />}
       {tab === 'users' && <UsersTab currentUser={currentUser} />}
       {tab === 'audit' && <AuditTab />}
+      {tab === 'stats' && <StatsTab />}
     </main>
   );
 }
@@ -324,6 +331,77 @@ function AuditTab() {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/**
+ * Small self-contained SVG bar chart — deliberately no chart library for a
+ * single admin-only view (documented deviation from the plan's recharts
+ * suggestion; saves ~100 kB of admin-only bundle).
+ */
+function WeeklyBars({ series, label }) {
+  const max = Math.max(1, ...series.map((p) => Number(p.count)));
+  const barWidth = 28;
+  const gap = 10;
+  const height = 120;
+  const width = series.length * (barWidth + gap);
+  return (
+    <figure className={styles.chart}>
+      <figcaption className={styles.chartLabel}>{label}</figcaption>
+      <svg viewBox={`0 0 ${width} ${height + 30}`} width="100%" role="img" aria-label={label}>
+        {series.map((p, i) => {
+          const h = Math.round((Number(p.count) / max) * height);
+          const x = i * (barWidth + gap);
+          return (
+            <g key={p.week}>
+              <rect x={x} y={height - h} width={barWidth} height={Math.max(h, 1)}
+                    rx="3" fill="var(--green)" opacity={i === series.length - 1 ? 1 : 0.55} />
+              <text x={x + barWidth / 2} y={height - h - 4} textAnchor="middle"
+                    fontSize="10" fill="var(--text-muted)">{p.count}</text>
+              <text x={x + barWidth / 2} y={height + 14} textAnchor="middle"
+                    fontSize="8" fill="var(--text-muted)">{p.week.slice(5)}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </figure>
+  );
+}
+
+function StatsTab() {
+  const [stats, setStats] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    adminApi.stats().then(setStats).catch((e) => setError(e.message));
+  }, []);
+
+  if (error) return <p className={styles.status}>{error}</p>;
+  if (!stats) return <p className={styles.status}>{t('admin.loading')}</p>;
+
+  const tiles = [
+    ['totalUsers', t('admin.stat.users')],
+    ['activeOffers', t('admin.stat.offers')],
+    ['activeRequests', t('admin.stat.requests')],
+    ['completedGifts', t('admin.stat.gifts')],
+    ['totalThanks', t('admin.stat.thanks')],
+    ['openReports', t('admin.stat.reports')],
+  ];
+
+  return (
+    <div>
+      <div className={styles.statTiles}>
+        {tiles.map(([key, label]) => (
+          <div key={key} className={styles.statTile}>
+            <span className={styles.statValue}>{stats[key]}</span>
+            <span className={styles.statLabel}>{label}</span>
+          </div>
+        ))}
+      </div>
+      <WeeklyBars series={stats.registrationsPerWeek} label={t('admin.chart.registrations')} />
+      <WeeklyBars series={stats.postsPerWeek} label={t('admin.chart.posts')} />
+      <WeeklyBars series={stats.messagesPerWeek} label={t('admin.chart.messages')} />
     </div>
   );
 }

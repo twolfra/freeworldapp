@@ -118,12 +118,15 @@ export default function Conversation() {
     -1
   );
 
+  const otherDeleted = msgs.some((m) =>
+    (m.senderId === otherId && m.senderDeleted) || (m.recipientId === otherId && m.recipientDeleted));
+
   return (
     <main className={styles.page}>
       <Link to="/messages" className={styles.back}>{t('conv.back')}</Link>
       <div className={styles.thread}>
         <div className={styles.threadHeader}>
-          {otherUser?.username ?? '…'}
+          {otherDeleted ? t('user.deleted') : (otherUser?.username ?? '…')}
         </div>
         {ctxPost && (
           <Link

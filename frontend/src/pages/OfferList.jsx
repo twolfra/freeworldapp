@@ -140,7 +140,8 @@ export default function OfferList() {
         {/* Sidebar */}
         <aside className={styles.sidebar}>
           <div className={styles.sideBox}>
-            <h3 className={styles.sideTitle}>{t('home.categories')}</h3>
+            {/* h2: keeps heading levels sequential on the page (AP 4.2) */}
+            <h2 className={styles.sideTitle}>{t('home.categories')}</h2>
             <ul className={styles.catList}>
               {CATEGORIES.map((c) => (
                 <li key={c}>
@@ -167,6 +168,7 @@ export default function OfferList() {
             <select
               className={styles.filterSelect}
               value="offer"
+              aria-label={t('home.typeLabel')}
               onChange={(e) => {
                 const q = query ? `?q=${encodeURIComponent(query)}` : '';
                 if (e.target.value === 'listings') navigate(`/${q}`);
@@ -181,6 +183,7 @@ export default function OfferList() {
               className={styles.searchInput}
               type="search"
               placeholder={t('list.searchPlaceholder')}
+              aria-label={t('list.searchPlaceholder')}
               value={query}
               onChange={(e) => { setQuery(e.target.value); setPage(1); }}
               autoComplete="off"

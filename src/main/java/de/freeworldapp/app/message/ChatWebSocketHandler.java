@@ -92,7 +92,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         var sender    = userRepo.findById(senderId);
         var recipient = userRepo.findById(recipientId);
-        if (sender.isEmpty() || recipient.isEmpty()) return;
+        if (sender.isEmpty() || recipient.isEmpty() || recipient.get().isDeleted()) return;
 
         Message m = new Message();
         m.setSender(sender.get());

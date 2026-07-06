@@ -33,7 +33,7 @@ export default function Gallery({ images, coverUrl, title }) {
   return (
     <div className={styles.gallery}>
       <button type="button" className={styles.main} onClick={() => setOpen(true)}
-              aria-label={t('gallery.open')}>
+              aria-label={tp('gallery.open', { n: index + 1, total: list.length })}>
         <img src={current.url} alt={title} />
       </button>
 
@@ -51,7 +51,7 @@ export default function Gallery({ images, coverUrl, title }) {
       )}
 
       {open && (
-        <div className={styles.lightbox} role="dialog" aria-modal="true"
+        <div className={styles.lightbox} role="dialog" aria-modal="true" aria-label={title}
              onClick={() => setOpen(false)}>
           <img src={current.url} alt={title} onClick={(e) => e.stopPropagation()} />
           {list.length > 1 && (

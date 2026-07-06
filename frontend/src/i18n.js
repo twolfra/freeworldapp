@@ -4,6 +4,8 @@ export const getLang = () => localStorage.getItem(LANG_KEY) || 'en';
 
 export function setLang(lang) {
   localStorage.setItem(LANG_KEY, lang);
+  // Keep the document language in sync for assistive tech (AP 4.2).
+  document.documentElement.lang = lang;
   window.location.reload();
 }
 
@@ -42,6 +44,7 @@ const T = {
     // Shared UI components
     'ui.confirm': 'Confirm', 'ui.cancel': 'Cancel',
     'ui.close': 'Close', 'ui.dismiss': 'Dismiss',
+    'user.deleted': 'Deleted account',
     'ui.loading': 'Loading…',
 
     // Home
@@ -61,6 +64,11 @@ const T = {
     'home.typeListings': 'Listings', 'home.typeOffers': 'Offers', 'home.typeRequests': 'Requests',
     'home.resultsFor': 'Results for "{q}"', 'home.noResults': 'No results for "{q}".',
     'home.clearSearch': 'Show recent',
+    'home.typeLabel': 'Listing type',
+
+    // PWA install hint (AP 4.1)
+    'pwa.install': 'Install app',
+    'pwa.installText': 'Use FreeWorld like an app — right from your home screen.',
 
     // Lists
     'list.searchPlaceholder': 'Search by title, category…',
@@ -333,6 +341,16 @@ const T = {
     'admin.title': 'Moderation',
     'admin.signIn': 'Please', 'admin.signInLink': 'sign in', 'admin.denied': 'Admin access required.',
     'admin.tabReports': 'Reports', 'admin.tabUsers': 'Users', 'admin.tabAudit': 'Audit log',
+    'admin.tabStats': 'Statistics',
+    'admin.stat.users': 'Users',
+    'admin.stat.offers': 'Active offers',
+    'admin.stat.requests': 'Open requests',
+    'admin.stat.gifts': 'Gifts completed',
+    'admin.stat.thanks': 'Thanks given',
+    'admin.stat.reports': 'Open reports',
+    'admin.chart.registrations': 'Registrations per week',
+    'admin.chart.posts': 'New posts per week',
+    'admin.chart.messages': 'Messages per week',
     'admin.loading': 'Loading…',
     'admin.noReports': 'No open reports. All clear!',
     'admin.reportedItem': 'Reported item', 'admin.author': 'Author', 'admin.reportedBy': 'Reported by',
@@ -387,6 +405,11 @@ const T = {
     'settings.pwMismatch': 'Passwords do not match.',
     'settings.pwWrongOld': 'Current password is incorrect.',
     'settings.dangerHeading': 'Danger zone',
+    'settings.exportHeading': 'Your data',
+    'settings.exportHint': 'Download everything FreeWorld stores about you as a JSON file (GDPR export).',
+    'settings.exportBtn': 'Download my data',
+    'settings.deletePwLabel': 'Confirm with your password',
+    'settings.deletePwWrong': 'Password incorrect — account not deleted.',
     'settings.deleteHint': 'Deleting your account removes all your posts, messages, and subscriptions. This cannot be undone.',
     'settings.deleteBtn': 'Delete account',
     'settings.deleteConfirmTitle': 'Delete account?',
@@ -479,6 +502,7 @@ const T = {
     // Shared UI components
     'ui.confirm': 'Bestätigen', 'ui.cancel': 'Abbrechen',
     'ui.close': 'Schließen', 'ui.dismiss': 'Ausblenden',
+    'user.deleted': 'Gelöschtes Konto',
     'ui.loading': 'Wird geladen…',
 
     // Home
@@ -498,6 +522,11 @@ const T = {
     'home.typeListings': 'Einträge', 'home.typeOffers': 'Angebote', 'home.typeRequests': 'Gesuche',
     'home.resultsFor': 'Ergebnisse für „{q}"', 'home.noResults': 'Keine Ergebnisse für „{q}".',
     'home.clearSearch': 'Neueste zeigen',
+    'home.typeLabel': 'Art des Eintrags',
+
+    // PWA install hint (AP 4.1)
+    'pwa.install': 'App installieren',
+    'pwa.installText': 'Nutze FreeWorld wie eine App — direkt vom Startbildschirm.',
 
     // Lists
     'list.searchPlaceholder': 'Titel, Kategorie suchen…',
@@ -770,6 +799,16 @@ const T = {
     'admin.title': 'Moderation',
     'admin.signIn': 'Bitte', 'admin.signInLink': 'anmelden', 'admin.denied': 'Admin-Zugriff erforderlich.',
     'admin.tabReports': 'Meldungen', 'admin.tabUsers': 'Nutzer', 'admin.tabAudit': 'Audit-Log',
+    'admin.tabStats': 'Statistiken',
+    'admin.stat.users': 'Nutzer:innen',
+    'admin.stat.offers': 'Aktive Angebote',
+    'admin.stat.requests': 'Offene Gesuche',
+    'admin.stat.gifts': 'Abgeschlossene Gaben',
+    'admin.stat.thanks': 'Danksagungen',
+    'admin.stat.reports': 'Offene Meldungen',
+    'admin.chart.registrations': 'Registrierungen pro Woche',
+    'admin.chart.posts': 'Neue Beiträge pro Woche',
+    'admin.chart.messages': 'Nachrichten pro Woche',
     'admin.loading': 'Wird geladen…',
     'admin.noReports': 'Keine offenen Meldungen. Alles in Ordnung!',
     'admin.reportedItem': 'Gemeldeter Eintrag', 'admin.author': 'Autor', 'admin.reportedBy': 'Gemeldet von',
@@ -824,6 +863,11 @@ const T = {
     'settings.pwMismatch': 'Die Passwörter stimmen nicht überein.',
     'settings.pwWrongOld': 'Das aktuelle Passwort ist falsch.',
     'settings.dangerHeading': 'Gefahrenzone',
+    'settings.exportHeading': 'Deine Daten',
+    'settings.exportHint': 'Lade alles, was FreeWorld über dich speichert, als JSON-Datei herunter (DSGVO-Export).',
+    'settings.exportBtn': 'Meine Daten herunterladen',
+    'settings.deletePwLabel': 'Mit deinem Passwort bestätigen',
+    'settings.deletePwWrong': 'Passwort falsch — Konto nicht gelöscht.',
     'settings.deleteHint': 'Beim Löschen deines Kontos werden alle deine Beiträge, Nachrichten und Abonnements entfernt. Dies kann nicht rückgängig gemacht werden.',
     'settings.deleteBtn': 'Konto löschen',
     'settings.deleteConfirmTitle': 'Konto löschen?',

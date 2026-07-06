@@ -18,7 +18,7 @@ class SecurityHeadersIntegrationTest extends IntegrationTestBase {
                 .andExpect(header().string("Content-Security-Policy",
                         org.hamcrest.Matchers.containsString("img-src 'self' https://storage.googleapis.com https://*.tile.openstreetmap.org data: blob:")))
                 .andExpect(header().string("Content-Security-Policy",
-                        org.hamcrest.Matchers.containsString("connect-src 'self' wss:")))
+                        org.hamcrest.Matchers.containsString("connect-src 'self' wss: https://storage.googleapis.com https://*.tile.openstreetmap.org")))
                 .andExpect(header().string("X-Content-Type-Options", "nosniff"))
                 .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
                 .andExpect(header().string("Permissions-Policy", "camera=(), geolocation=(self), microphone=()"));

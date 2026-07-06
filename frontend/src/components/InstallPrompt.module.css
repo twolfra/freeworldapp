@@ -1,0 +1,54 @@
+.banner {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: min(92vw, 480px);
+  padding: 0.65rem 0.9rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Keep the banner above the mobile bottom tab bar (64px, see index.css). */
+@media (max-width: 767px) {
+  .banner { bottom: calc(76px + env(safe-area-inset-bottom)); }
+}
+
+.text {
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+
+.installBtn {
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  background: var(--green);
+  color: #fff;
+}
+.installBtn:hover { background: var(--green-dark); }
+
+.dismiss {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.3rem 0.45rem;
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.dismiss:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
