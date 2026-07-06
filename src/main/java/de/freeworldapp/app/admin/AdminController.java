@@ -25,6 +25,7 @@ import de.freeworldapp.app.user.User;
 import de.freeworldapp.app.user.UserRepository;
 import de.freeworldapp.app.user.dto.UserDtos;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,6 +55,7 @@ public class AdminController {
     private final ThanksRepository thanksRepo;
     private final NotificationRepository notificationRepo;
     private final PostImageService postImages;
+    private final JdbcTemplate jdbc;
 
     public AdminController(AdminGuard adminGuard, UserRepository userRepo, OfferRepository offerRepo,
                            RequestRepository requestRepo, LikeRepository likeRepo, ReportRepository reportRepo,
@@ -61,7 +63,7 @@ public class AdminController {
                            SubscriptionRepository subscriptionRepo,
                            MessageRepository messageRepo, StorageService storage, EmailService emailService,
                            AdminAuditRepository auditRepo, ThanksRepository thanksRepo,
-                           NotificationRepository notificationRepo, PostImageService postImages) {
+                           NotificationRepository notificationRepo, PostImageService postImages, JdbcTemplate jdbc) {
         this.adminGuard = adminGuard;
         this.userRepo = userRepo;
         this.offerRepo = offerRepo;
@@ -78,6 +80,7 @@ public class AdminController {
         this.thanksRepo = thanksRepo;
         this.notificationRepo = notificationRepo;
         this.postImages = postImages;
+        this.jdbc = jdbc;
     }
 
     private static final ResponseEntity<Object> FORBIDDEN =
@@ -223,6 +226,48 @@ public class AdminController {
                     AdminAuditEntry.TargetType.REPORT, id);
             return ResponseEntity.ok((Object) toReportResponse(r));
         }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // ---- Statistics (AP 4.3) ---------------------------------------------
+
+    /** Aggregate stats for the dashboard — nothing person-related beyond counts. */
+    @GetMapping("/stats")
+    public ResponseEntity<?> stats() {
+        if (!adminGuard.isAdmin()) return FORBIDDEN;
+
+        Map<String, Object> out = new java.util.LinkedHashMap<>();
+        out.put("totalUsers", jdbc.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE deleted = false", Long.class));
+        out.put("activeOffers", jdbc.queryForObject(
+                "SELECT COUNT(*) FROM offers WHERE status <> 'GIVEN'", Long.class));
+        out.put("activeRequests", jdbc.queryForObject(
+                "SELECT COUNT(*) FROM requests WHERE status <> 'FULFILLED'", Long.class));
+        out.put("completedGifts", jdbc.queryForObject(
+                "SELECT COUNT(*) FROM offers WHERE status = 'GIVEN'", Long.class));
+        out.put("openReports", jdbc.queryForObject(
+                "SELECT COUNT(*) FROM reports WHERE status = 'OPEN'", Long.class));
+        out.put("totalThanks", jdbc.queryForObject(
+                "SELECT COUNT(*) FROM thanks", Long.class));
+
+        out.put("registrationsPerWeek", weekly("users", "created_at"));
+        out.put("messagesPerWeek", weekly("messages", "created_at"));
+        out.put("postsPerWeek", jdbc.queryForList(
+                "SELECT to_char(week, 'YYYY-MM-DD') AS week, COALESCE(o.n, 0) + COALESCE(r.n, 0) AS count " +
+                "FROM generate_series(date_trunc('week', now()) - interval '7 weeks', " +
+                "                      date_trunc('week', now()), interval '1 week') AS week " +
+                "LEFT JOIN (SELECT date_trunc('week', created_at) w, COUNT(*) n FROM offers GROUP BY 1) o ON o.w = week " +
+                "LEFT JOIN (SELECT date_trunc('week', created_at) w, COUNT(*) n FROM requests GROUP BY 1) r ON r.w = week " +
+                "ORDER BY week"));
+        return ResponseEntity.ok(out);
+    }
+
+    private java.util.List<Map<String, Object>> weekly(String table, String column) {
+        return jdbc.queryForList(
+                "SELECT to_char(week, 'YYYY-MM-DD') AS week, COALESCE(t.n, 0) AS count " +
+                "FROM generate_series(date_trunc('week', now()) - interval '7 weeks', " +
+                "                      date_trunc('week', now()), interval '1 week') AS week " +
+                "LEFT JOIN (SELECT date_trunc('week', " + column + ") w, COUNT(*) n FROM " + table +
+                " GROUP BY 1) t ON t.w = week ORDER BY week");
     }
 
     // ---- Audit log -------------------------------------------------------
