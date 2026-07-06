@@ -1,6 +1,7 @@
 package de.freeworldapp.app.request;
 
 import de.freeworldapp.app.auth.AdminGuard;
+import de.freeworldapp.app.geo.PlzGeoRepository;
 import de.freeworldapp.app.auth.SecurityContext;
 import de.freeworldapp.app.image.StorageService;
 import de.freeworldapp.app.like.Like;
@@ -26,14 +27,17 @@ public class RequestController {
     private final StorageService storage;
     private final LikeRepository likeRepo;
     private final AdminGuard adminGuard;
+    private final PlzGeoRepository plzRepo;
 
     public RequestController(RequestRepository requestRepo, UserRepository userRepo, StorageService storage,
-                             LikeRepository likeRepo, AdminGuard adminGuard) {
+                             LikeRepository likeRepo, AdminGuard adminGuard,
+                           PlzGeoRepository plzRepo) {
         this.requestRepo = requestRepo;
         this.userRepo = userRepo;
         this.storage = storage;
         this.likeRepo = likeRepo;
         this.adminGuard = adminGuard;
+        this.plzRepo = plzRepo;
     }
 
     @PostMapping
@@ -47,8 +51,14 @@ public class RequestController {
                     r.setRegion(in.region);
                     r.setCategory(in.category);
                     r.setQuantity(in.quantity);
+                    String geoErr = applyGeo(r, in.postalCode);
+                    if (geoErr != null)
+                        return ResponseEntity.status(400).body((Object) Map.of("error", geoErr));
                     r.setImageUrl(in.imageUrl);
                     r.setRequestedBy(user);
+                    String geoError = applyGeo(r, in.postalCode);
+                    if (geoError != null)
+                        return ResponseEntity.badRequest().body((Object) Map.of("error", geoError));
                     Request saved = requestRepo.save(r);
                     return ResponseEntity
                             .created(URI.create("/api/requests/" + saved.getId()))
@@ -151,7 +161,29 @@ public class RequestController {
         out.requestedByUsername = r.getRequestedBy().getUsername();
         out.imageUrl = r.getImageUrl();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(r.getCreatedAt());
+        out.lat = r.getLat();
+        out.lon = r.getLon();
+        out.postalCode = r.getPostalCode();
+        out.city = r.getCity();
         out.status = r.getStatus().name();
         return out;
+    }
+
+    /**
+     * Resolves an optional postal code against the local plz_geo table.
+     * Returns an error message, or null on success. Coordinates are the
+     * PLZ centroid — deliberately never an exact address.
+     */
+    private String applyGeo(Request post, String postalCode) {
+        if (postalCode == null || postalCode.isBlank()) return null;
+        var geo = plzRepo.findByPlz(postalCode.strip());
+        if (geo.isEmpty()) return "Unknown postal code.";
+        var g = geo.get();
+        post.setPostalCode(g.getPlz());
+        post.setCity(g.getCity());
+        post.setLat(g.getLat());
+        post.setLon(g.getLon());
+        post.setRegion(g.getPlz() + " " + g.getCity());
+        return null;
     }
 }

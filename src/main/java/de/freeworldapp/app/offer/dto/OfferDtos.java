@@ -16,6 +16,8 @@ public class OfferDtos {
         @NotNull @Min(1)
         public Integer quantity;
         public String imageUrl;
+        @Size(max = 10)
+        public String postalCode; // optional; resolved against plz_geo
     }
 
     public static class Update {
@@ -30,6 +32,8 @@ public class OfferDtos {
         @NotNull @Min(1)
         public Integer quantity;
         public String imageUrl;
+        @Size(max = 10)
+        public String postalCode; // optional; resolved against plz_geo
     }
 
     public static class StatusUpdate {
@@ -49,6 +53,11 @@ public class OfferDtos {
         public String offeredByUsername;
         public String imageUrl;
         public String createdAt;
+        public Double lat;
+        public Double lon;
+        public String postalCode;
+        public String city;
+        public Double distanceKm; // only set by /api/search with a location
         public String status;
         public String reservedForId;
         public String reservedForUsername;

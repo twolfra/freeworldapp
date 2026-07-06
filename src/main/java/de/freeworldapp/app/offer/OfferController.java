@@ -1,6 +1,7 @@
 package de.freeworldapp.app.offer;
 
 import de.freeworldapp.app.auth.AdminGuard;
+import de.freeworldapp.app.geo.PlzGeoRepository;
 import de.freeworldapp.app.auth.SecurityContext;
 import de.freeworldapp.app.image.StorageService;
 import de.freeworldapp.app.like.Like;
@@ -30,18 +31,21 @@ public class OfferController {
     private final StorageService storage;
     private final LikeRepository likeRepo;
     private final AdminGuard adminGuard;
+    private final PlzGeoRepository plzRepo;
     private final MessageRepository messageRepo;
     private final ChatWebSocketHandler wsHandler;
     private final MessageNotificationService notificationService;
 
     public OfferController(OfferRepository offerRepo, UserRepository userRepo, StorageService storage,
                            LikeRepository likeRepo, AdminGuard adminGuard, MessageRepository messageRepo,
-                           ChatWebSocketHandler wsHandler, MessageNotificationService notificationService) {
+                           ChatWebSocketHandler wsHandler, MessageNotificationService notificationService,
+                           PlzGeoRepository plzRepo) {
         this.offerRepo = offerRepo;
         this.userRepo = userRepo;
         this.storage = storage;
         this.likeRepo = likeRepo;
         this.adminGuard = adminGuard;
+        this.plzRepo = plzRepo;
         this.messageRepo = messageRepo;
         this.wsHandler = wsHandler;
         this.notificationService = notificationService;
@@ -58,8 +62,14 @@ public class OfferController {
                     o.setRegion(in.region);
                     o.setCategory(in.category);
                     o.setQuantity(in.quantity);
+                    String geoErr = applyGeo(o, in.postalCode);
+                    if (geoErr != null)
+                        return ResponseEntity.status(400).body((Object) Map.of("error", geoErr));
                     o.setImageUrl(in.imageUrl);
                     o.setOfferedBy(user);
+                    String geoError = applyGeo(o, in.postalCode);
+                    if (geoError != null)
+                        return ResponseEntity.badRequest().body((Object) Map.of("error", geoError));
                     Offer saved = offerRepo.save(o);
                     return ResponseEntity
                             .created(URI.create("/api/offers/" + saved.getId()))
@@ -229,11 +239,33 @@ public class OfferController {
         out.offeredByUsername = o.getOfferedBy().getUsername();
         out.imageUrl = o.getImageUrl();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(o.getCreatedAt());
+        out.lat = o.getLat();
+        out.lon = o.getLon();
+        out.postalCode = o.getPostalCode();
+        out.city = o.getCity();
         out.status = o.getStatus().name();
         if (o.getReservedFor() != null) {
             out.reservedForId = o.getReservedFor().getId().toString();
             out.reservedForUsername = o.getReservedFor().getUsername();
         }
         return out;
+    }
+
+    /**
+     * Resolves an optional postal code against the local plz_geo table.
+     * Returns an error message, or null on success. Coordinates are the
+     * PLZ centroid — deliberately never an exact address.
+     */
+    private String applyGeo(Offer post, String postalCode) {
+        if (postalCode == null || postalCode.isBlank()) return null;
+        var geo = plzRepo.findByPlz(postalCode.strip());
+        if (geo.isEmpty()) return "Unknown postal code.";
+        var g = geo.get();
+        post.setPostalCode(g.getPlz());
+        post.setCity(g.getCity());
+        post.setLat(g.getLat());
+        post.setLon(g.getLon());
+        post.setRegion(g.getPlz() + " " + g.getCity());
+        return null;
     }
 }
