@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { requests, images as imagesApi } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t, tCat } from '../i18n';
 import styles from './OfferForm.module.css';
 
@@ -10,7 +12,7 @@ const CATEGORIES = [
 ];
 
 export default function RequestForm() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') ?? 'null');
+  const { user: currentUser } = useAuth();
 
   const [form, setForm]           = useState({ title: '', description: '', region: '', category: '', quantity: 1 });
   const [imageFile, setImageFile] = useState(null);
@@ -23,7 +25,7 @@ export default function RequestForm() {
     <main className={styles.page}>
       <div className={styles.card}>
         <h2>{t('form.signInTitle')}</h2>
-        <p>{t('form.signInRequest')} <a href="/login">{t('form.signIn')}</a> or <a href="/register">{t('form.join')}</a>.</p>
+        <p>{t('form.signInRequest')} <Link to="/login">{t('form.signIn')}</Link> or <Link to="/register">{t('form.join')}</Link>.</p>
       </div>
     </main>
   );
@@ -63,7 +65,7 @@ export default function RequestForm() {
     <main className={styles.page}>
       <div className={styles.card}>
         <h2>{t('requestForm.doneTitle')}</h2>
-        <p>{t('requestForm.doneText')} <a href="/requests">{t('requestForm.doneSee')}</a> or <a href="/requests/new">{t('requestForm.doneAnother')}</a>.</p>
+        <p>{t('requestForm.doneText')} <Link to="/requests">{t('requestForm.doneSee')}</Link> or <Link to="/requests/new">{t('requestForm.doneAnother')}</Link>.</p>
       </div>
     </main>
   );

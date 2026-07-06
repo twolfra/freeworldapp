@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { offers as offersApi, requests as requestsApi } from '../api/client';
 import { t, tp, tCat } from '../i18n';
 import styles from './Home.module.css';
@@ -10,7 +11,8 @@ const CATEGORIES = [
 ];
 
 export default function Home() {
-  const initialQ = new URLSearchParams(window.location.search).get('q') || '';
+  const [searchParams] = useSearchParams();
+  const initialQ = searchParams.get('q') || '';
   const [q, setQ] = useState(initialQ);
   const [type, setType] = useState('listings');
   const [allItems, setAllItems] = useState([]);
@@ -93,17 +95,17 @@ export default function Home() {
         {/* Left sidebar — CTAs + categories + stats */}
         <aside className={styles.sidebar}>
           <div className={styles.sideCtas}>
-            <a href="/offers/new" className="btn-accent" style={{ width: '100%' }}>{t('home.give')}</a>
-            <a href="/requests/new" className="btn-secondary" style={{ width: '100%' }}>{t('home.ask')}</a>
+            <Link to="/offers/new" className="btn-accent" style={{ width: '100%' }}>{t('home.give')}</Link>
+            <Link to="/requests/new" className="btn-secondary" style={{ width: '100%' }}>{t('home.ask')}</Link>
           </div>
           <div className={styles.sideBox}>
             <h3 className={styles.sideTitle}>{t('home.categories')}</h3>
             <ul className={styles.catList}>
               {CATEGORIES.map((c) => (
                 <li key={c}>
-                  <a href={`/?q=${encodeURIComponent(c)}`} className={styles.catRow}>
+                  <Link to={`/?q=${encodeURIComponent(c)}`} className={styles.catRow}>
                     {tCat(c)}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -111,14 +113,14 @@ export default function Home() {
           <div className={styles.sideBox}>
             <h3 className={styles.sideTitle}>{t('home.stats')}</h3>
             <div className={styles.stats}>
-              <a href="/offers" className={styles.stat}>
+              <Link to="/offers" className={styles.stat}>
                 <span className={styles.statNum} style={{ color: 'var(--green)' }}>{counts.offers}</span>
                 <span className={styles.statLabel}>{t('home.statOffers')}</span>
-              </a>
-              <a href="/requests" className={styles.stat}>
+              </Link>
+              <Link to="/requests" className={styles.stat}>
                 <span className={styles.statNum} style={{ color: 'var(--blue)' }}>{counts.requests}</span>
                 <span className={styles.statLabel}>{t('home.statRequests')}</span>
-              </a>
+              </Link>
             </div>
           </div>
         </aside>
@@ -134,8 +136,8 @@ export default function Home() {
                 <button className={styles.clearBtn} onClick={clearSearch}>{t('home.clearSearch')}</button>
               ) : (
                 <>
-                  <a href="/offers" className={styles.viewAll}>{t('home.allOffers')}</a>
-                  <a href="/requests" className={styles.viewAllBlue}>{t('home.allRequests')}</a>
+                  <Link to="/offers" className={styles.viewAll}>{t('home.allOffers')}</Link>
+                  <Link to="/requests" className={styles.viewAllBlue}>{t('home.allRequests')}</Link>
                 </>
               )}
             </div>
@@ -152,9 +154,9 @@ export default function Home() {
               {displayItems.map((item) => {
                 const isOffer = item._type === 'offer';
                 return (
-                  <a
+                  <Link
                     key={`${item._type}-${item.id}`}
-                    href={isOffer ? `/offers/${item.id}` : `/requests/${item.id}`}
+                    to={isOffer ? `/offers/${item.id}` : `/requests/${item.id}`}
                     className={styles.card}
                   >
                     <div
@@ -182,7 +184,7 @@ export default function Home() {
                         <span>{t('list.qty')} {item.quantity}</span>
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 );
               })}
             </div>

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { likes as likesApi } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t, tCat, tp } from '../i18n';
 import styles from './Subscriptions.module.css';
 
 const PAGE_SIZE = 12;
 
 export default function Likes() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  const { user: currentUser } = useAuth();
   const [likedPosts, setLikedPosts] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -23,7 +25,7 @@ export default function Likes() {
   if (!currentUser) return (
     <main className={styles.page}>
       <p className={styles.status}>
-        Please <a href="/login">{t('subs.signInLink')}</a> {t('likes.signIn').replace('Please {link} ', '')}
+        Please <Link to="/login">{t('subs.signInLink')}</Link> {t('likes.signIn').replace('Please {link} ', '')}
       </p>
     </main>
   );
@@ -46,14 +48,14 @@ export default function Likes() {
             <ul className={styles.feed}>
               {pageItems.map((item) => (
                 <li key={`${item.type}-${item.id}`}>
-                  <a href={`/${item.type}s/${item.id}`} className={styles.card}>
+                  <Link to={`/${item.type}s/${item.id}`} className={styles.card}>
                     <div className={styles.cardTop}>
                       <span className={`${styles.badge} ${item.type === 'offer' ? styles.badgeOffer : styles.badgeRequest}`}>
                         {item.type === 'offer' ? t('subs.offer') : t('subs.request')}
                       </span>
                       <span className={styles.category}>{tCat(item.category)}</span>
                       <span className={styles.meta}>
-                        by <a href={`/users/${item.authorId}`} className={styles.authorLink} onClick={(e) => e.stopPropagation()}>{item.authorUsername}</a>
+                        by <Link to={`/users/${item.authorId}`} className={styles.authorLink} onClick={(e) => e.stopPropagation()}>{item.authorUsername}</Link>
                         {' · '}
                         {new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
@@ -61,7 +63,7 @@ export default function Likes() {
                     <h3>{item.title}</h3>
                     <p>{item.description}</p>
                     <footer>{item.region} · {t('list.qty')} {item.quantity}</footer>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

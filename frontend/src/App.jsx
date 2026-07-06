@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation, useParams } from 'react-router-dom';
+import { AuthProvider } from './auth/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -20,6 +23,7 @@ import Datenschutz from './pages/Datenschutz';
 import Terms from './pages/Terms';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
+import NotFound from './pages/NotFound';
 
 const SUFFIX = ' — FreeWorld';
 
@@ -42,51 +46,68 @@ const TITLES = {
   '/admin':         'Admin' + SUFFIX,
 };
 
-function resolve(path) {
-  const exact = {
-    '/': Home,
-    '/offers': OfferList,
-    '/offers/new': OfferForm,
-    '/requests': RequestList,
-    '/requests/new': RequestForm,
-    '/messages': Inbox,
-    '/subscriptions': Subscriptions,
-    '/likes': Likes,
-    '/register': Register,
-    '/login': Login,
-    '/verify-email': VerifyEmail,
-    '/impressum': Impressum,
-    '/datenschutz': Datenschutz,
-    '/terms': Terms,
-    '/contact': Contact,
-    '/admin': Admin,
-  };
-  if (exact[path]) return { Page: exact[path], params: {}, title: TITLES[path] };
+function titleFor(path) {
+  if (TITLES[path]) return TITLES[path];
+  if (/^\/offers\/[^/]+$/.test(path))   return 'Offer' + SUFFIX;
+  if (/^\/requests\/[^/]+$/.test(path)) return 'Request' + SUFFIX;
+  if (/^\/messages\/[^/]+$/.test(path)) return 'Messages' + SUFFIX;
+  if (/^\/users\/[^/]+$/.test(path))    return 'Profile' + SUFFIX;
+  return 'Page not found' + SUFFIX;
+}
 
-  const offerDetail = path.match(/^\/offers\/([^/]+)$/);
-  if (offerDetail) return { Page: OfferDetail, params: { id: offerDetail[1] }, title: 'Offer' + SUFFIX };
+// Pages used to re-initialize their state on every navigation because each
+// link was a full page reload. With client-side routing the component stays
+// mounted when only a param or the query string changes, so we key the
+// element to force a remount — preserving the old semantics (fresh fetch,
+// reset form/search state, new WebSocket per conversation).
+function Remount({ component: Component, by }) {
+  const params = useParams();
+  const location = useLocation();
+  const key = by === 'search' ? location.search : params[by];
+  return <Component key={key} />;
+}
 
-  const requestDetail = path.match(/^\/requests\/([^/]+)$/);
-  if (requestDetail) return { Page: RequestDetail, params: { id: requestDetail[1] }, title: 'Request' + SUFFIX };
-
-  const conversation = path.match(/^\/messages\/([^/]+)$/);
-  if (conversation) return { Page: Conversation, params: { userId: conversation[1] }, title: 'Messages' + SUFFIX };
-
-  const userProfile = path.match(/^\/users\/([^/]+)$/);
-  if (userProfile) return { Page: UserProfile, params: { id: userProfile[1] }, title: 'Profile' + SUFFIX };
-
-  return { Page: Home, params: {}, title: 'FreeWorld' };
+// Client-side navigation no longer reloads the page, so document.title
+// must be updated whenever the location changes.
+function TitleManager() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    document.title = titleFor(pathname);
+  }, [pathname]);
+  return null;
 }
 
 export default function App() {
-  const { Page, params, title } = resolve(window.location.pathname);
-  document.title = title;
-
   return (
-    <>
-      <Navbar />
-      <Page {...params} />
-      <Footer />
-    </>
+    <BrowserRouter>
+      <AuthProvider>
+        <TitleManager />
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Remount component={Home} by="search" />} />
+          <Route path="/offers" element={<Remount component={OfferList} by="search" />} />
+          <Route path="/offers/new" element={<OfferForm />} />
+          <Route path="/offers/:id" element={<Remount component={OfferDetail} by="id" />} />
+          <Route path="/requests" element={<Remount component={RequestList} by="search" />} />
+          <Route path="/requests/new" element={<RequestForm />} />
+          <Route path="/requests/:id" element={<Remount component={RequestDetail} by="id" />} />
+          <Route path="/users/:id" element={<Remount component={UserProfile} by="id" />} />
+          <Route path="/messages" element={<Inbox />} />
+          <Route path="/messages/:userId" element={<Remount component={Conversation} by="userId" />} />
+          <Route path="/subscriptions" element={<Subscriptions />} />
+          <Route path="/likes" element={<Likes />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/verify-email" element={<Remount component={VerifyEmail} by="search" />} />
+          <Route path="/impressum" element={<Impressum />} />
+          <Route path="/datenschutz" element={<Datenschutz />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Footer />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import styles from './Legal.module.css';
 
 export default function Impressum() {
@@ -16,7 +17,7 @@ export default function Impressum() {
 
         <h2>Kontakt</h2>
         <p>
-          Kontakt: <a href="/contact">Kontaktformular</a>
+          Kontakt: <Link to="/contact">Kontaktformular</Link>
         </p>
 
         <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>

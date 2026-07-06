@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import { auth, messages as messagesApi } from '../api/client';
+import { Link, useNavigate } from 'react-router-dom';
+import { messages as messagesApi } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t, getLang, setLang } from '../i18n';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  const { user: currentUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [unread, setUnread] = useState(0);
   const lang = getLang();
 
@@ -32,29 +35,28 @@ export default function Navbar() {
   }, [currentUser?.id]);
 
   async function signOut() {
-    await auth.logout().catch(() => {});
-    localStorage.removeItem('currentUser');
-    window.location.href = '/';
+    await logout();
+    navigate('/');
   }
 
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <a href="/" className={styles.brand}>
+        <Link to="/" className={styles.brand}>
           <span className={styles.logoText}>Free<span>World</span></span>
-        </a>
+        </Link>
 
         <nav className={styles.nav}>
           {currentUser && (
-            <a href="/messages" className={styles.navLink}>
+            <Link to="/messages" className={styles.navLink}>
               {t('nav.messages')}
               {unread > 0 && <span className={styles.badge}>{unread > 99 ? '99+' : unread}</span>}
-            </a>
+            </Link>
           )}
-          {currentUser && <a href="/subscriptions" className={styles.navLink}>{t('nav.following')}</a>}
-          {currentUser && <a href="/likes" className={styles.navLink}>{t('nav.likes')}</a>}
+          {currentUser && <Link to="/subscriptions" className={styles.navLink}>{t('nav.following')}</Link>}
+          {currentUser && <Link to="/likes" className={styles.navLink}>{t('nav.likes')}</Link>}
           {currentUser?.role === 'ADMIN' && (
-            <a href="/admin" className={styles.navLink}>{t('nav.admin')}</a>
+            <Link to="/admin" className={styles.navLink}>{t('nav.admin')}</Link>
           )}
         </nav>
 
@@ -68,16 +70,16 @@ export default function Navbar() {
           </button>
           {currentUser ? (
             <>
-              <a href={`/users/${currentUser.id}`} className={styles.userChip}>
+              <Link to={`/users/${currentUser.id}`} className={styles.userChip}>
                 <span className={styles.avatar}>{currentUser.username.charAt(0).toUpperCase()}</span>
                 <span className={styles.userName}>{currentUser.username}</span>
-              </a>
+              </Link>
               <button className={styles.signOut} onClick={signOut} title={t('nav.signOut')}>{t('nav.signOut')}</button>
             </>
           ) : (
             <>
-              <a href="/login" className={styles.navLink}>{t('nav.signIn')}</a>
-              <a href="/register" className="btn-secondary">{t('nav.join')}</a>
+              <Link to="/login" className={styles.navLink}>{t('nav.signIn')}</Link>
+              <Link to="/register" className="btn-secondary">{t('nav.join')}</Link>
             </>
           )}
         </div>

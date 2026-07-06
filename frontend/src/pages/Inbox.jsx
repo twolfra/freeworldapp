@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { messages as messagesApi } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t } from '../i18n';
 import styles from './Inbox.module.css';
 
 export default function Inbox() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  const { user: currentUser } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,7 +22,7 @@ export default function Inbox() {
   if (!currentUser) return (
     <main className={styles.page}>
       <p className={styles.status}>
-        Please <a href="/login">{t('inbox.signInLink')}</a> {t('inbox.signIn').replace('Please {link} ', '')}
+        Please <Link to="/login">{t('inbox.signInLink')}</Link> {t('inbox.signIn').replace('Please {link} ', '')}
       </p>
     </main>
   );
@@ -39,7 +41,7 @@ export default function Inbox() {
         <ul className={styles.list}>
           {conversations.map((c) => (
             <li key={c.userId}>
-              <a href={`/messages/${c.userId}`} className={`${styles.row} ${c.unreadCount > 0 ? styles.unread : ''}`}>
+              <Link to={`/messages/${c.userId}`} className={`${styles.row} ${c.unreadCount > 0 ? styles.unread : ''}`}>
                 <div className={styles.avatar}>{c.username[0].toUpperCase()}</div>
                 <div className={styles.info}>
                   <span className={styles.username}>{c.username}</span>
@@ -53,7 +55,7 @@ export default function Inbox() {
                     <span className={styles.unreadBadge}>{c.unreadCount > 99 ? '99+' : c.unreadCount}</span>
                   )}
                 </div>
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

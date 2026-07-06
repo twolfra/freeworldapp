@@ -1,12 +1,13 @@
+import { getStoredUser, clearStoredUser } from '../auth/authStorage';
+
 const BASE = '/api';
 
 function getToken() {
-  const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
-  return user?.token ?? null;
+  return getStoredUser()?.token ?? null;
 }
 
 function handleUnauthorized() {
-  localStorage.removeItem('currentUser');
+  clearStoredUser();
   window.location.href = '/login';
 }
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { offers as offersApi } from '../api/client';
 import { t, tCat, tp } from '../i18n';
 import styles from './OfferList.module.css';
@@ -12,7 +13,9 @@ const CATEGORIES = [
 const PAGE_SIZE = 12;
 
 export default function OfferList() {
-  const initialQuery = new URLSearchParams(window.location.search).get('q') || '';
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
   const [offers, setOffers]   = useState([]);
   const [query, setQuery]     = useState(initialQuery);
   const [region, setRegion]   = useState('');
@@ -26,6 +29,7 @@ export default function OfferList() {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
+
 
   if (loading) return <p className={styles.status}>{t('home.loading')}</p>;
   if (error)   return <p className={styles.status}>{error}</p>;
@@ -60,9 +64,9 @@ export default function OfferList() {
             <ul className={styles.catList}>
               {CATEGORIES.map((c) => (
                 <li key={c}>
-                  <a href={`/offers?q=${encodeURIComponent(c)}`} className={styles.catRow}>
+                  <Link to={`/offers?q=${encodeURIComponent(c)}`} className={styles.catRow}>
                     {tCat(c)}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -73,7 +77,7 @@ export default function OfferList() {
         <div className={styles.main}>
           <div className={styles.header}>
             <h2>{t('offers.heading')}<span className={styles.count}>{tp('offers.count', { n: filtered.length })}</span></h2>
-            <a href="/offers/new" className="btn-accent">{t('offers.cta')}</a>
+            <Link to="/offers/new" className="btn-accent">{t('offers.cta')}</Link>
           </div>
           <div className={styles.filterBar}>
             <select
@@ -81,8 +85,8 @@ export default function OfferList() {
               value="offer"
               onChange={(e) => {
                 const q = query ? `?q=${encodeURIComponent(query)}` : '';
-                if (e.target.value === 'listings') window.location.href = `/${q}`;
-                if (e.target.value === 'request')  window.location.href = `/requests${q}`;
+                if (e.target.value === 'listings') navigate(`/${q}`);
+                if (e.target.value === 'request')  navigate(`/requests${q}`);
               }}
             >
               <option value="listings">{t('home.typeListings')}</option>
@@ -112,7 +116,7 @@ export default function OfferList() {
                 <ul className={styles.grid}>
                   {pageItems.map((o) => (
                     <li key={o.id}>
-                      <a href={`/offers/${o.id}`} className={styles.card}>
+                      <Link to={`/offers/${o.id}`} className={styles.card}>
                         <div className={styles.thumb}>
                           {o.imageUrl
                             ? <img src={o.imageUrl} className={styles.cardImage} alt={o.title} />
@@ -129,7 +133,7 @@ export default function OfferList() {
                             <span>{t('list.qty')} {o.quantity}</span>
                           </div>
                         </div>
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
