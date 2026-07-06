@@ -44,6 +44,7 @@ const T = {
     // Shared UI components
     'ui.confirm': 'Confirm', 'ui.cancel': 'Cancel',
     'ui.close': 'Close', 'ui.dismiss': 'Dismiss',
+    'user.deleted': 'Deleted account',
     'ui.loading': 'Loading…',
 
     // Home
@@ -501,6 +502,7 @@ const T = {
     // Shared UI components
     'ui.confirm': 'Bestätigen', 'ui.cancel': 'Abbrechen',
     'ui.close': 'Schließen', 'ui.dismiss': 'Ausblenden',
+    'user.deleted': 'Gelöschtes Konto',
     'ui.loading': 'Wird geladen…',
 
     // Home

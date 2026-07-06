@@ -44,6 +44,7 @@
 .searchInput:focus {
   border-color: var(--green);
   box-shadow: 0 0 0 4px var(--green-ring);
+  outline: none; /* has its own ring — don't double the global :focus-visible outline */
 }
 
 .filterSelect {
@@ -56,6 +57,7 @@
 .filterSelect:focus {
   border-color: var(--green);
   box-shadow: 0 0 0 4px var(--green-ring);
+  outline: none; /* has its own ring — don't double the global :focus-visible outline */
 }
 
 /* ---------- Geo filter bar (AP 3.1/3.2) ---------- */

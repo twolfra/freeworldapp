@@ -43,7 +43,7 @@ async function request(path, options = {}) {
       ?? body?.errors?.map((e) => e.defaultMessage).join(', ')
       ?? `${res.status} ${res.statusText}`;
     // correlation id (AP 4.5): lets an error toast be traced to the log line
-    const requestId = res.headers.get('X-Request-Id');
+    const requestId = typeof res.headers?.get === 'function' ? res.headers.get('X-Request-Id') : null;
     if (requestId && res.status >= 500) msg += ` (Ref: ${requestId})`;
     const err = new Error(msg);
     err.status = res.status;

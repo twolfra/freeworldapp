@@ -5,6 +5,7 @@ import { ToastProvider } from './components/ui';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import TabBar from './components/TabBar';
+import InstallPrompt from './components/InstallPrompt';
 import Home from './pages/Home';
 import OfferList from './pages/OfferList';
 import OfferForm from './pages/OfferForm';
@@ -129,6 +130,7 @@ export default function App() {
           </Routes>
           <Footer />
           <TabBar />
+          <InstallPrompt />
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>

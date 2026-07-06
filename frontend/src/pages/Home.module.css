@@ -71,7 +71,9 @@
   padding: 0.55rem 0.3rem 0.55rem 0.2rem;
   appearance: auto;
 }
-.typeSelect:focus { outline: none; }
+/* Keyboard focus keeps the global :focus-visible ring (index.css, AP 4.2);
+   pointer focus stays outline-free. */
+.typeSelect:focus:not(:focus-visible) { outline: none; }
 
 .searchDivider {
   width: 1px;

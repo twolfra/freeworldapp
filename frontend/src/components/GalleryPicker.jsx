@@ -62,11 +62,11 @@ export default function GalleryPicker({ items, onChange }) {
             {i === 0 && <span className={styles.coverTag}>{t('gallery.cover')}</span>}
             <div className={styles.thumbActions}>
               <button type="button" onClick={() => move(i, -1)} disabled={i === 0}
-                      aria-label={t('gallery.moveLeft')}>◀</button>
+                      aria-label={tp('gallery.moveLeft', { n: i + 1 })}>◀</button>
               <button type="button" onClick={() => remove(i)}
-                      aria-label={t('gallery.remove')}>✕</button>
+                      aria-label={tp('gallery.remove', { n: i + 1 })}>✕</button>
               <button type="button" onClick={() => move(i, 1)} disabled={i === items.length - 1}
-                      aria-label={t('gallery.moveRight')}>▶</button>
+                      aria-label={tp('gallery.moveRight', { n: i + 1 })}>▶</button>
             </div>
           </div>
         ))}

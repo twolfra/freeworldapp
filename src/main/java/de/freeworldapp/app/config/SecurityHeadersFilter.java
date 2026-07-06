@@ -24,7 +24,7 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
     // scripts stay external (Vite build), so script-src inherits 'self'.
     static final String CSP = "default-src 'self'; "
             + "img-src 'self' https://storage.googleapis.com https://*.tile.openstreetmap.org data: blob:; "
-            + "connect-src 'self' wss:; "
+            + "connect-src 'self' wss: https://storage.googleapis.com https://*.tile.openstreetmap.org; "
             + "style-src 'self' 'unsafe-inline'; "
             + "frame-ancestors 'none'; "
             + "base-uri 'self'; "

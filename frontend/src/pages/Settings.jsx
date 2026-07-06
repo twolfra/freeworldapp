@@ -215,6 +215,8 @@ function AccountSection() {
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting]           = useState(false);
+  const [deletePw, setDeletePw]           = useState('');
+  const [exporting, setExporting]         = useState(false);
 
   async function saveAccount(e) {
     e.preventDefault();
