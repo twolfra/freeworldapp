@@ -26,6 +26,7 @@ import Datenschutz from './pages/Datenschutz';
 import Terms from './pages/Terms';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
+import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
 const SUFFIX = ' — FreeWorld';
@@ -49,6 +50,7 @@ const TITLES = {
   '/terms':         'Terms & Conditions' + SUFFIX,
   '/contact':       'Contact' + SUFFIX,
   '/admin':         'Admin' + SUFFIX,
+  '/settings':      'Settings' + SUFFIX,
 };
 
 function titleFor(path) {
@@ -112,6 +114,7 @@ export default function App() {
             <Route path="/terms" element={<Terms />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Footer />

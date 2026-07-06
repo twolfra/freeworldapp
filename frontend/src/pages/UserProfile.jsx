@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { users, offers as offersApi, requests as requestsApi, subscriptions as subsApi, notifications, thanks as thanksApi } from '../api/client';
+import { users, offers as offersApi, requests as requestsApi, subscriptions as subsApi, thanks as thanksApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat, tp } from '../i18n';
 import ReportButton from '../components/ReportButton';
+import { Avatar, Button } from '../components/ui';
 import styles from './UserProfile.module.css';
 
 export default function UserProfile() {
   const { id } = useParams();
-  const { user: currentUser, updateUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const [user, setUser]             = useState(null);
   const [offers, setOffers]         = useState([]);
   const [reqs, setReqs]             = useState([]);
@@ -16,24 +17,9 @@ export default function UserProfile() {
   const [subLoading, setSubLoading] = useState(false);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
-  const [notifyOnMessage, setNotifyOnMessage] = useState(currentUser?.notifyOnMessage ?? true);
-  const [notifySaving, setNotifySaving]       = useState(false);
   const [thanksList, setThanksList]           = useState([]);
 
   const isSelf = currentUser?.id === id;
-
-  const handleToggleNotify = async () => {
-    const next = !notifyOnMessage;
-    setNotifySaving(true);
-    try {
-      await notifications.updatePreferences({ notifyOnMessage: next });
-      setNotifyOnMessage(next);
-      // Keep the stored user in sync so the toggle survives reloads.
-      updateUser({ notifyOnMessage: next });
-    } finally {
-      setNotifySaving(false);
-    }
-  };
 
   useEffect(() => {
     const fetches = [
@@ -88,10 +74,20 @@ export default function UserProfile() {
   return (
     <main className={styles.page}>
       <div className={styles.hero}>
-        <div className={styles.avatar}>{user.username[0].toUpperCase()}</div>
+        <Avatar
+          src={user.avatarUrl}
+          name={user.displayName || user.username}
+          size="lg"
+          className={styles.heroAvatar}
+        />
         <div className={styles.heroInfo}>
-          <h1 className={styles.username}>{user.username}</h1>
-          <p className={styles.since}>{t('profile.memberSince')} {memberSince}</p>
+          <h1 className={styles.username}>{user.displayName || user.username}</h1>
+          {user.displayName && <p className={styles.handle}>@{user.username}</p>}
+          <p className={styles.since}>
+            {t('profile.memberSince')} {memberSince}
+            {user.city && <span className={styles.city}> · 📍 {user.city}</span>}
+          </p>
+          {user.bio && <p className={styles.bio}>{user.bio}</p>}
           <div className={styles.statsRow}>
             <span className={styles.stat}>{offers.length} {offers.length !== 1 ? t('profile.offers') : t('profile.offer')}</span>
             <span className={styles.stat}>{reqs.length} {reqs.length !== 1 ? t('profile.requests') : t('profile.request')}</span>
@@ -116,25 +112,14 @@ export default function UserProfile() {
             {!isSelf && !currentUser && (
               <Link to="/login" className={styles.msgBtn}>{t('profile.signInContact')}</Link>
             )}
+            {isSelf && (
+              <Button as={Link} to="/settings" variant="secondary" size="sm">
+                ⚙️ {t('profile.settings')}
+              </Button>
+            )}
           </div>
         </div>
       </div>
-
-      {isSelf && (
-        <section className={styles.section}>
-          <h2>{t('profile.settings')}</h2>
-          <label className={styles.notifyRow}>
-            <input
-              type="checkbox"
-              checked={notifyOnMessage}
-              onChange={handleToggleNotify}
-              disabled={notifySaving}
-            />
-            <span>{t('profile.notifyMessages')}</span>
-          </label>
-          <p className={styles.notifyHint}>{t('profile.notifyMessagesHint')}</p>
-        </section>
-      )}
 
       <section className={styles.section}>
         <h2>{t('profile.offersSection')}</h2>

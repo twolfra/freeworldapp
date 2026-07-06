@@ -89,8 +89,18 @@ export default function Navbar() {
           {currentUser ? (
             <>
               <Link to={`/users/${currentUser.id}`} className={styles.userChip}>
-                <span className={styles.avatar}>{currentUser.username.charAt(0).toUpperCase()}</span>
+                {currentUser.avatarUrl
+                  ? <img src={currentUser.avatarUrl} alt="" className={styles.avatarImg} />
+                  : <span className={styles.avatar}>{currentUser.username.charAt(0).toUpperCase()}</span>}
                 <span className={styles.userName}>{currentUser.username}</span>
+              </Link>
+              <Link
+                to="/settings"
+                className={styles.settingsLink}
+                title={t('nav.settings')}
+                aria-label={t('nav.settings')}
+              >
+                <span aria-hidden="true">⚙️</span>
               </Link>
               <button className={styles.signOut} onClick={signOut} title={t('nav.signOut')}>{t('nav.signOut')}</button>
             </>

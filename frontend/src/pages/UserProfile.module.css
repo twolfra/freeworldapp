@@ -15,17 +15,12 @@
   margin-bottom: 2rem;
 }
 
-.avatar {
+/* Sizing override for the shared ui Avatar in the profile hero.
+   `.hero .heroAvatar` outranks the component's own size class. */
+.hero .heroAvatar {
   width: 72px;
   height: 72px;
-  border-radius: 50%;
-  background: var(--green);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 2rem;
-  font-weight: 700;
   flex-shrink: 0;
 }
 
@@ -42,10 +37,29 @@
   margin: 0;
 }
 
+.handle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
 .since {
   font-size: 0.9rem;
   color: var(--text-muted);
   margin: 0;
+}
+
+.city {
+  white-space: nowrap;
+}
+
+.bio {
+  margin: 0.2rem 0 0;
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  max-width: 60ch;
 }
 
 .statsRow {
@@ -118,27 +132,6 @@
   margin-bottom: 1rem;
   padding-bottom: 0.4rem;
   border-bottom: 2px solid var(--green-light);
-}
-
-.notifyRow {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 0.98rem;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.notifyRow input {
-  width: 1.1rem;
-  height: 1.1rem;
-  cursor: pointer;
-}
-
-.notifyHint {
-  margin-top: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
 }
 
 .grid {

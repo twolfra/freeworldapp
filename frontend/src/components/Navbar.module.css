@@ -103,7 +103,28 @@
   font-size: 0.85rem;
 }
 
+.avatarImg {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .userName { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.settingsLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 0.24rem 0.45rem;
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.settingsLink:hover { border-color: var(--green); background: var(--bg-hover); }
 
 .signOut {
   background: transparent;

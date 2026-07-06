@@ -56,6 +56,8 @@ export const auth = {
   verify:              (token) => request(`/auth/verify?token=${encodeURIComponent(token)}`),
   resendVerification:  (email) => request('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }),
   forgotPassword:      (email) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  changePassword:      (oldPassword, newPassword) =>
+    request('/auth/change-password', { method: 'POST', body: JSON.stringify({ oldPassword, newPassword }) }),
   resetPassword:       (token, newPassword) =>
     request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
 };
@@ -64,6 +66,10 @@ export const users = {
   list: ()     => request('/users'),
   get:  (id)   => request(`/users/${id}`),
   create: (body) => request('/users', { method: 'POST', body: JSON.stringify(body) }),
+  update: (id, body) => request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  // Partial profile update — omitted/null fields are kept, "" clears a field.
+  updateProfile: (id, fields) => request(`/users/${id}/profile`, { method: 'PUT', body: JSON.stringify(fields) }),
+  remove: (id) => request(`/users/${id}`, { method: 'DELETE' }),
 };
 
 export const offers = {
