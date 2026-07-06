@@ -2,6 +2,8 @@ package de.freeworldapp.app.thanks;
 
 import de.freeworldapp.app.auth.SecurityContext;
 import de.freeworldapp.app.message.MessageRepository;
+import de.freeworldapp.app.notification.Notification;
+import de.freeworldapp.app.notification.NotificationService;
 import de.freeworldapp.app.offer.Offer;
 import de.freeworldapp.app.offer.OfferRepository;
 import de.freeworldapp.app.user.UserRepository;
@@ -22,13 +24,16 @@ public class ThanksController {
     private final OfferRepository offerRepo;
     private final UserRepository userRepo;
     private final MessageRepository messageRepo;
+    private final NotificationService notificationCenter;
 
     public ThanksController(ThanksRepository thanksRepo, OfferRepository offerRepo,
-                            UserRepository userRepo, MessageRepository messageRepo) {
+                            UserRepository userRepo, MessageRepository messageRepo,
+                            NotificationService notificationCenter) {
         this.thanksRepo = thanksRepo;
         this.offerRepo = offerRepo;
         this.userRepo = userRepo;
         this.messageRepo = messageRepo;
+        this.notificationCenter = notificationCenter;
     }
 
     public static class Create {
@@ -64,7 +69,12 @@ public class ThanksController {
         t.setOfferId(id);
         t.setOfferTitle(offer.getTitle());
         t.setText(in != null && in.text != null && !in.text.isBlank() ? in.text.strip() : null);
-        return ResponseEntity.ok(toResponse(thanksRepo.save(t)));
+        Thanks saved = thanksRepo.save(t);
+        notificationCenter.notify(ownerId, Notification.Type.THANKS, Map.of(
+                "offerId", id.toString(),
+                "offerTitle", offer.getTitle(),
+                "fromUsername", saved.getFromUser().getUsername()));
+        return ResponseEntity.ok(toResponse(saved));
     }
 
     /** Public: the thanks shown on a profile (qualitative list, no score). */

@@ -41,6 +41,19 @@ public class Request {
     @Column(nullable = false, length = 16, columnDefinition = "varchar(16) DEFAULT 'OPEN'")
     private Status status = Status.OPEN;
 
+    // Geo (AP 3.1): PLZ-centroid coordinates, never an exact address.
+    @Column
+    private Double lat;
+
+    @Column
+    private Double lon;
+
+    @Column(name = "postal_code", length = 10)
+    private String postalCode;
+
+    @Column(length = 100)
+    private String city;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -56,6 +69,14 @@ public class Request {
     public String getImageUrl() { return imageUrl; }
     public User getRequestedBy() { return requestedBy; }
     public Instant getCreatedAt() { return createdAt; }
+    public Double getLat() { return lat; }
+    public Double getLon() { return lon; }
+    public String getPostalCode() { return postalCode; }
+    public String getCity() { return city; }
+    public void setLat(Double lat) { this.lat = lat; }
+    public void setLon(Double lon) { this.lon = lon; }
+    public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
+    public void setCity(String city) { this.city = city; }
     public Status getStatus() { return status; }
 
     public void setTitle(String title) { this.title = title; }

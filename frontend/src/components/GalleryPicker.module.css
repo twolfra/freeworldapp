@@ -1,0 +1,74 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.thumb {
+  position: relative;
+  width: 96px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.thumb img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  display: block;
+}
+
+.coverTag {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: var(--green);
+  color: #fff;
+  font-size: var(--text-xs);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+}
+
+.thumbActions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.thumbActions button {
+  flex: 1;
+  min-height: 32px;
+  border: none;
+  background: var(--bg-elevated);
+  color: var(--text);
+  cursor: pointer;
+  font-size: var(--text-sm);
+}
+
+.thumbActions button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.addTile {
+  width: 96px;
+  height: 130px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--text-sm);
+}
+
+.count {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

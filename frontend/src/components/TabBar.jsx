@@ -9,7 +9,7 @@ import styles from './TabBar.module.css';
 // are hidden and this bar takes over primary navigation.
 export default function TabBar() {
   const { user: currentUser } = useAuth();
-  const unread = useUnreadCount(currentUser);
+  const { unread } = useUnreadCount(currentUser);
 
   const linkClass = ({ isActive }) =>
     isActive ? `${styles.tab} ${styles.active}` : styles.tab;
@@ -21,7 +21,7 @@ export default function TabBar() {
         <span className={styles.label}>{t('nav.discover')}</span>
       </NavLink>
 
-      <NavLink to="/offers" end className={linkClass}>
+      <NavLink to="/search" className={linkClass}>
         <span className={styles.icon} aria-hidden="true">🔍</span>
         <span className={styles.label}>{t('nav.search')}</span>
       </NavLink>

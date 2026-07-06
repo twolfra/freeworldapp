@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { requests as requestsApi, images as imagesApi, likes as likesApi, admin as adminApi } from '../api/client';
+import { requests as requestsApi, likes as likesApi, admin as adminApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
-import { t, tCat } from '../i18n';
+import { t, tCat, tp } from '../i18n';
 import ReportButton from '../components/ReportButton';
+import Gallery from '../components/Gallery';
+import GalleryPicker from '../components/GalleryPicker';
+import ShareButton from '../components/ShareButton';
+import PostalCodeInput from '../components/PostalCodeInput';
 import { Button, ConfirmModal, useToast } from '../components/ui';
 import styles from './RequestDetail.module.css';
 
@@ -21,8 +25,9 @@ export default function RequestDetail() {
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [newImageFile, setNewImageFile] = useState(null);
+  const [editPostalText, setEditPostalText] = useState('');
+  const [editPostal, setEditPostal] = useState(null); // { plz, city, lat, lon } | null
+  const [editGallery, setEditGallery] = useState([]); // [{url, thumbUrl}] — first = cover
   const [editError, setEditError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null); // 'delete' | 'adminDelete' | 'fulfilled'
@@ -75,8 +80,18 @@ export default function RequestDetail() {
       quantity: request.quantity,
       imageUrl: request.imageUrl,
     });
-    setImagePreview(request.imageUrl);
-    setNewImageFile(null);
+    // Prefill the location from the resolved PLZ/city; legacy posts fall back
+    // to their free-text region (kept as-is unless a new PLZ is picked).
+    if (request.postalCode) {
+      setEditPostal({ plz: request.postalCode, city: request.city, lat: request.lat, lon: request.lon });
+      setEditPostalText(`${request.postalCode} ${request.city}`);
+    } else {
+      setEditPostal(null);
+      setEditPostalText(request.region);
+    }
+    setEditGallery(request.images && request.images.length > 0
+        ? request.images.map(({ url, thumbUrl }) => ({ url, thumbUrl }))
+        : (request.imageUrl ? [{ url: request.imageUrl, thumbUrl: null }] : []));
     setEditError(null);
     setEditing(true);
   }
@@ -86,33 +101,21 @@ export default function RequestDetail() {
     setEditForm((f) => ({ ...f, [name]: name === 'quantity' ? Number(value) : value }));
   }
 
-  function handleNewImage(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setNewImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  }
-
-  function removeImage() {
-    setNewImageFile(null);
-    setImagePreview(null);
-    setEditForm((f) => ({ ...f, imageUrl: null }));
-  }
-
   async function handleSave(e) {
     e.preventDefault();
     setEditError(null);
     setSaving(true);
     try {
-      let imageUrl = editForm.imageUrl;
-      if (newImageFile) {
-        const res = await imagesApi.upload(newImageFile);
-        imageUrl = res.url;
-      }
-      const updated = await requestsApi.update(id, { ...editForm, imageUrl });
-      setRequest(updated);
+      const payload = editGallery.map(({ url, thumbUrl }) => ({ url, thumbUrl }));
+      const updated = await requestsApi.update(id, {
+        ...editForm,
+        region: editPostal ? `${editPostal.plz} ${editPostal.city}` : editPostalText,
+        postalCode: editPostal?.plz ?? null,
+        imageUrl: payload[0]?.url ?? null,
+      });
+      const { images } = await requestsApi.setImages(id, payload);
+      setRequest({ ...updated, images });
       setEditing(false);
-      setNewImageFile(null);
     } catch (err) {
       setEditError(err.message);
     } finally {
@@ -175,7 +178,7 @@ export default function RequestDetail() {
             <span>{t('detail.fulfilledBanner')}</span>
           </div>
         )}
-        {!editing && request.imageUrl && <img src={request.imageUrl} className={styles.image} alt={request.title} />}
+        {!editing && <Gallery images={request.images} coverUrl={request.imageUrl} title={request.title} />}
         <span className={styles.category}>{tCat(request.category)}</span>
         <h1>{request.title}</h1>
         <div className={styles.authorRow}>
@@ -206,6 +209,7 @@ export default function RequestDetail() {
           >
             {liked ? '❤' : '🤍'} {likeCount}
           </button>
+          <ShareButton title={request.title} path={`/requests/${id}`} />
           {currentUser && !isOwnPost && (
             <ReportButton targetType="REQUEST" targetId={id} />
           )}
@@ -269,20 +273,19 @@ export default function RequestDetail() {
               </label>
             </div>
             <label>
-              {t('edit.region')}
-              <input name="region" value={editForm.region} onChange={handleEditChange} required maxLength={140} />
+              {t('form.postal')}
+              <PostalCodeInput
+                value={editPostalText}
+                onChange={(text) => { setEditPostalText(text); setEditPostal(null); }}
+                onSelect={(item) => { setEditPostal(item); setEditPostalText(`${item.plz} ${item.city}`); }}
+                required
+              />
+              {editPostal && <span className={styles.resolvedCity}>{tp('form.postalResolved', { city: editPostal.city })}</span>}
             </label>
-            <label>
+            <div>
               {t('edit.photo')}
-              {imagePreview
-                ? <div className={styles.editImagePreview}>
-                    <img src={imagePreview} alt="Preview" />
-                    <button type="button" className={styles.removeImageBtn} onClick={removeImage}>{t('edit.removePhoto')}</button>
-                  </div>
-                : <input type="file" accept="image/*" onChange={handleNewImage} className={styles.fileInput} />
-              }
-              {imagePreview && <input type="file" accept="image/*" onChange={handleNewImage} className={styles.fileInput} style={{ marginTop: '0.4rem' }} />}
-            </label>
+              <GalleryPicker items={editGallery} onChange={setEditGallery} />
+            </div>
             <div className={styles.editFormActions}>
               <button type="submit" className={styles.saveBtn} disabled={saving}>
                 {saving ? t('edit.saving') : t('edit.save')}

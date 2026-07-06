@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { offers, images as imagesApi } from '../api/client';
+import { offers } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
-import { t, tCat } from '../i18n';
+import { t, tCat, tp } from '../i18n';
 import { Button } from '../components/ui';
+import PostalCodeInput from '../components/PostalCodeInput';
+import GalleryPicker from '../components/GalleryPicker';
 import styles from './OfferForm.module.css';
 
 const CATEGORIES = [
@@ -15,9 +17,10 @@ const CATEGORIES = [
 export default function OfferForm() {
   const { user: currentUser } = useAuth();
 
-  const [form, setForm]           = useState({ title: '', description: '', region: '', category: '', quantity: 1 });
-  const [imageFile, setImageFile] = useState(null);
-  const [preview, setPreview]     = useState(null);
+  const [form, setForm]           = useState({ title: '', description: '', category: '', quantity: 1 });
+  const [postalText, setPostalText] = useState('');
+  const [postal, setPostal]       = useState(null); // { plz, city, lat, lon } once picked
+  const [gallery, setGallery]     = useState([]); // [{url, thumbUrl}] — first = cover
   const [error, setError]         = useState(null);
   const [done, setDone]           = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -36,24 +39,26 @@ export default function OfferForm() {
     setForm((f) => ({ ...f, [name]: name === 'quantity' ? Number(value) : value }));
   }
 
-  function handleImage(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setImageFile(file);
-    setPreview(URL.createObjectURL(file));
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
+    // Location is required via PLZ selection so every new post is geo-searchable.
+    if (!postal) {
+      setError(t('form.postalRequired'));
+      return;
+    }
     setSubmitting(true);
     try {
-      let imageUrl = null;
-      if (imageFile) {
-        const res = await imagesApi.upload(imageFile);
-        imageUrl = res.url;
+      const created = await offers.create({
+        ...form,
+        region: `${postal.plz} ${postal.city}`,
+        postalCode: postal.plz,
+        offeredById: currentUser.id,
+        imageUrl: gallery[0]?.url ?? null,
+      });
+      if (gallery.length > 0) {
+        await offers.setImages(created.id, gallery.map(({ url, thumbUrl }) => ({ url, thumbUrl })));
       }
-      await offers.create({ ...form, offeredById: currentUser.id, imageUrl });
       setDone(true);
     } catch (err) {
       setError(err.message);
@@ -103,18 +108,20 @@ export default function OfferForm() {
         </div>
 
         <label>
-          {t('form.region')}
-          <input name="region" value={form.region} onChange={handleChange} required maxLength={140} placeholder={t('form.regionPlaceholder')} />
+          {t('form.postal')}
+          <PostalCodeInput
+            value={postalText}
+            onChange={(text) => { setPostalText(text); setPostal(null); }}
+            onSelect={(item) => { setPostal(item); setPostalText(`${item.plz} ${item.city}`); }}
+            required
+          />
+          {postal && <span className={styles.resolvedCity}>{tp('form.postalResolved', { city: postal.city })}</span>}
         </label>
 
-        <label className={styles.photoLabel}>
+        <div className={styles.photoLabel}>
           {t('form.photo')} <span className={styles.optional}>{t('form.photoOptional')}</span>
-          <input type="file" accept="image/*" onChange={handleImage} className={styles.fileInput} />
-          {preview
-            ? <img src={preview} className={styles.preview} alt="Preview" />
-            : <div className={styles.photoPlaceholder}>{t('form.photoPlaceholder')}</div>
-          }
-        </label>
+          <GalleryPicker items={gallery} onChange={setGallery} />
+        </div>
 
         <Button type="submit" loading={submitting}>
           {submitting ? t('offerForm.submitting') : t('offerForm.submit')}

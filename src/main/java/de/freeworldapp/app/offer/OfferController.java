@@ -1,6 +1,7 @@
 package de.freeworldapp.app.offer;
 
 import de.freeworldapp.app.auth.AdminGuard;
+import de.freeworldapp.app.geo.PlzGeoRepository;
 import de.freeworldapp.app.auth.SecurityContext;
 import de.freeworldapp.app.image.StorageService;
 import de.freeworldapp.app.like.Like;
@@ -9,6 +10,11 @@ import de.freeworldapp.app.message.ChatWebSocketHandler;
 import de.freeworldapp.app.message.Message;
 import de.freeworldapp.app.message.MessageNotificationService;
 import de.freeworldapp.app.message.MessageRepository;
+import de.freeworldapp.app.notification.Notification;
+import de.freeworldapp.app.postimage.PostImage;
+import de.freeworldapp.app.postimage.PostImageService;
+import de.freeworldapp.app.notification.NotificationService;
+import de.freeworldapp.app.subscription.SubscriptionRepository;
 import de.freeworldapp.app.offer.dto.OfferDtos;
 import de.freeworldapp.app.user.UserRepository;
 import jakarta.validation.Valid;
@@ -18,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -30,21 +37,32 @@ public class OfferController {
     private final StorageService storage;
     private final LikeRepository likeRepo;
     private final AdminGuard adminGuard;
+    private final PlzGeoRepository plzRepo;
     private final MessageRepository messageRepo;
     private final ChatWebSocketHandler wsHandler;
     private final MessageNotificationService notificationService;
+    private final NotificationService notificationCenter;
+    private final SubscriptionRepository subscriptionRepo;
+    private final PostImageService postImages;
 
     public OfferController(OfferRepository offerRepo, UserRepository userRepo, StorageService storage,
                            LikeRepository likeRepo, AdminGuard adminGuard, MessageRepository messageRepo,
-                           ChatWebSocketHandler wsHandler, MessageNotificationService notificationService) {
+                           ChatWebSocketHandler wsHandler, MessageNotificationService notificationService,
+                           NotificationService notificationCenter, SubscriptionRepository subscriptionRepo,
+                           PostImageService postImages,
+                           PlzGeoRepository plzRepo) {
         this.offerRepo = offerRepo;
         this.userRepo = userRepo;
         this.storage = storage;
         this.likeRepo = likeRepo;
         this.adminGuard = adminGuard;
+        this.plzRepo = plzRepo;
         this.messageRepo = messageRepo;
         this.wsHandler = wsHandler;
         this.notificationService = notificationService;
+        this.notificationCenter = notificationCenter;
+        this.subscriptionRepo = subscriptionRepo;
+        this.postImages = postImages;
     }
 
     @PostMapping
@@ -60,7 +78,17 @@ public class OfferController {
                     o.setQuantity(in.quantity);
                     o.setImageUrl(in.imageUrl);
                     o.setOfferedBy(user);
+                    String geoError = applyGeo(o, in.postalCode);
+                    if (geoError != null)
+                        return ResponseEntity.badRequest().body((Object) Map.of("error", geoError));
                     Offer saved = offerRepo.save(o);
+                    subscriptionRepo.findBySubscribedTo_Id(user.getId()).forEach(sub ->
+                            notificationCenter.notify(sub.getSubscriber().getId(),
+                                    Notification.Type.NEW_POST_FROM_SUB, Map.of(
+                                            "postType", "OFFER",
+                                            "postId", saved.getId().toString(),
+                                            "title", saved.getTitle(),
+                                            "username", user.getUsername())));
                     return ResponseEntity
                             .created(URI.create("/api/offers/" + saved.getId()))
                             .body((Object) toResponse(saved));
@@ -115,6 +143,10 @@ public class OfferController {
                         wsHandler.push(ownerId, payload);
                         wsHandler.push(callerId, payload);
                         notificationService.notifyNewMessage(ownerId, callerId, saved.getContent());
+                        notificationCenter.notify(ownerId, Notification.Type.INTEREST, Map.of(
+                                "offerId", id.toString(),
+                                "offerTitle", o.getTitle(),
+                                "fromUsername", caller.getUsername()));
                     }
                     return ResponseEntity.ok(Map.of(
                             "conversationWith", ownerId.toString(),
@@ -174,7 +206,34 @@ public class OfferController {
     @GetMapping("{id}")
     public ResponseEntity<OfferDtos.Response> get(@PathVariable UUID id) {
         return offerRepo.findById(id)
-                .map(o -> ResponseEntity.ok(toResponse(o)))
+                .map(o -> {
+                    OfferDtos.Response resp = toResponse(o);
+                    resp.images = postImages.list(PostImage.TargetType.OFFER, id);
+                    return ResponseEntity.ok(resp);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Replaces the gallery (ordered, max 5); first image becomes the cover. */
+    @PutMapping("{id}/images")
+    @Transactional
+    public ResponseEntity<?> setImages(@PathVariable UUID id,
+                                       @RequestBody Map<String, List<Map<String, String>>> body) {
+        UUID callerId = SecurityContext.authenticatedId();
+        return offerRepo.findById(id)
+                .<ResponseEntity<?>>map(o -> {
+                    if (!o.getOfferedBy().getId().equals(callerId) && !adminGuard.isAdmin())
+                        return ResponseEntity.status(403).body(Map.of("error", "Not your offer."));
+                    List<Map<String, String>> images = body.get("images");
+                    if (images != null && images.size() > PostImageService.MAX_IMAGES)
+                        return ResponseEntity.badRequest().body(Map.of("error",
+                                "A post can have at most " + PostImageService.MAX_IMAGES + " images."));
+                    String cover = postImages.replace(PostImage.TargetType.OFFER, id, images);
+                    o.setImageUrl(cover);
+                    offerRepo.save(o);
+                    return ResponseEntity.ok(Map.of(
+                            "images", postImages.list(PostImage.TargetType.OFFER, id)));
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -192,6 +251,9 @@ public class OfferController {
                     o.setCategory(in.category);
                     o.setQuantity(in.quantity);
                     o.setImageUrl(in.imageUrl);
+                    String geoError = applyGeo(o, in.postalCode);
+                    if (geoError != null)
+                        return ResponseEntity.badRequest().body((Object) Map.of("error", geoError));
                     Offer saved = offerRepo.save(o);
                     // Delete the old image only if it was replaced or removed
                     if (oldImage != null && !oldImage.equals(in.imageUrl)) storage.delete(oldImage);
@@ -210,6 +272,7 @@ public class OfferController {
                         return ResponseEntity.status(403).<Void>build();
                     String imageUrl = o.getImageUrl();
                     likeRepo.deleteAllByTargetTypeAndTargetId(Like.TargetType.OFFER, id);
+                    postImages.deleteAll(PostImage.TargetType.OFFER, id);
                     offerRepo.delete(o);
                     storage.delete(imageUrl);
                     return ResponseEntity.noContent().<Void>build();
@@ -229,11 +292,33 @@ public class OfferController {
         out.offeredByUsername = o.getOfferedBy().getUsername();
         out.imageUrl = o.getImageUrl();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(o.getCreatedAt());
+        out.lat = o.getLat();
+        out.lon = o.getLon();
+        out.postalCode = o.getPostalCode();
+        out.city = o.getCity();
         out.status = o.getStatus().name();
         if (o.getReservedFor() != null) {
             out.reservedForId = o.getReservedFor().getId().toString();
             out.reservedForUsername = o.getReservedFor().getUsername();
         }
         return out;
+    }
+
+    /**
+     * Resolves an optional postal code against the local plz_geo table.
+     * Returns an error message, or null on success. Coordinates are the
+     * PLZ centroid — deliberately never an exact address.
+     */
+    private String applyGeo(Offer post, String postalCode) {
+        if (postalCode == null || postalCode.isBlank()) return null;
+        var geo = plzRepo.findByPlz(postalCode.strip());
+        if (geo.isEmpty()) return "Unknown postal code.";
+        var g = geo.get();
+        post.setPostalCode(g.getPlz());
+        post.setCity(g.getCity());
+        post.setLat(g.getLat());
+        post.setLon(g.getLon());
+        post.setRegion(g.getPlz() + " " + g.getCity());
+        return null;
     }
 }

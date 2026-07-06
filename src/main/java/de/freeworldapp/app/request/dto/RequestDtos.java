@@ -16,6 +16,8 @@ public class RequestDtos {
         @NotNull @Min(1)
         public Integer quantity;
         public String imageUrl;
+        @Size(max = 10)
+        public String postalCode; // optional; resolved against plz_geo
     }
 
     public static class Update {
@@ -30,6 +32,8 @@ public class RequestDtos {
         @NotNull @Min(1)
         public Integer quantity;
         public String imageUrl;
+        @Size(max = 10)
+        public String postalCode; // optional; resolved against plz_geo
     }
 
     public static class StatusUpdate {
@@ -48,6 +52,12 @@ public class RequestDtos {
         public String requestedByUsername;
         public String imageUrl;
         public String createdAt;
+        public Double lat;
+        public Double lon;
+        public String postalCode;
+        public String city;
+        public Double distanceKm; // only set by /api/search with a location
+        public java.util.List<java.util.Map<String, Object>> images; // gallery, only on detail
         public String status;
     }
 }

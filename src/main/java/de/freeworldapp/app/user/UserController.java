@@ -7,7 +7,10 @@ import de.freeworldapp.app.email.EmailService;
 import de.freeworldapp.app.image.StorageService;
 import de.freeworldapp.app.like.LikeRepository;
 import de.freeworldapp.app.message.MessageRepository;
+import de.freeworldapp.app.notification.NotificationRepository;
 import de.freeworldapp.app.offer.OfferRepository;
+import de.freeworldapp.app.postimage.PostImage;
+import de.freeworldapp.app.postimage.PostImageService;
 import de.freeworldapp.app.report.Report;
 import de.freeworldapp.app.report.ReportRepository;
 import de.freeworldapp.app.request.RequestRepository;
@@ -45,13 +48,16 @@ public class UserController {
     private final LikeRepository likeRepo;
     private final ReportRepository reportRepo;
     private final ThanksRepository thanksRepo;
+    private final NotificationRepository notificationRepo;
+    private final PostImageService postImages;
 
     public UserController(UserRepository userRepo, PasswordEncoder encoder, EmailService emailService,
                           SessionRepository sessionRepo, PasswordResetTokenRepository resetRepo,
                           MessageRepository messageRepo,
                           SubscriptionRepository subscriptionRepo, OfferRepository offerRepo,
                           RequestRepository requestRepo, StorageService storageService, LikeRepository likeRepo,
-                          ReportRepository reportRepo, ThanksRepository thanksRepo) {
+                          ReportRepository reportRepo, ThanksRepository thanksRepo,
+                          NotificationRepository notificationRepo, PostImageService postImages) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.emailService = emailService;
@@ -65,6 +71,8 @@ public class UserController {
         this.likeRepo = likeRepo;
         this.reportRepo = reportRepo;
         this.thanksRepo = thanksRepo;
+        this.notificationRepo = notificationRepo;
+        this.postImages = postImages;
     }
 
     @PostMapping
@@ -170,8 +178,14 @@ public class UserController {
         if (!userRepo.existsById(id)) return ResponseEntity.notFound().build();
 
         // Delete images from storage before removing the records
-        offerRepo.findByOfferedBy_Id(id).forEach(o -> storageService.delete(o.getImageUrl()));
-        requestRepo.findByRequestedBy_Id(id).forEach(r -> storageService.delete(r.getImageUrl()));
+        offerRepo.findByOfferedBy_Id(id).forEach(o -> {
+            storageService.delete(o.getImageUrl());
+            postImages.deleteAll(PostImage.TargetType.OFFER, o.getId());
+        });
+        requestRepo.findByRequestedBy_Id(id).forEach(r -> {
+            storageService.delete(r.getImageUrl());
+            postImages.deleteAll(PostImage.TargetType.REQUEST, r.getId());
+        });
 
         // Reports filed by this user, reports targeting this user, and reports
         // targeting any of this user's posts.
@@ -185,6 +199,7 @@ public class UserController {
         sessionRepo.deleteByUser_Id(id);
         resetRepo.deleteByUser_Id(id);
         thanksRepo.deleteByFromUser_IdOrToUser_Id(id, id);
+        notificationRepo.deleteByUser_Id(id);
         subscriptionRepo.deleteAllInvolvingUser(id);
         messageRepo.deleteAllInvolvingUser(id);
         likeRepo.deleteAllByUserId(id);

@@ -21,8 +21,8 @@ class SessionHardeningIntegrationTest extends IntegrationTestBase {
     void sessionTokenIsLongRandomAndStoredOnlyHashed() throws Exception {
         AuthedUser user = signUp("hash_user");
 
-        // 256-bit base64url token, not a 36-char UUID
-        assertThat(user.token()).hasSize(43).doesNotContain("-");
+        // 256-bit base64url token (43 chars), not a 36-char UUID
+        assertThat(user.token()).hasSize(43).matches("[A-Za-z0-9_-]{43}");
 
         // DB contains the SHA-256 hash, never the raw token
         var session = sessionRepository.findByTokenHash(Tokens.sha256(user.token()));

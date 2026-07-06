@@ -25,7 +25,7 @@ function renderTabBar() {
 describe('TabBar', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue({ user: { id: 'u1', username: 'tim', token: 'tok' } });
-    mockUseUnreadCount.mockReturnValue(0);
+    mockUseUnreadCount.mockReturnValue({ unread: 0, notifUnread: 0 });
   });
 
   it('renders five tabs when signed in, with Profile linking to the own profile', () => {
@@ -35,7 +35,7 @@ describe('TabBar', () => {
     expect(links).toHaveLength(5);
 
     expect(screen.getByRole('link', { name: /Discover/ })).toHaveAttribute('href', '/');
-    expect(screen.getByRole('link', { name: /Search/ })).toHaveAttribute('href', '/offers');
+    expect(screen.getByRole('link', { name: /Search/ })).toHaveAttribute('href', '/search');
     expect(screen.getByRole('link', { name: /Give/ })).toHaveAttribute('href', '/offers/new');
     expect(screen.getByRole('link', { name: /Messages/ })).toHaveAttribute('href', '/messages');
     expect(screen.getByRole('link', { name: /Profile/ })).toHaveAttribute('href', '/users/u1');
@@ -49,7 +49,7 @@ describe('TabBar', () => {
   });
 
   it('shows the unread badge on the Messages tab when unread > 0', () => {
-    mockUseUnreadCount.mockReturnValue(3);
+    mockUseUnreadCount.mockReturnValue({ unread: 3, notifUnread: 0 });
     renderTabBar();
 
     expect(screen.getByRole('link', { name: /Messages/ })).toHaveTextContent('3');

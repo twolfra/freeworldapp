@@ -50,6 +50,14 @@ async function request(path, options = {}) {
   return res.json();
 }
 
+// Build a query string from a params object, skipping empty values.
+function buildQuery(params = {}) {
+  const pairs = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
+  return pairs.length ? `?${pairs.join('&')}` : '';
+}
+
 export const auth = {
   login:               (body)  => request('/auth/login',  { method: 'POST', body: JSON.stringify(body) }),
   logout:              ()      => request('/auth/logout', { method: 'POST' }),
@@ -80,6 +88,8 @@ export const offers = {
   create:     (body)     => request('/offers',    { method: 'POST',   body: JSON.stringify(body) }),
   update:     (id, body) => request(`/offers/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   remove:     (id)       => request(`/offers/${id}`, { method: 'DELETE' }),
+  setImages:  (id, images) =>
+    request(`/offers/${id}/images`, { method: 'PUT', body: JSON.stringify({ images }) }),
   setStatus:  (id, status, reservedForId) =>
     request(`/offers/${id}/status`, { method: 'POST', body: JSON.stringify({ status, ...(reservedForId ? { reservedForId } : {}) }) }),
   interest:        (id) => request(`/offers/${id}/interest`, { method: 'POST' }),
@@ -94,8 +104,21 @@ export const requests = {
   create:     (body)     => request('/requests',    { method: 'POST',   body: JSON.stringify(body) }),
   update:     (id, body) => request(`/requests/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   remove:     (id)       => request(`/requests/${id}`, { method: 'DELETE' }),
+  setImages:  (id, images) =>
+    request(`/requests/${id}/images`, { method: 'PUT', body: JSON.stringify({ images }) }),
   setStatus:  (id, status) =>
     request(`/requests/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
+};
+
+// Local PLZ table lookup (no external geocoding calls).
+export const geo = {
+  postal: (q) => request(`/geo/postal?q=${encodeURIComponent(q)}`),
+};
+
+// Unified search endpoint (AP 3.1 + 3.5). Accepted params: type, q, category,
+// lat, lon, radiusKm, sort (newest|nearest), withImage, includeCompleted, page, size.
+export const search = {
+  run: (params) => request(`/search${buildQuery(params)}`),
 };
 
 export const thanks = {
@@ -146,6 +169,8 @@ export const contact = {
 export const notifications = {
   updatePreferences: (prefs) =>
     request('/notifications/preferences', { method: 'PUT', body: JSON.stringify(prefs) }),
+  list:        () => request('/notifications'),
+  markAllRead: () => request('/notifications/mark-all-read', { method: 'POST' }),
 };
 
 export const reports = {

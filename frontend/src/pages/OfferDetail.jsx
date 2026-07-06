@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { offers as offersApi, images as imagesApi, likes as likesApi, admin as adminApi, thanks as thanksApi } from '../api/client';
+import { offers as offersApi, likes as likesApi, admin as adminApi, thanks as thanksApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat, tp } from '../i18n';
 import ReportButton from '../components/ReportButton';
+import Gallery from '../components/Gallery';
+import GalleryPicker from '../components/GalleryPicker';
+import ShareButton from '../components/ShareButton';
+import PostalCodeInput from '../components/PostalCodeInput';
 import { Badge, Button, ConfirmModal, Modal, Textarea, useToast } from '../components/ui';
 import styles from './RequestDetail.module.css';
 
@@ -21,8 +25,9 @@ export default function OfferDetail() {
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [newImageFile, setNewImageFile] = useState(null);
+  const [editPostalText, setEditPostalText] = useState('');
+  const [editPostal, setEditPostal] = useState(null); // { plz, city, lat, lon } | null
+  const [editGallery, setEditGallery] = useState([]); // [{url, thumbUrl}] — first = cover
   const [editError, setEditError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null); // 'delete' | 'adminDelete' | 'given'
@@ -89,8 +94,18 @@ export default function OfferDetail() {
       quantity: offer.quantity,
       imageUrl: offer.imageUrl,
     });
-    setImagePreview(offer.imageUrl);
-    setNewImageFile(null);
+    // Prefill the location from the resolved PLZ/city; legacy posts fall back
+    // to their free-text region (kept as-is unless a new PLZ is picked).
+    if (offer.postalCode) {
+      setEditPostal({ plz: offer.postalCode, city: offer.city, lat: offer.lat, lon: offer.lon });
+      setEditPostalText(`${offer.postalCode} ${offer.city}`);
+    } else {
+      setEditPostal(null);
+      setEditPostalText(offer.region);
+    }
+    setEditGallery(offer.images && offer.images.length > 0
+        ? offer.images.map(({ url, thumbUrl }) => ({ url, thumbUrl }))
+        : (offer.imageUrl ? [{ url: offer.imageUrl, thumbUrl: null }] : []));
     setEditError(null);
     setEditing(true);
   }
@@ -100,33 +115,21 @@ export default function OfferDetail() {
     setEditForm((f) => ({ ...f, [name]: name === 'quantity' ? Number(value) : value }));
   }
 
-  function handleNewImage(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setNewImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  }
-
-  function removeImage() {
-    setNewImageFile(null);
-    setImagePreview(null);
-    setEditForm((f) => ({ ...f, imageUrl: null }));
-  }
-
   async function handleSave(e) {
     e.preventDefault();
     setEditError(null);
     setSaving(true);
     try {
-      let imageUrl = editForm.imageUrl;
-      if (newImageFile) {
-        const res = await imagesApi.upload(newImageFile);
-        imageUrl = res.url;
-      }
-      const updated = await offersApi.update(id, { ...editForm, imageUrl });
-      setOffer(updated);
+      const payload = editGallery.map(({ url, thumbUrl }) => ({ url, thumbUrl }));
+      const updated = await offersApi.update(id, {
+        ...editForm,
+        region: editPostal ? `${editPostal.plz} ${editPostal.city}` : editPostalText,
+        postalCode: editPostal?.plz ?? null,
+        imageUrl: payload[0]?.url ?? null,
+      });
+      const { images } = await offersApi.setImages(id, payload);
+      setOffer({ ...updated, images });
       setEditing(false);
-      setNewImageFile(null);
     } catch (err) {
       setEditError(err.message);
     } finally {
@@ -220,7 +223,7 @@ export default function OfferDetail() {
             )}
           </div>
         )}
-        {!editing && offer.imageUrl && <img src={offer.imageUrl} className={styles.image} alt={offer.title} />}
+        {!editing && <Gallery images={offer.images} coverUrl={offer.imageUrl} title={offer.title} />}
         <span className={styles.category} style={{ color: 'var(--green)' }}>{tCat(offer.category)}</span>
         <h1>{offer.title}</h1>
         {offer.status === 'RESERVED' && (
@@ -270,6 +273,7 @@ export default function OfferDetail() {
           >
             {liked ? '❤' : '🤍'} {likeCount}
           </button>
+          <ShareButton title={offer.title} path={`/offers/${id}`} />
           {currentUser && !isOwnPost && (
             <ReportButton targetType="OFFER" targetId={id} />
           )}
@@ -340,20 +344,19 @@ export default function OfferDetail() {
               </label>
             </div>
             <label>
-              {t('edit.region')}
-              <input name="region" value={editForm.region} onChange={handleEditChange} required maxLength={140} />
+              {t('form.postal')}
+              <PostalCodeInput
+                value={editPostalText}
+                onChange={(text) => { setEditPostalText(text); setEditPostal(null); }}
+                onSelect={(item) => { setEditPostal(item); setEditPostalText(`${item.plz} ${item.city}`); }}
+                required
+              />
+              {editPostal && <span className={styles.resolvedCity}>{tp('form.postalResolved', { city: editPostal.city })}</span>}
             </label>
-            <label>
+            <div>
               {t('edit.photo')}
-              {imagePreview
-                ? <div className={styles.editImagePreview}>
-                    <img src={imagePreview} alt="Preview" />
-                    <button type="button" className={styles.removeImageBtn} onClick={removeImage}>{t('edit.removePhoto')}</button>
-                  </div>
-                : <input type="file" accept="image/*" onChange={handleNewImage} className={styles.fileInput} />
-              }
-              {imagePreview && <input type="file" accept="image/*" onChange={handleNewImage} className={styles.fileInput} style={{ marginTop: '0.4rem' }} />}
-            </label>
+              <GalleryPicker items={editGallery} onChange={setEditGallery} />
+            </div>
             <div className={styles.editFormActions}>
               <button type="submit" className={styles.saveBtn} disabled={saving}>
                 {saving ? t('edit.saving') : t('edit.save')}

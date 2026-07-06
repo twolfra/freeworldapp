@@ -108,6 +108,9 @@ Client-side via **react-router-dom v7** — `App.jsx` declares `<Routes>` inside
 | `/reset-password?token=` | ResetPassword |
 | `/settings` | Settings (profile · account · notifications · language) |
 | `/welcome` | Onboarding (3 steps after first login, skippable, `fw_onboarded` flag) |
+| `/notifications` | Notifications (in-app centre, bell in Navbar) |
+| `/search` | Search (offers/requests tabs, all filters combinable) |
+| `/offers/:id/:slug` · `/requests/:id/:slug` | Same detail pages — slug is cosmetic (share links, sitemap, OG) |
 | `*` | NotFound (404) |
 
 ---
@@ -185,6 +188,22 @@ Client-side via **react-router-dom v7** — `App.jsx` declares `<Routes>` inside
 | GET | `/api/subscriptions?subscriberId=` | List subscriptions |
 | GET | `/api/subscriptions/check?subscriberId=&subscribedToId=` | Returns `{ subscribed: bool }` |
 | GET | `/api/subscriptions/feed?subscriberId=` | Merged offers+requests from followed users, sorted newest first |
+
+### Geo & search
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/geo/postal?q=` | Public autocomplete over the local `plz_geo` table (10,813 German PLZ centroids, GeoNames CC BY 4.0); ≥2 chars, max 10 |
+| GET | `/api/search` | Unified search: `type=offers\|requests, q` (Postgres FTS german + ILIKE fallback), `category, lat, lon, radiusKm` (Haversine), `sort=newest\|nearest, withImage, includeCompleted, page, size≤50` → `{items(+distanceKm), total, page, size}` |
+
+Posts carry `lat/lon/postalCode/city` (PLZ-centroid only — never exact addresses); create/update accept `postalCode` (400 if unknown). `PUT /api/{offers,requests}/:id/images` `{images:[{url,thumbUrl}]}` replaces the ≤5-image gallery (first = cover, mirrored to `imageUrl`); detail GETs return `images[]`.
+
+### In-app notifications
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/notifications` | Auth. Latest 50 + `unread`; types NEW_MESSAGE/NEW_POST_FROM_SUB/INTEREST/THANKS/ADMIN_NOTICE with JSON payload; also pushed live over the WS as `{type:"notification"}` |
+| POST | `/api/notifications/mark-all-read` | Auth |
+
+`/sitemap.xml` (active posts + static pages, slugged URLs) and `/robots.txt` are served by the backend; detail URLs get server-side OG-tag injection for messenger previews (prod only — needs the built index.html).
 
 ### Reports
 | Method | Path | Notes |
@@ -305,6 +324,8 @@ reports         id, reporter_id(FK→users), targetType(OFFER/REQUEST/USER), tar
 - [x] **Phase 1 of UPGRADE_PLAN.md (security hardening)** — **AP 1.2**: session tokens are 256-bit base64url, stored only as SHA-256 hashes (`sessions.token_hash`, V2; one-time force re-login); `POST /api/auth/change-password` (min 10 chars, invalidates other sessions). **AP 1.1**: password reset — hashed single-use 1h tokens (V3), anti-enumeration forgot endpoint, DE/EN mails, `/forgot-password` + `/reset-password` pages, sessions invalidated on reset. **AP 1.4**: uploads decoded (magic bytes) and re-encoded via Thumbnailator (EXIF/GPS stripped, 2560px cap, 480px `_t` thumbs, `{url, thumbUrl}` response); Local + GCS storage handle thumbs incl. deletion. **AP 1.5**: RateLimitFilter on Bucket4j (login/register 20/min, messages 60/min, images 10/min, reports 5/min, resend 3/15min, forgot 5/15min, contact 3/15min) + account lockout (10 failed logins → 15 min). **AP 1.6**: WS auth via first frame `{type:"auth",token}` → `{type:"auth_ok"}`; unauthenticated connections closed after `app.ws.auth-timeout-ms` (5s); token no longer in URL. **AP 1.3**: SecurityHeadersFilter — CSP (report-only toggle `CSP_REPORT_ONLY`), nosniff, Referrer-Policy, Permissions-Policy, HSTS (honours X-Forwarded-Proto). **AP 1.7**: SQL/bind logging dev-profile-only; infra details moved to gitignored `OPERATIONS.md`; Dependabot (maven/npm/actions); `admin_audit_log` (V4) written by all admin actions + `GET /api/admin/audit` + admin-panel tab. Bugfixes found by tests: admin block 500'd (missing @Transactional); WS auth needed join-fetch for blocked-check. 66 backend + 15 frontend tests green.
 
 - [x] **Phase 2 of UPGRADE_PLAN.md (core UX & product logic)** — **AP 2.1**: design-token system (semantic colors, spacing/radius/shadow/type scales), full dark mode (`fw_theme`, Navbar toggle), 13-component ui/ library, zero `alert()`/`confirm()` (Toast + ConfirmModal), skeleton loading grids, `<Button loading>` submits, optimistic likes. **AP 2.3**: offer lifecycle ACTIVE/RESERVED/GIVEN + request OPEN/FULFILLED (V5), owner/admin status endpoint, default lists hide completed (`?includeCompleted=true`), banners/badges/dimming, "🎁 Given away N times" profile chip. **AP 2.4**: interest flow — `POST /api/offers/:id/interest` creates a context-carrying first message (V6 `context_type/context_id` on messages, in REST+WS payloads), conversation shows a linked context card, owner sees "N interested". **AP 2.5**: thanks system (V7) — one qualitative thanks per GIVEN offer (≤280 chars, requires prior conversation, denormalized so it survives offer deletion), public profile list without scores, reportable (`targetType THANKS`). **AP 2.6**: profile fields displayName/bio/avatarUrl/postalCode/city (V8, postal code never public), `PUT /api/users/:id/profile`, `/settings` area (avatar upload via image pipeline, account/username/email, change password, delete account with ConfirmModal, notifications, language), public profile hero with Avatar/displayName/bio/📍city. **AP 2.2**: mobile bottom TabBar (<768px, 44px+ targets, safe-area, unread badge via shared `useUnreadCount` hook) + touch-target pass. **AP 2.7**: EmptyStates with CTAs in every list/inbox/feed + 3-step skippable `/welcome` onboarding after first login. Backend 85 tests / frontend 49 tests green.
+
+- [x] **Phase 3 of UPGRADE_PLAN.md (reach & discoverability)** — **AP 3.1**: local `plz_geo` table (V9, GeoNames CC BY 4.0), geo columns on posts (V10), geocoding on create/update, `GET /api/geo/postal` autocomplete, PostalCodeInput combobox replaces free-text region in forms (PLZ required on create, legacy fallback on edit). **AP 3.5**: `GET /api/search` — german tsvector+GIN FTS (V11) + ILIKE fallback, category/radius (Haversine)/sort/withImage/pagination in one endpoint (native parameterized SQL); list pages use it server-side with location picker, 2–50 km radius, Newest|Nearest, distance badges, persisted `fw_location`; dedicated `/search` page with offers/requests tabs; `scripts/seed-demo-data.sql` (10k+2k posts). **AP 3.2**: Leaflet map view (lazy chunk) with OSM tiles (CSP img-src extended), one marker per PLZ with count badge (centroid privacy), popups link to details. **AP 3.4**: `notifications` table (V12) + NotificationService pushing `{type:"notification"}` over the WS; creators: offline DM, new post from followed user, interest, thanks; bell + `/notifications` page with mark-all-read. **AP 3.3**: `post_images` (V13, ≤5, ordered, first=cover mirrored to `imageUrl`), `PUT .../images`, GalleryPicker in forms/edit + Gallery with self-built lightbox. **AP 3.6**: server-side OG-tag injection for detail URLs (crawlers don't run the SPA), `/sitemap.xml` + `/robots.txt`, cosmetic slugs (backend `Slugs` + frontend `slugify`), ShareButton (Web Share API, clipboard fallback). Backend 107 tests / frontend 54 tests green.
 
 ---
 

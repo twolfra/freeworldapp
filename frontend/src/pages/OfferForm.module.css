@@ -94,3 +94,9 @@ textarea { resize: vertical; }
   border-radius: 8px;
   border: 1.5px solid var(--border);
 }
+
+.resolvedCity {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--success, var(--green));
+}
