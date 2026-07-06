@@ -1,6 +1,7 @@
 package de.freeworldapp.app.user;
 
 import de.freeworldapp.app.auth.SecurityContext;
+import de.freeworldapp.app.auth.PasswordResetTokenRepository;
 import de.freeworldapp.app.auth.SessionRepository;
 import de.freeworldapp.app.email.EmailService;
 import de.freeworldapp.app.image.StorageService;
@@ -34,6 +35,7 @@ public class UserController {
     private final PasswordEncoder encoder;
     private final EmailService emailService;
     private final SessionRepository sessionRepo;
+    private final PasswordResetTokenRepository resetRepo;
     private final MessageRepository messageRepo;
     private final SubscriptionRepository subscriptionRepo;
     private final OfferRepository offerRepo;
@@ -43,7 +45,8 @@ public class UserController {
     private final ReportRepository reportRepo;
 
     public UserController(UserRepository userRepo, PasswordEncoder encoder, EmailService emailService,
-                          SessionRepository sessionRepo, MessageRepository messageRepo,
+                          SessionRepository sessionRepo, PasswordResetTokenRepository resetRepo,
+                          MessageRepository messageRepo,
                           SubscriptionRepository subscriptionRepo, OfferRepository offerRepo,
                           RequestRepository requestRepo, StorageService storageService, LikeRepository likeRepo,
                           ReportRepository reportRepo) {
@@ -51,6 +54,7 @@ public class UserController {
         this.encoder = encoder;
         this.emailService = emailService;
         this.sessionRepo = sessionRepo;
+        this.resetRepo = resetRepo;
         this.messageRepo = messageRepo;
         this.subscriptionRepo = subscriptionRepo;
         this.offerRepo = offerRepo;
@@ -132,6 +136,7 @@ public class UserController {
                 reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.REQUEST, r.getId()));
 
         sessionRepo.deleteByUser_Id(id);
+        resetRepo.deleteByUser_Id(id);
         subscriptionRepo.deleteAllInvolvingUser(id);
         messageRepo.deleteAllInvolvingUser(id);
         likeRepo.deleteAllByUserId(id);

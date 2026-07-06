@@ -11,7 +11,7 @@ A community marketplace where people give away, offer, and request goods and ser
 |---|---|
 | Backend | Spring Boot 3.5 · Java 21 · Spring Data JPA · PostgreSQL · Flyway migrations (package `de.freeworldapp.app`, Maven `de.freeworldapp:freeworldapp`) |
 | Frontend | React 19 · Vite · React Router 7 · plain CSS Modules (no Tailwind, no component library) |
-| Auth | Session tokens: BCrypt for passwords; login issues a UUID token stored server-side in `sessions` table (with 30-day expiry) and in `localStorage` as `currentUser.token`. All mutating requests AND sensitive GET endpoints (`/api/messages/conversations*`, `/api/messages/conversation*`, `/api/messages/unread-count*`) require `X-Session-Token` header. |
+| Auth | Session tokens: BCrypt for passwords; login issues a 256-bit random token (base64url) stored **SHA-256-hashed** in the `sessions` table (30-day expiry) and raw in `localStorage` as `currentUser.token`. All mutating requests AND sensitive GETs require the `X-Session-Token` header. Password reset (`/forgot-password`) + change-password exist; WebSocket authenticates via a first `{type:"auth",token}` frame. |
 | DB | PostgreSQL on `localhost:5432`, database `marketplace`, user `postgres`, password `postgres` |
 
 **Ports:** Spring Boot → `8080`, Vite dev server → `5173` (proxies `/api` to `:8080`)
@@ -116,6 +116,9 @@ Client-side via **react-router-dom v7** — `App.jsx` declares `<Routes>` inside
 | POST | `/api/auth/logout` | Deletes server-side session; `X-Session-Token` header (no body needed) |
 | GET | `/api/auth/verify?token=` | Verifies email token; 200 on success, 404 invalid, 410 expired |
 | POST | `/api/auth/resend-verification` | `{ email }` → always 200; sends new link if email is registered and unverified |
+| POST | `/api/auth/forgot-password` | **Public.** `{ email }` → always 200 (anti-enumeration); mails a 1h single-use reset link (token hashed at rest) |
+| POST | `/api/auth/reset-password` | **Public.** `{ token, newPassword }` (min 10 chars) → 200; 400 policy, 404 invalid, 410 expired/used; invalidates all sessions + confirmation mail |
+| POST | `/api/auth/change-password` | Authenticated. `{ oldPassword, newPassword }` (min 10) → 200; 403 wrong old password; invalidates all OTHER sessions |
 
 ### Users
 | Method | Path | Notes |
@@ -149,7 +152,7 @@ Client-side via **react-router-dom v7** — `App.jsx` declares `<Routes>` inside
 ### Images
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/api/images` | Multipart upload — field name `file`, image/* only, max 5 MB. Returns `{ url }` |
+| POST | `/api/images` | Multipart upload — field `file`, max 5 MB. Bytes are decoded (magic-byte check, fake images → 400), re-encoded (EXIF/GPS stripped), capped at 2560px, plus a 480px thumb. Returns `{ url, thumbUrl }` |
 | GET | `/api/images/:filename` | Serve file — correct Content-Type, 1-year cache, path traversal blocked |
 
 ### Messages
@@ -194,6 +197,7 @@ Client-side via **react-router-dom v7** — `App.jsx` declares `<Routes>` inside
 | GET | `/api/admin/reports?status=` | Moderation queue; `status` defaults to OPEN, accepts OPEN/RESOLVED/DISMISSED/ALL; each row enriched with target title/author |
 | POST | `/api/admin/reports/:id/resolve` | Mark RESOLVED (stamps resolvedBy/resolvedAt) |
 | POST | `/api/admin/reports/:id/dismiss` | Mark DISMISSED |
+| GET | `/api/admin/audit` | Audit log of admin actions, newest first (max 200): `{ adminUsername, action, targetType, targetId, createdAt }` |
 
 ---
 
@@ -284,57 +288,22 @@ reports         id, reporter_id(FK→users), targetType(OFFER/REQUEST/USER), tar
 
 - [x] **Phase 0 of UPGRADE_PLAN.md (foundation & tech debt)** — **AP 0.6**: Java package `com.example.marketplace` → `de.freeworldapp.app`, Maven coords `de.freeworldapp:freeworldapp`, Java 17 → 21 (Dockerfile images on temurin 21). **AP 0.3**: Flyway (`V1__baseline.sql` full schema; `baseline-on-migrate` marks it applied on pre-existing DBs; `ddl-auto: validate`). **AP 0.1**: react-router-dom v7 — `<Routes>` in App.jsx, `Link`/`useNavigate`/`useParams`/`useSearchParams` everywhere, `*` → 404 page, `Remount` wrapper keys param routes to reproduce full-reload semantics, `TitleManager` keeps per-route document titles. **AP 0.2**: `AuthProvider`/`useAuth()` (`frontend/src/auth/`); `authStorage.js` solely owns the `currentUser` key; post-login/logout navigation is client-side. **AP 0.7**: springdoc-openapi — Swagger UI `/api/docs`, spec `/api/docs/spec`, `SPRINGDOC_ENABLED=false` hides in prod. **AP 0.4**: test infra — backend `mvn test` boots the app against a PostgreSQL Testcontainer (27 integration tests: auth flow, ownership 403s, AuthFilter paths; also validates the Flyway baseline), frontend `npm test` runs Vitest + Testing Library (15 tests: client.js error parsing, Login, OfferList). Found+fixed: owner `DELETE /api/offers/:id` & `/api/requests/:id` 500'd (`@Modifying` like-cleanup without a transaction) — both delete endpoints are now `@Transactional`. **AP 0.5**: GitHub Actions CI (`.github/workflows/ci.yml` — mvn verify + vitest/build on push/PR, non-blocking dependency/audit reports) and manual Cloud Run deploy workflow; README with badge.
 
+- [x] **Phase 1 of UPGRADE_PLAN.md (security hardening)** — **AP 1.2**: session tokens are 256-bit base64url, stored only as SHA-256 hashes (`sessions.token_hash`, V2; one-time force re-login); `POST /api/auth/change-password` (min 10 chars, invalidates other sessions). **AP 1.1**: password reset — hashed single-use 1h tokens (V3), anti-enumeration forgot endpoint, DE/EN mails, `/forgot-password` + `/reset-password` pages, sessions invalidated on reset. **AP 1.4**: uploads decoded (magic bytes) and re-encoded via Thumbnailator (EXIF/GPS stripped, 2560px cap, 480px `_t` thumbs, `{url, thumbUrl}` response); Local + GCS storage handle thumbs incl. deletion. **AP 1.5**: RateLimitFilter on Bucket4j (login/register 20/min, messages 60/min, images 10/min, reports 5/min, resend 3/15min, forgot 5/15min, contact 3/15min) + account lockout (10 failed logins → 15 min). **AP 1.6**: WS auth via first frame `{type:"auth",token}` → `{type:"auth_ok"}`; unauthenticated connections closed after `app.ws.auth-timeout-ms` (5s); token no longer in URL. **AP 1.3**: SecurityHeadersFilter — CSP (report-only toggle `CSP_REPORT_ONLY`), nosniff, Referrer-Policy, Permissions-Policy, HSTS (honours X-Forwarded-Proto). **AP 1.7**: SQL/bind logging dev-profile-only; infra details moved to gitignored `OPERATIONS.md`; Dependabot (maven/npm/actions); `admin_audit_log` (V4) written by all admin actions + `GET /api/admin/audit` + admin-panel tab. Bugfixes found by tests: admin block 500'd (missing @Transactional); WS auth needed join-fetch for blocked-check. 66 backend + 15 frontend tests green.
+
 ---
 
 ## Production environment
 
-| Resource | Value |
-|---|---|
-| GCP project | `freeworld-tw` (account: `twolfram030@gmail.com`) |
-| Billing account | `0196C6-BA2C83-EE41C6` (under `twolfram030@gmail.com`) |
-| Cloud Run service | `freeworldapp` · region `europe-west3` |
-| Live URL | `https://freeworldapp-1040119781594.europe-west3.run.app` |
-| Database | Supabase · host `db.dqpjkomykecmisxfbapx.supabase.co` · db `postgres` · user `postgres` |
-| GCS bucket | `freeworld-tw-images` (public read, `europe-west3`) |
-| Email | Brevo HTTP API · sender `info@freeworldapp.de` · login `freeworldapp@web.de` |
-| Secrets | `db-password`, `brevo-api-key` in Secret Manager |
+Deployed on Google Cloud Run (region `europe-west3`) with an external managed
+PostgreSQL (Supabase), Google Cloud Storage for images, Brevo (HTTP API) for
+transactional email and GCP Secret Manager for secrets.
 
-### Redeploy command
-
-```bash
-gcloud run deploy freeworldapp \
-  --source . \
-  --region=europe-west3 \
-  --platform=managed \
-  --allow-unauthenticated \
-  --set-env-vars="DB_URL=jdbc:postgresql://db.dqpjkomykecmisxfbapx.supabase.co:5432/postgres" \
-  --set-env-vars="DB_USERNAME=postgres" \
-  --set-env-vars="GCS_BUCKET=freeworld-tw-images" \
-  --set-env-vars="BASE_URL=https://freeworldapp-1040119781594.europe-west3.run.app" \
-  --set-env-vars="CORS_ALLOWED_ORIGINS=https://freeworldapp-1040119781594.europe-west3.run.app" \
-  --set-env-vars="MAIL_FROM=info@freeworldapp.de" \
-  --set-env-vars="ADMIN_EMAILS=wolframtim1994@gmail.com" \
-  --set-secrets="DB_PASSWORD=db-password:latest,BREVO_API_KEY=brevo-api-key:latest" \
-  --project=freeworld-tw
-```
-
-> `ADMIN_EMAILS` is a comma-separated list of account emails promoted to ADMIN on startup. Replace/extend with the real admin address(es). A user must already be registered for promotion to take effect.
-
-### Useful ops commands
-
-```bash
-# View live logs
-gcloud run services logs read freeworldapp --region=europe-west3 --project=freeworld-tw --limit=50
-
-# Clear database (dev/reset)
-PGPASSWORD='<db-password>' psql "postgresql://postgres@db.dqpjkomykecmisxfbapx.supabase.co:5432/postgres" \
-  -c "TRUNCATE TABLE sessions, subscriptions, messages, likes, offers, requests, users RESTART IDENTITY CASCADE;"
-```
-
----
+Concrete project IDs, hostnames, account bindings, the redeploy command and
+ops runbooks live in the **gitignored `OPERATIONS.md`** (private). When
+deploying, remember: `DB_URL` must carry `?sslmode=require`, and set
+`SPRINGDOC_ENABLED=false` unless API docs should be public.
 
 ## Known limitations / not yet implemented
 
-- WebSocket token visible in query params — `WebSocket` API shares the same limitation as `EventSource`; token appears in server access logs; acceptable trade-off until HTTP header auth is possible
-- Rate limiter state is in-memory and per-instance — resets on restart and doesn't share across multiple backend nodes; replace with Redis-backed Bucket4j for production
+- Rate limiter + login-lockout state is in-memory and per-instance — resets on restart and doesn't share across multiple backend nodes; replace with a Redis-backed Bucket4j store when scaling out
 - Cloud Run scales to zero — first request after idle period has ~2–3s cold start delay

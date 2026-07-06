@@ -42,8 +42,16 @@ export default function Admin() {
         >
           {t('admin.tabUsers')}
         </button>
+        <button
+          className={tab === 'audit' ? styles.tabActive : styles.tab}
+          onClick={() => setTab('audit')}
+        >
+          {t('admin.tabAudit')}
+        </button>
       </div>
-      {tab === 'reports' ? <ReportsTab currentUser={currentUser} /> : <UsersTab currentUser={currentUser} />}
+      {tab === 'reports' && <ReportsTab currentUser={currentUser} />}
+      {tab === 'users' && <UsersTab currentUser={currentUser} />}
+      {tab === 'audit' && <AuditTab />}
     </main>
   );
 }
@@ -235,6 +243,48 @@ function UsersTab({ currentUser }) {
                     </button>
                   </>
                 )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AuditTab() {
+  const [entries, setEntries] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    adminApi.audit()
+      .then(setEntries)
+      .catch((e) => setError(e.message));
+  }, []);
+
+  if (error) return <p className={styles.status}>{error}</p>;
+  if (!entries) return <p className={styles.status}>{t('admin.loading')}</p>;
+  if (entries.length === 0) return <p className={styles.status}>{t('admin.noAudit')}</p>;
+
+  return (
+    <div className={styles.tableWrap}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>{t('admin.colWhen')}</th>
+            <th>{t('admin.colAdmin')}</th>
+            <th>{t('admin.colAction')}</th>
+            <th>{t('admin.colTarget')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((e) => (
+            <tr key={e.id}>
+              <td className={styles.dim}>{new Date(e.createdAt).toLocaleString()}</td>
+              <td>{e.adminUsername}</td>
+              <td>{t('admin.audit.' + e.action) || e.action}</td>
+              <td className={styles.dim}>
+                {(t('admin.target.' + e.targetType) || e.targetType)} · {e.targetId.slice(0, 8)}
               </td>
             </tr>
           ))}

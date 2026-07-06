@@ -3,7 +3,6 @@ package de.freeworldapp.app.image;
 import jakarta.annotation.PostConstruct;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -21,11 +20,10 @@ public class LocalStorageService implements StorageService {
     }
 
     @Override
-    public String store(MultipartFile file) throws IOException {
-        String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "image";
-        String ext = original.contains(".") ? original.substring(original.lastIndexOf('.')) : ".jpg";
-        String filename = UUID.randomUUID() + ext;
-        Files.copy(file.getInputStream(), UPLOAD_DIR.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
+    public String store(byte[] bytes, byte[] thumbnail, String extension) throws IOException {
+        String filename = UUID.randomUUID() + "." + extension;
+        Files.write(UPLOAD_DIR.resolve(filename), bytes);
+        Files.write(UPLOAD_DIR.resolve(ImageNaming.thumbVariant(filename)), thumbnail);
         return "/api/images/" + filename;
     }
 
@@ -33,6 +31,11 @@ public class LocalStorageService implements StorageService {
     public void delete(String url) {
         if (url == null || !url.startsWith("/api/images/")) return;
         String filename = url.substring("/api/images/".length());
+        deleteFile(filename);
+        deleteFile(ImageNaming.thumbVariant(filename));
+    }
+
+    private void deleteFile(String filename) {
         try {
             Path target = resolve(filename);
             if (isSafe(target)) Files.deleteIfExists(target);

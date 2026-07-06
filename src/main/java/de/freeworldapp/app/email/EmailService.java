@@ -199,6 +199,79 @@ public class EmailService {
         }
     }
 
+
+    /** Password-reset link (1 h validity), DE/EN by user language. */
+    public void sendPasswordResetEmail(String toEmail, String username, String rawToken, String language) {
+        boolean de = "de".equalsIgnoreCase(language);
+        String resetUrl = baseUrl + "/reset-password?token=" + rawToken;
+
+        String subject = de ? "Passwort zurücksetzen — FreeWorld" : "Reset your FreeWorld password";
+        String text = de
+                ? "Hallo " + username + ",\n\n" +
+                  "du (oder jemand anderes) hast das Zurücksetzen deines FreeWorld-Passworts angefordert.\n\n" +
+                  "Neues Passwort festlegen (Link ist 1 Stunde gültig, einmalig verwendbar):\n" + resetUrl + "\n\n" +
+                  "Wenn du das nicht warst, kannst du diese E-Mail ignorieren — dein Passwort bleibt unverändert."
+                : "Hi " + username + ",\n\n" +
+                  "you (or someone else) requested a password reset for your FreeWorld account.\n\n" +
+                  "Set a new password (link valid for 1 hour, single use):\n" + resetUrl + "\n\n" +
+                  "If this wasn't you, you can ignore this email — your password stays unchanged.";
+
+        if (brevoApiKey == null || brevoApiKey.isEmpty()) {
+            log.warn("BREVO_API_KEY not set — password reset link for {}: {}", toEmail, resetUrl);
+            return;
+        }
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("api-key", brevoApiKey);
+            Map<String, Object> body = Map.of(
+                "sender", Map.of("name", "FreeWorld", "email", from),
+                "to", List.of(Map.of("email", toEmail)),
+                "subject", subject,
+                "textContent", text
+            );
+            restTemplate.postForEntity("https://api.brevo.com/v3/smtp/email",
+                    new HttpEntity<>(body, headers), String.class);
+            log.info("Password-reset email sent to {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send password-reset email to {}: {}", toEmail, e.getMessage(), e);
+        }
+    }
+
+    /** Confirmation after a successful password reset/change. */
+    public void sendPasswordChangedEmail(String toEmail, String username, String language) {
+        boolean de = "de".equalsIgnoreCase(language);
+        String subject = de ? "Dein FreeWorld-Passwort wurde geändert" : "Your FreeWorld password was changed";
+        String text = de
+                ? "Hallo " + username + ",\n\n" +
+                  "dein FreeWorld-Passwort wurde soeben geändert und alle Sitzungen wurden abgemeldet.\n\n" +
+                  "Warst du das nicht? Dann setze dein Passwort umgehend zurück:\n" + baseUrl + "/forgot-password"
+                : "Hi " + username + ",\n\n" +
+                  "your FreeWorld password was just changed and all sessions were signed out.\n\n" +
+                  "If this wasn't you, reset your password immediately:\n" + baseUrl + "/forgot-password";
+
+        if (brevoApiKey == null || brevoApiKey.isEmpty()) {
+            log.info("Password-changed email (no Brevo) — to {}", toEmail);
+            return;
+        }
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("api-key", brevoApiKey);
+            Map<String, Object> body = Map.of(
+                "sender", Map.of("name", "FreeWorld", "email", from),
+                "to", List.of(Map.of("email", toEmail)),
+                "subject", subject,
+                "textContent", text
+            );
+            restTemplate.postForEntity("https://api.brevo.com/v3/smtp/email",
+                    new HttpEntity<>(body, headers), String.class);
+            log.info("Password-changed email sent to {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send password-changed email to {}: {}", toEmail, e.getMessage(), e);
+        }
+    }
+
     public void sendVerificationEmail(String toEmail, String token) {
         String verifyUrl = baseUrl + "/verify-email?token=" + token;
 

@@ -53,6 +53,9 @@ export default function Login() {
           {t('login.password')}
           <input name="password" type="password" value={form.password} onChange={handleChange} required />
         </label>
+        <p style={{ fontSize: '0.85rem', textAlign: 'right', marginTop: '-0.6rem' }}>
+          <Link to="/forgot-password" style={{ color: '#2e7d32' }}>{t('login.forgot')}</Link>
+        </p>
         <button type="submit" className="btn-primary">{t('login.submit')}</button>
         <p style={{ fontSize: '0.88rem', textAlign: 'center', color: '#666' }}>
           {t('login.noAccount')} <Link to="/register" style={{ color: '#2e7d32' }}>{t('login.join')}</Link>

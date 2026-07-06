@@ -1,14 +1,20 @@
 package de.freeworldapp.app.image;
 
+import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
@@ -16,6 +22,10 @@ import java.util.Map;
 public class ImageController {
 
     private static final long MAX_BYTES = 5 * 1024 * 1024;
+    /** Longest edge of the stored full-size image; larger uploads are downscaled. */
+    static final int MAX_EDGE = 2560;
+    /** Longest edge of the stored thumbnail variant. */
+    static final int THUMB_EDGE = 480;
 
     private final StorageService storage;
 
@@ -27,14 +37,47 @@ public class ImageController {
     public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) throws IOException {
         if (file.isEmpty())
             return ResponseEntity.badRequest().body(Map.of("error", "No file provided."));
-        String ct = file.getContentType();
-        if (ct == null || !ct.startsWith("image/"))
-            return ResponseEntity.badRequest().body(Map.of("error", "File must be an image."));
         if (file.getSize() > MAX_BYTES)
             return ResponseEntity.badRequest().body(Map.of("error", "File must be under 5 MB."));
 
-        String url = storage.store(file);
-        return ResponseEntity.ok(Map.of("url", url));
+        // Magic-byte validation: probe the actual bytes instead of trusting the
+        // Content-Type header. Anything ImageIO can't decode is rejected.
+        // Note: animated GIFs decode as their first frame and are stored static.
+        BufferedImage image = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
+        if (image == null)
+            return ResponseEntity.badRequest().body(Map.of("error", "File must be an image."));
+
+        // Re-encode server-side (strips ALL metadata, including EXIF/GPS).
+        // JPEG for opaque images, PNG when the image has an alpha channel.
+        boolean hasAlpha = image.getColorModel().hasAlpha();
+        String extension = hasAlpha ? "png" : "jpg";
+        byte[] full = reencode(image, MAX_EDGE, hasAlpha);
+        byte[] thumb = reencode(image, THUMB_EDGE, hasAlpha);
+
+        String url = storage.store(full, thumb, extension);
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put("url", url);
+        body.put("thumbUrl", ImageNaming.thumbVariant(url));
+        return ResponseEntity.ok(body);
+    }
+
+    /** Re-encode, capping the longest edge at {@code maxEdge} (downscale only, never upscale). */
+    private byte[] reencode(BufferedImage image, int maxEdge, boolean hasAlpha) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Thumbnails.Builder<BufferedImage> builder = Thumbnails.of(image);
+        int longestEdge = Math.max(image.getWidth(), image.getHeight());
+        if (longestEdge > maxEdge) {
+            builder.size(maxEdge, maxEdge); // keeps aspect ratio by default
+        } else {
+            builder.scale(1.0);
+        }
+        if (hasAlpha) {
+            builder.outputFormat("png");
+        } else {
+            builder.imageType(BufferedImage.TYPE_INT_RGB).outputFormat("jpg").outputQuality(0.85);
+        }
+        builder.toOutputStream(out);
+        return out.toByteArray();
     }
 
     @GetMapping("/{filename:.+}")

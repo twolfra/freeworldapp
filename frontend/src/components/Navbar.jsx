@@ -24,8 +24,10 @@ export default function Navbar() {
 
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const ws = new WebSocket(
-      `${proto}://${window.location.host}/ws/messages?userId=${currentUser.id}&token=${currentUser.token}`
+      `${proto}://${window.location.host}/ws/messages`
     );
+    // First frame must authenticate — the token no longer travels in the URL.
+    ws.onopen = () => ws.send(JSON.stringify({ type: 'auth', token: currentUser.token }));
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'message' || data.type === 'read') refreshCount();

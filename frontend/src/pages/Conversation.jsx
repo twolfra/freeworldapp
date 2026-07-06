@@ -35,18 +35,21 @@ export default function Conversation() {
     // WebSocket — bidirectional: send via ws.send(), receive via ws.onmessage
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const ws = new WebSocket(
-      `${proto}://${window.location.host}/ws/messages?userId=${currentUser.id}&token=${currentUser.token}`
+      `${proto}://${window.location.host}/ws/messages`
     );
     wsRef.current = ws;
 
-    ws.onopen  = () => setWsReady(true);
+    // First frame must authenticate; the socket is "ready" once the server confirms.
+    ws.onopen  = () => ws.send(JSON.stringify({ type: 'auth', token: currentUser.token }));
     ws.onclose = () => { setWsReady(false); wsRef.current = null; };
     ws.onerror = () => setError(t('conv.connLost'));
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.type === 'message') {
+      if (data.type === 'auth_ok') {
+        setWsReady(true);
+      } else if (data.type === 'message') {
         if (data.senderId !== otherId && data.recipientId !== otherId) return;
         setMsgs((prev) => {
           if (prev.some((m) => m.id === data.id)) return prev;

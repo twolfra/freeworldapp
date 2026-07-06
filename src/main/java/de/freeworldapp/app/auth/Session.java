@@ -14,8 +14,9 @@ public class Session {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 36)
-    private String token;
+    // SHA-256 hex of the bearer token — the raw token is never persisted.
+    @Column(name = "token_hash", nullable = false, unique = true, length = 64)
+    private String tokenHash;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -31,11 +32,11 @@ public class Session {
     void onCreate() { this.createdAt = Instant.now(); }
 
     public UUID getId()              { return id; }
-    public String getToken()         { return token; }
+    public String getTokenHash()     { return tokenHash; }
     public User getUser()            { return user; }
     public Instant getCreatedAt()    { return createdAt; }
     public Instant getExpiresAt()    { return expiresAt; }
-    public void setToken(String token)       { this.token = token; }
+    public void setTokenHash(String tokenHash) { this.tokenHash = tokenHash; }
     public void setUser(User user)           { this.user = user; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
 }

@@ -2,6 +2,7 @@ package de.freeworldapp.app.admin;
 
 import de.freeworldapp.app.auth.AdminGuard;
 import de.freeworldapp.app.auth.SecurityContext;
+import de.freeworldapp.app.auth.PasswordResetTokenRepository;
 import de.freeworldapp.app.auth.SessionRepository;
 import de.freeworldapp.app.email.EmailService;
 import de.freeworldapp.app.image.StorageService;
@@ -40,15 +41,19 @@ public class AdminController {
     private final LikeRepository likeRepo;
     private final ReportRepository reportRepo;
     private final SessionRepository sessionRepo;
+    private final PasswordResetTokenRepository resetRepo;
     private final SubscriptionRepository subscriptionRepo;
     private final MessageRepository messageRepo;
     private final StorageService storage;
     private final EmailService emailService;
+    private final AdminAuditRepository auditRepo;
 
     public AdminController(AdminGuard adminGuard, UserRepository userRepo, OfferRepository offerRepo,
                            RequestRepository requestRepo, LikeRepository likeRepo, ReportRepository reportRepo,
-                           SessionRepository sessionRepo, SubscriptionRepository subscriptionRepo,
-                           MessageRepository messageRepo, StorageService storage, EmailService emailService) {
+                           SessionRepository sessionRepo, PasswordResetTokenRepository resetRepo,
+                           SubscriptionRepository subscriptionRepo,
+                           MessageRepository messageRepo, StorageService storage, EmailService emailService,
+                           AdminAuditRepository auditRepo) {
         this.adminGuard = adminGuard;
         this.userRepo = userRepo;
         this.offerRepo = offerRepo;
@@ -56,10 +61,12 @@ public class AdminController {
         this.likeRepo = likeRepo;
         this.reportRepo = reportRepo;
         this.sessionRepo = sessionRepo;
+        this.resetRepo = resetRepo;
         this.subscriptionRepo = subscriptionRepo;
         this.messageRepo = messageRepo;
         this.storage = storage;
         this.emailService = emailService;
+        this.auditRepo = auditRepo;
     }
 
     private static final ResponseEntity<Object> FORBIDDEN =
@@ -78,6 +85,7 @@ public class AdminController {
     }
 
     @PostMapping("/users/{id}/block")
+    @Transactional
     public ResponseEntity<?> block(@PathVariable UUID id) {
         if (!adminGuard.isAdmin()) return FORBIDDEN;
         if (id.equals(SecurityContext.authenticatedId()))
@@ -87,6 +95,7 @@ public class AdminController {
             u.setBlockedAt(Instant.now());
             userRepo.save(u);
             sessionRepo.deleteByUser_Id(id); // kill any live sessions immediately
+            audit(AdminAuditEntry.Action.BLOCK_USER, AdminAuditEntry.TargetType.USER, id);
             return ResponseEntity.ok((Object) toAdminResponse(u));
         }).orElse(ResponseEntity.notFound().build());
     }
@@ -98,6 +107,7 @@ public class AdminController {
             u.setBlocked(false);
             u.setBlockedAt(null);
             userRepo.save(u);
+            audit(AdminAuditEntry.Action.UNBLOCK_USER, AdminAuditEntry.TargetType.USER, id);
             return ResponseEntity.ok((Object) toAdminResponse(u));
         }).orElse(ResponseEntity.notFound().build());
     }
@@ -121,12 +131,14 @@ public class AdminController {
                 reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.REQUEST, r.getId()));
 
         sessionRepo.deleteByUser_Id(id);
+        resetRepo.deleteByUser_Id(id);
         subscriptionRepo.deleteAllInvolvingUser(id);
         messageRepo.deleteAllInvolvingUser(id);
         likeRepo.deleteAllByUserId(id);
         offerRepo.deleteAll(offerRepo.findByOfferedBy_Id(id));
         requestRepo.deleteAll(requestRepo.findByRequestedBy_Id(id));
         userRepo.deleteById(id);
+        audit(AdminAuditEntry.Action.DELETE_USER, AdminAuditEntry.TargetType.USER, id);
 
         return ResponseEntity.noContent().build();
     }
@@ -139,6 +151,7 @@ public class AdminController {
         if (!adminGuard.isAdmin()) return FORBIDDEN;
         return offerRepo.findById(id).map(o -> {
             removeOffer(o);
+            audit(AdminAuditEntry.Action.DELETE_OFFER, AdminAuditEntry.TargetType.OFFER, id);
             return ResponseEntity.noContent().build();
         }).orElse(ResponseEntity.notFound().build());
     }
@@ -149,6 +162,7 @@ public class AdminController {
         if (!adminGuard.isAdmin()) return FORBIDDEN;
         return requestRepo.findById(id).map(r -> {
             removeRequest(r);
+            audit(AdminAuditEntry.Action.DELETE_REQUEST, AdminAuditEntry.TargetType.REQUEST, id);
             return ResponseEntity.noContent().build();
         }).orElse(ResponseEntity.notFound().build());
     }
@@ -190,8 +204,44 @@ public class AdminController {
             r.setResolvedBy(SecurityContext.authenticatedId());
             r.setResolvedAt(Instant.now());
             reportRepo.save(r);
+            audit(status == Report.Status.RESOLVED
+                            ? AdminAuditEntry.Action.RESOLVE_REPORT
+                            : AdminAuditEntry.Action.DISMISS_REPORT,
+                    AdminAuditEntry.TargetType.REPORT, id);
             return ResponseEntity.ok((Object) toReportResponse(r));
         }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // ---- Audit log -------------------------------------------------------
+
+    @GetMapping("/audit")
+    public ResponseEntity<?> auditLog() {
+        if (!adminGuard.isAdmin()) return FORBIDDEN;
+        List<Map<String, Object>> out = auditRepo
+                .findAllByOrderByCreatedAtDesc(org.springframework.data.domain.PageRequest.of(0, 200))
+                .stream().map(e -> {
+                    Map<String, Object> row = new java.util.LinkedHashMap<>();
+                    row.put("id", e.getId().toString());
+                    row.put("adminUsername", e.getAdminUsername());
+                    row.put("action", e.getAction().name());
+                    row.put("targetType", e.getTargetType().name());
+                    row.put("targetId", e.getTargetId() != null ? e.getTargetId().toString() : null);
+                    row.put("createdAt", java.time.format.DateTimeFormatter.ISO_INSTANT.format(e.getCreatedAt()));
+                    return row;
+                }).toList();
+        return ResponseEntity.ok(out);
+    }
+
+    /** Every admin action leaves an immutable audit trail entry. */
+    private void audit(AdminAuditEntry.Action action, AdminAuditEntry.TargetType targetType, UUID targetId) {
+        UUID adminId = SecurityContext.authenticatedId();
+        AdminAuditEntry e = new AdminAuditEntry();
+        e.setAdminId(adminId);
+        e.setAdminUsername(userRepo.findById(adminId).map(User::getUsername).orElse("unknown"));
+        e.setAction(action);
+        e.setTargetType(targetType);
+        e.setTargetId(targetId);
+        auditRepo.save(e);
     }
 
     // ---- Helpers --------------------------------------------------------

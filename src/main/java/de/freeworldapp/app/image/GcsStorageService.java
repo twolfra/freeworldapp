@@ -4,9 +4,7 @@ import com.google.cloud.storage.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.UUID;
 
 @Service
@@ -22,17 +20,19 @@ public class GcsStorageService implements StorageService {
     }
 
     @Override
-    public String store(MultipartFile file) throws IOException {
-        String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "image";
-        String ext = original.contains(".") ? original.substring(original.lastIndexOf('.')) : ".jpg";
-        String blobName = UUID.randomUUID() + ext;
-
-        BlobInfo blobInfo = BlobInfo.newBuilder(BlobId.of(bucket, blobName))
-                .setContentType(file.getContentType())
-                .build();
-        storage.create(blobInfo, file.getBytes());
-
+    public String store(byte[] bytes, byte[] thumbnail, String extension) {
+        String blobName = UUID.randomUUID() + "." + extension;
+        String contentType = ImageNaming.contentTypeFor(extension);
+        createBlob(blobName, contentType, bytes);
+        createBlob(ImageNaming.thumbVariant(blobName), contentType, thumbnail);
         return String.format("https://storage.googleapis.com/%s/%s", bucket, blobName);
+    }
+
+    private void createBlob(String blobName, String contentType, byte[] bytes) {
+        BlobInfo blobInfo = BlobInfo.newBuilder(BlobId.of(bucket, blobName))
+                .setContentType(contentType)
+                .build();
+        storage.create(blobInfo, bytes);
     }
 
     @Override
@@ -44,5 +44,6 @@ public class GcsStorageService implements StorageService {
         if (slash < 0) return;
         String blobName = path.substring(slash + 1);
         storage.delete(BlobId.of(bucket, blobName));
+        storage.delete(BlobId.of(bucket, ImageNaming.thumbVariant(blobName)));
     }
 }
