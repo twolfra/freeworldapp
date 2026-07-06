@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { offers as offersApi, images as imagesApi, likes as likesApi, admin as adminApi } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t, tCat } from '../i18n';
 import ReportButton from '../components/ReportButton';
 import styles from './RequestDetail.module.css';
@@ -26,7 +27,7 @@ export default function OfferDetail() {
   const [deleting, setDeleting] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  const { user: currentUser } = useAuth();
 
   useEffect(() => {
     offersApi.get(id)

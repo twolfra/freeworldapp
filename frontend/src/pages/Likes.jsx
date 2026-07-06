@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { likes as likesApi } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t, tCat, tp } from '../i18n';
 import styles from './Subscriptions.module.css';
 
 const PAGE_SIZE = 12;
 
 export default function Likes() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  const { user: currentUser } = useAuth();
   const [likedPosts, setLikedPosts] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);

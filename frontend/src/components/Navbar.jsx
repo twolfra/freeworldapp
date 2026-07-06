@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { auth, messages as messagesApi } from '../api/client';
+import { Link, useNavigate } from 'react-router-dom';
+import { messages as messagesApi } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t, getLang, setLang } from '../i18n';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  const { user: currentUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [unread, setUnread] = useState(0);
   const lang = getLang();
 
@@ -33,9 +35,8 @@ export default function Navbar() {
   }, [currentUser?.id]);
 
   async function signOut() {
-    await auth.logout().catch(() => {});
-    localStorage.removeItem('currentUser');
-    window.location.href = '/';
+    await logout();
+    navigate('/');
   }
 
   return (

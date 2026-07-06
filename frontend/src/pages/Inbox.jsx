@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { messages as messagesApi } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t } from '../i18n';
 import styles from './Inbox.module.css';
 
 export default function Inbox() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  const { user: currentUser } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

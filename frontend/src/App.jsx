@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useParams } from 'react-router-dom';
+import { AuthProvider } from './auth/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -79,32 +80,34 @@ function TitleManager() {
 export default function App() {
   return (
     <BrowserRouter>
-      <TitleManager />
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Remount component={Home} by="search" />} />
-        <Route path="/offers" element={<Remount component={OfferList} by="search" />} />
-        <Route path="/offers/new" element={<OfferForm />} />
-        <Route path="/offers/:id" element={<Remount component={OfferDetail} by="id" />} />
-        <Route path="/requests" element={<Remount component={RequestList} by="search" />} />
-        <Route path="/requests/new" element={<RequestForm />} />
-        <Route path="/requests/:id" element={<Remount component={RequestDetail} by="id" />} />
-        <Route path="/users/:id" element={<Remount component={UserProfile} by="id" />} />
-        <Route path="/messages" element={<Inbox />} />
-        <Route path="/messages/:userId" element={<Remount component={Conversation} by="userId" />} />
-        <Route path="/subscriptions" element={<Subscriptions />} />
-        <Route path="/likes" element={<Likes />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/verify-email" element={<Remount component={VerifyEmail} by="search" />} />
-        <Route path="/impressum" element={<Impressum />} />
-        <Route path="/datenschutz" element={<Datenschutz />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <Footer />
+      <AuthProvider>
+        <TitleManager />
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Remount component={Home} by="search" />} />
+          <Route path="/offers" element={<Remount component={OfferList} by="search" />} />
+          <Route path="/offers/new" element={<OfferForm />} />
+          <Route path="/offers/:id" element={<Remount component={OfferDetail} by="id" />} />
+          <Route path="/requests" element={<Remount component={RequestList} by="search" />} />
+          <Route path="/requests/new" element={<RequestForm />} />
+          <Route path="/requests/:id" element={<Remount component={RequestDetail} by="id" />} />
+          <Route path="/users/:id" element={<Remount component={UserProfile} by="id" />} />
+          <Route path="/messages" element={<Inbox />} />
+          <Route path="/messages/:userId" element={<Remount component={Conversation} by="userId" />} />
+          <Route path="/subscriptions" element={<Subscriptions />} />
+          <Route path="/likes" element={<Likes />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/verify-email" element={<Remount component={VerifyEmail} by="search" />} />
+          <Route path="/impressum" element={<Impressum />} />
+          <Route path="/datenschutz" element={<Datenschutz />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Footer />
+      </AuthProvider>
     </BrowserRouter>
   );
 }

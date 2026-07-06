@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { admin as adminApi } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t } from '../i18n';
 import styles from './Admin.module.css';
 
 export default function Admin() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  const { user: currentUser } = useAuth();
   const [tab, setTab] = useState('reports');
 
   if (!currentUser) {

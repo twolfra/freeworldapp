@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { subscriptions as subsApi } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t, tCat, tp } from '../i18n';
 import styles from './Subscriptions.module.css';
 
 const PAGE_SIZE = 12;
 
 export default function Subscriptions() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  const { user: currentUser } = useAuth();
   const [feed, setFeed]       = useState([]);
   const [page, setPage]       = useState(1);
   const [loading, setLoading] = useState(true);

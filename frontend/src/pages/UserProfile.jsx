@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { users, offers as offersApi, requests as requestsApi, subscriptions as subsApi, notifications } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t, tCat } from '../i18n';
 import ReportButton from '../components/ReportButton';
 import styles from './UserProfile.module.css';
 
 export default function UserProfile() {
   const { id } = useParams();
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  const { user: currentUser, updateUser } = useAuth();
   const [user, setUser]             = useState(null);
   const [offers, setOffers]         = useState([]);
   const [reqs, setReqs]             = useState([]);
@@ -26,12 +27,8 @@ export default function UserProfile() {
     try {
       await notifications.updatePreferences({ notifyOnMessage: next });
       setNotifyOnMessage(next);
-      // Keep localStorage in sync so the toggle survives reloads.
-      const stored = JSON.parse(localStorage.getItem('currentUser') || 'null');
-      if (stored) {
-        stored.notifyOnMessage = next;
-        localStorage.setItem('currentUser', JSON.stringify(stored));
-      }
+      // Keep the stored user in sync so the toggle survives reloads.
+      updateUser({ notifyOnMessage: next });
     } finally {
       setNotifySaving(false);
     }

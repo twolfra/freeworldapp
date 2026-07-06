@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { auth } from '../api/client';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 import { t } from '../i18n';
 import styles from './Register.module.css';
 
 export default function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState(null);
   const [unverified, setUnverified] = useState(false);
@@ -18,9 +20,8 @@ export default function Login() {
     setError(null);
     setUnverified(false);
     try {
-      const user = await auth.login(form);
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      window.location.href = '/offers';
+      await login(form);
+      navigate('/offers');
     } catch (err) {
       if (err.message && err.message.toLowerCase().includes('not verified')) {
         setUnverified(true);

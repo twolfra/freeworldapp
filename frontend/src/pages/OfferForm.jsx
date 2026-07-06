@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { offers, images as imagesApi } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t, tCat } from '../i18n';
 import styles from './OfferForm.module.css';
 
@@ -11,7 +12,7 @@ const CATEGORIES = [
 ];
 
 export default function OfferForm() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') ?? 'null');
+  const { user: currentUser } = useAuth();
 
   const [form, setForm]           = useState({ title: '', description: '', region: '', category: '', quantity: 1 });
   const [imageFile, setImageFile] = useState(null);

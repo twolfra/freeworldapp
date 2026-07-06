@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { messages as messagesApi, users } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { t } from '../i18n';
 import styles from './Conversation.module.css';
 
 export default function Conversation() {
   const { userId: otherId } = useParams();
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  const { user: currentUser } = useAuth();
   const [otherUser, setOtherUser] = useState(null);
   const [msgs, setMsgs] = useState([]);
   const [content, setContent] = useState('');
