@@ -3,9 +3,14 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/marketplace}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
+  flyway:
+    # Existing databases (created by the old ddl-auto:update) already contain the
+    # baseline schema — mark V1 as applied there instead of running it.
+    baseline-on-migrate: true
+    baseline-version: 1
   jpa:
     hibernate:
-      ddl-auto: update   # dev only; switch to Flyway for production
+      ddl-auto: validate   # schema is managed exclusively by Flyway migrations
     properties:
       hibernate:
         format_sql: true
