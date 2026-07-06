@@ -9,7 +9,7 @@ import styles from './Navbar.module.css';
 export default function Navbar() {
   const { user: currentUser, logout } = useAuth();
   const navigate = useNavigate();
-  const unread = useUnreadCount(currentUser);
+  const { unread, notifUnread } = useUnreadCount(currentUser, { withNotifications: true });
   const [theme, setThemeState] = useState(resolvedTheme);
   const lang = getLang();
 
@@ -36,6 +36,12 @@ export default function Navbar() {
             <Link to="/messages" className={styles.navLink}>
               {t('nav.messages')}
               {unread > 0 && <span className={styles.badge}>{unread > 99 ? '99+' : unread}</span>}
+            </Link>
+          )}
+          {currentUser && (
+            <Link to="/notifications" className={styles.navLink} aria-label={t('nav.notifications')} title={t('nav.notifications')}>
+              🔔
+              {notifUnread > 0 && <span className={styles.badge}>{notifUnread > 99 ? '99+' : notifUnread}</span>}
             </Link>
           )}
           {currentUser && <Link to="/subscriptions" className={styles.navLink}>{t('nav.following')}</Link>}

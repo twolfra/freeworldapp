@@ -72,6 +72,8 @@ const T = {
     'list.showFulfilled': 'Also show fulfilled',
     'list.clearFilters': 'Clear filters',
     'list.locationPlaceholder': 'Postal code or city',
+    'list.locationClear': 'Clear location',
+    'list.radius': 'Radius',
     'list.radiusLabel': 'Radius',
     'list.sortLabel': 'Sort',
     'list.sortNewest': 'Newest',
@@ -410,6 +412,52 @@ const T = {
     'notfound.text': 'The page you are looking for does not exist or has been moved.',
     'notfound.home': 'Back to the home page',
 
+    // Gallery (AP 3.3)
+    'gallery.add': 'Add photos',
+    'gallery.count': '{n}/{max} photos',
+    'gallery.max': 'You can add up to {max} photos.',
+    'gallery.cover': 'Cover',
+    'gallery.remove': 'Remove photo {n}',
+    'gallery.moveLeft': 'Move photo {n} left',
+    'gallery.moveRight': 'Move photo {n} right',
+    'gallery.uploading': 'Uploading…',
+    'gallery.thumb': 'Photo {n} of {total}',
+    'gallery.open': 'Open photo {n} of {total}',
+    'gallery.prev': 'Previous photo',
+    'gallery.next': 'Next photo',
+
+    // Share (AP 3.6)
+    'share.button': 'Share',
+    'share.copied': 'Link copied to clipboard',
+    'share.error': 'Could not copy the link.',
+
+    // Notification centre (AP 3.4)
+    'nav.notifications': 'Notifications',
+    'notif.heading': 'Notifications',
+    'notif.markAllRead': 'Mark all as read',
+    'notif.emptyTitle': 'No notifications yet',
+    'notif.emptyText': 'New messages, posts from people you follow, interest and thanks show up here.',
+    'notif.newMessage': '{user} sent you a message',
+    'notif.newPostOffer': '{user} posted a new offer: “{title}”',
+    'notif.newPostRequest': '{user} posted a new request: “{title}”',
+    'notif.interest': '{user} is interested in “{title}”',
+    'notif.thanks': '{user} said thanks for “{title}”',
+    'notif.generic': 'Notification',
+    'notif.unread': 'Unread',
+
+    // Relative time
+    'time.justNow': 'just now',
+    'time.minAgo': '{n} min ago',
+    'time.hoursAgo': '{n} h ago',
+    'time.daysAgo': '{n} d ago',
+
+    // Search page (AP 3.5)
+    'search.heading': 'Search',
+    'search.tabOffers': 'Offers', 'search.tabRequests': 'Requests',
+    'search.withImage': 'Only with photo',
+    'search.results': '{n} results',
+    'search.noResults': 'Nothing matches your search.',
+
     // Shared
     'qty': 'qty',
   },
@@ -461,6 +509,8 @@ const T = {
     'list.showFulfilled': 'Auch Erfülltes zeigen',
     'list.clearFilters': 'Filter zurücksetzen',
     'list.locationPlaceholder': 'PLZ oder Ort',
+    'list.locationClear': 'Ort entfernen',
+    'list.radius': 'Umkreis',
     'list.radiusLabel': 'Umkreis',
     'list.sortLabel': 'Sortierung',
     'list.sortNewest': 'Neueste',
@@ -798,6 +848,52 @@ const T = {
     'notfound.title': 'Seite nicht gefunden',
     'notfound.text': 'Die gesuchte Seite existiert nicht oder wurde verschoben.',
     'notfound.home': 'Zurück zur Startseite',
+
+    // Gallery (AP 3.3)
+    'gallery.add': 'Fotos hinzufügen',
+    'gallery.count': '{n}/{max} Fotos',
+    'gallery.max': 'Du kannst bis zu {max} Fotos hinzufügen.',
+    'gallery.cover': 'Titelbild',
+    'gallery.remove': 'Foto {n} entfernen',
+    'gallery.moveLeft': 'Foto {n} nach links verschieben',
+    'gallery.moveRight': 'Foto {n} nach rechts verschieben',
+    'gallery.uploading': 'Wird hochgeladen…',
+    'gallery.thumb': 'Foto {n} von {total}',
+    'gallery.open': 'Foto {n} von {total} öffnen',
+    'gallery.prev': 'Vorheriges Foto',
+    'gallery.next': 'Nächstes Foto',
+
+    // Share (AP 3.6)
+    'share.button': 'Teilen',
+    'share.copied': 'Link in die Zwischenablage kopiert',
+    'share.error': 'Link konnte nicht kopiert werden.',
+
+    // Notification centre (AP 3.4)
+    'nav.notifications': 'Benachrichtigungen',
+    'notif.heading': 'Benachrichtigungen',
+    'notif.markAllRead': 'Alle als gelesen markieren',
+    'notif.emptyTitle': 'Noch keine Benachrichtigungen',
+    'notif.emptyText': 'Neue Nachrichten, Beiträge von Leuten, denen du folgst, Interesse und Danke erscheinen hier.',
+    'notif.newMessage': '{user} hat dir eine Nachricht gesendet',
+    'notif.newPostOffer': '{user} hat ein neues Angebot eingestellt: „{title}“',
+    'notif.newPostRequest': '{user} hat ein neues Gesuch eingestellt: „{title}“',
+    'notif.interest': '{user} interessiert sich für „{title}“',
+    'notif.thanks': '{user} hat sich für „{title}“ bedankt',
+    'notif.generic': 'Benachrichtigung',
+    'notif.unread': 'Ungelesen',
+
+    // Relative time
+    'time.justNow': 'gerade eben',
+    'time.minAgo': 'vor {n} Min.',
+    'time.hoursAgo': 'vor {n} Std.',
+    'time.daysAgo': 'vor {n} Tagen',
+
+    // Search page (AP 3.5)
+    'search.heading': 'Suche',
+    'search.tabOffers': 'Angebote', 'search.tabRequests': 'Gesuche',
+    'search.withImage': 'Nur mit Foto',
+    'search.results': '{n} Ergebnisse',
+    'search.noResults': 'Nichts gefunden.',
 
     // Shared
     'qty': 'Anz.',

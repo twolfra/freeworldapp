@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { offers, images as imagesApi } from '../api/client';
+import { offers } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat, tp } from '../i18n';
 import { Button } from '../components/ui';
 import PostalCodeInput from '../components/PostalCodeInput';
+import GalleryPicker from '../components/GalleryPicker';
 import styles from './OfferForm.module.css';
 
 const CATEGORIES = [
@@ -19,8 +20,7 @@ export default function OfferForm() {
   const [form, setForm]           = useState({ title: '', description: '', category: '', quantity: 1 });
   const [postalText, setPostalText] = useState('');
   const [postal, setPostal]       = useState(null); // { plz, city, lat, lon } once picked
-  const [imageFile, setImageFile] = useState(null);
-  const [preview, setPreview]     = useState(null);
+  const [gallery, setGallery]     = useState([]); // [{url, thumbUrl}] — first = cover
   const [error, setError]         = useState(null);
   const [done, setDone]           = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -39,13 +39,6 @@ export default function OfferForm() {
     setForm((f) => ({ ...f, [name]: name === 'quantity' ? Number(value) : value }));
   }
 
-  function handleImage(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setImageFile(file);
-    setPreview(URL.createObjectURL(file));
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
@@ -56,18 +49,16 @@ export default function OfferForm() {
     }
     setSubmitting(true);
     try {
-      let imageUrl = null;
-      if (imageFile) {
-        const res = await imagesApi.upload(imageFile);
-        imageUrl = res.url;
-      }
-      await offers.create({
+      const created = await offers.create({
         ...form,
         region: `${postal.plz} ${postal.city}`,
         postalCode: postal.plz,
         offeredById: currentUser.id,
-        imageUrl,
+        imageUrl: gallery[0]?.url ?? null,
       });
+      if (gallery.length > 0) {
+        await offers.setImages(created.id, gallery.map(({ url, thumbUrl }) => ({ url, thumbUrl })));
+      }
       setDone(true);
     } catch (err) {
       setError(err.message);
@@ -127,14 +118,10 @@ export default function OfferForm() {
           {postal && <span className={styles.resolvedCity}>{tp('form.postalResolved', { city: postal.city })}</span>}
         </label>
 
-        <label className={styles.photoLabel}>
+        <div className={styles.photoLabel}>
           {t('form.photo')} <span className={styles.optional}>{t('form.photoOptional')}</span>
-          <input type="file" accept="image/*" onChange={handleImage} className={styles.fileInput} />
-          {preview
-            ? <img src={preview} className={styles.preview} alt="Preview" />
-            : <div className={styles.photoPlaceholder}>{t('form.photoPlaceholder')}</div>
-          }
-        </label>
+          <GalleryPicker items={gallery} onChange={setGallery} />
+        </div>
 
         <Button type="submit" loading={submitting}>
           {submitting ? t('offerForm.submitting') : t('offerForm.submit')}

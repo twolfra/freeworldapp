@@ -17,6 +17,8 @@ import Conversation from './pages/Conversation';
 import UserProfile from './pages/UserProfile';
 import Subscriptions from './pages/Subscriptions';
 import Likes from './pages/Likes';
+import Notifications from './pages/Notifications';
+import Search from './pages/Search';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
@@ -42,6 +44,8 @@ const TITLES = {
   '/messages':      'Messages' + SUFFIX,
   '/subscriptions': 'Following' + SUFFIX,
   '/likes':         'Likes' + SUFFIX,
+  '/notifications': 'Notifications' + SUFFIX,
+  '/search':        'Search' + SUFFIX,
   '/register':      'Join FreeWorld',
   '/login':         'Sign in' + SUFFIX,
   '/welcome':       'Welcome' + SUFFIX,
@@ -107,6 +111,8 @@ export default function App() {
             <Route path="/messages/:userId" element={<Remount component={Conversation} by="userId" />} />
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/likes" element={<Likes />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/search" element={<Search />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/welcome" element={<Onboarding />} />
