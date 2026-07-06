@@ -208,3 +208,46 @@
   color: var(--muted-soft);
   font-size: 0.9rem;
 }
+
+/* ---------- Thanks (AP 2.5) ---------- */
+.thanksList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0;
+}
+
+.thanksItem {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+}
+
+.thanksHead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.thanksFrom {
+  font-weight: 700;
+  color: var(--green);
+  text-decoration: none;
+}
+
+.thanksFrom:hover { text-decoration: underline; }
+
+.thanksMeta {
+  font-size: 0.82rem;
+  color: var(--muted-soft);
+}
+
+.thanksText {
+  margin-top: 0.35rem;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--ink);
+}

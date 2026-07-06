@@ -89,4 +89,43 @@ describe('OfferList page', () => {
 
     expect(await screen.findByText('boom from the API')).toBeInTheDocument();
   });
+
+  it('shows the include-completed toggle and refetches when checked', async () => {
+    const user = userEvent.setup();
+    offersApi.list.mockResolvedValue(mockOffers);
+    renderOfferList();
+
+    await screen.findByText('Free sofa');
+    expect(offersApi.list).toHaveBeenLastCalledWith(false);
+
+    await user.click(screen.getByRole('checkbox', { name: 'Also show given away' }));
+
+    expect(offersApi.list).toHaveBeenLastCalledWith(true);
+    expect(offersApi.list).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows status badges and dims given-away cards', async () => {
+    offersApi.list.mockResolvedValue([
+      { ...mockOffers[0], status: 'RESERVED' },
+      { ...mockOffers[1], status: 'GIVEN' },
+    ]);
+    renderOfferList();
+
+    expect(await screen.findByText('Reserved')).toBeInTheDocument();
+    expect(screen.getByText('Given away')).toBeInTheDocument();
+    // The GIVEN card link is dimmed via the cardCompleted class.
+    const givenCard = screen.getByRole('link', { name: /Garden apples/ });
+    expect(givenCard.className).toMatch(/cardCompleted/);
+    const reservedCard = screen.getByRole('link', { name: /Free sofa/ });
+    expect(reservedCard.className).not.toMatch(/cardCompleted/);
+  });
+
+  it('renders no status badge for active offers', async () => {
+    offersApi.list.mockResolvedValue([{ ...mockOffers[0], status: 'ACTIVE' }]);
+    renderOfferList();
+
+    await screen.findByText('Free sofa');
+    expect(screen.queryByText('Reserved')).not.toBeInTheDocument();
+    expect(screen.queryByText('Given away')).not.toBeInTheDocument();
+  });
 });

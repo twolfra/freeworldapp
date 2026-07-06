@@ -143,3 +143,39 @@
   align-self: flex-end;
   margin-top: -0.1rem;
 }
+
+/* ---------- Context card (AP 2.4) ---------- */
+.contextCard {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  text-decoration: none;
+}
+
+.contextCard img {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.contextType {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-soft);
+}
+
+.contextTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.contextCard:hover .contextTitle { text-decoration: underline; }

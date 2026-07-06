@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { messages as messagesApi, users } from '../api/client';
+import { messages as messagesApi, offers as offersApi, requests as requestsApi, users } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t } from '../i18n';
 import styles from './Conversation.module.css';
@@ -72,6 +72,26 @@ export default function Conversation() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [msgs]);
 
+  // Context card — the most recent message in the thread that carries an
+  // offer/request context ("I'm interested" messages).
+  const lastCtxMsg = [...msgs].reverse().find((m) => m.contextType && m.contextId);
+  const ctxType = lastCtxMsg?.contextType ?? null;
+  const ctxId = lastCtxMsg?.contextId ?? null;
+  const [ctxFetched, setCtxFetched] = useState(null); // { id, post }
+
+  useEffect(() => {
+    if (!ctxType || !ctxId) return;
+    let cancelled = false;
+    const api = ctxType === 'OFFER' ? offersApi : requestsApi;
+    api.get(ctxId)
+      .then((post) => { if (!cancelled) setCtxFetched({ id: ctxId, post }); })
+      .catch(() => {}); // deleted post → no card
+    return () => { cancelled = true; };
+  }, [ctxType, ctxId]);
+
+  // Only show the card when the fetched post matches the current context.
+  const ctxPost = ctxFetched && ctxFetched.id === ctxId ? ctxFetched.post : null;
+
   if (!currentUser) return (
     <main className={styles.page}>
       <p className={styles.status}>Please <Link to="/login">{t('conv.signInLink')}</Link> {t('conv.signIn').replace('Please {link} ', '')}</p>
@@ -105,6 +125,20 @@ export default function Conversation() {
         <div className={styles.threadHeader}>
           {otherUser?.username ?? '…'}
         </div>
+        {ctxPost && (
+          <Link
+            to={`${ctxType === 'OFFER' ? '/offers' : '/requests'}/${ctxId}`}
+            className={styles.contextCard}
+          >
+            {ctxPost.imageUrl && <img src={ctxPost.imageUrl} alt="" />}
+            <div>
+              <span className={styles.contextType}>
+                {ctxType === 'OFFER' ? t('conv.ctxOffer') : t('conv.ctxRequest')}
+              </span>
+              <span className={styles.contextTitle}>{ctxPost.title}</span>
+            </div>
+          </Link>
+        )}
         <div className={styles.messages}>
           {msgs.length === 0 && (
             <p className={styles.empty}>{t('conv.noMessages')}</p>

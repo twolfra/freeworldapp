@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { offers as offersApi, images as imagesApi, likes as likesApi, admin as adminApi } from '../api/client';
+import { offers as offersApi, images as imagesApi, likes as likesApi, admin as adminApi, thanks as thanksApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
-import { t, tCat } from '../i18n';
+import { t, tCat, tp } from '../i18n';
 import ReportButton from '../components/ReportButton';
-import { ConfirmModal, useToast } from '../components/ui';
+import { Badge, Button, ConfirmModal, Modal, Textarea, useToast } from '../components/ui';
 import styles from './RequestDetail.module.css';
 
 const CATEGORIES = [
@@ -25,9 +25,15 @@ export default function OfferDetail() {
   const [newImageFile, setNewImageFile] = useState(null);
   const [editError, setEditError] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'delete' | 'adminDelete'
+  const [confirmAction, setConfirmAction] = useState(null); // 'delete' | 'adminDelete' | 'given'
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [statusSaving, setStatusSaving] = useState(false);
+  const [interestedCount, setInterestedCount] = useState(null);
+  const [interestSending, setInterestSending] = useState(false);
+  const [thanksOpen, setThanksOpen] = useState(false);
+  const [thanksText, setThanksText] = useState('');
+  const [thanksSending, setThanksSending] = useState(false);
   const { user: currentUser } = useAuth();
   const toast = useToast();
 
@@ -48,6 +54,15 @@ export default function OfferDetail() {
         .catch(() => {});
     }
   }, [id, currentUser]);
+
+  const ownerId = offer?.offeredById;
+  useEffect(() => {
+    if (!currentUser || !ownerId) return;
+    if (currentUser.id !== ownerId && currentUser.role !== 'ADMIN') return;
+    offersApi.interestedCount(id)
+      .then((data) => setInterestedCount(data.count))
+      .catch(() => setInterestedCount(null));
+  }, [id, currentUser, ownerId]);
 
   if (loading) return <p className={styles.status}>{t('detail.loading')}</p>;
   if (error)   return <p className={styles.status}>{t('detail.loadErrOffer')}{error}</p>;
@@ -129,6 +144,46 @@ export default function OfferDetail() {
     }
   }
 
+  async function changeStatus(status) {
+    setStatusSaving(true);
+    try {
+      const updated = await offersApi.setStatus(id, status);
+      setOffer(updated);
+      toast.success(t('detail.statusUpdated'));
+    } catch (err) {
+      toast.error(t('detail.statusErr') + err.message);
+    } finally {
+      setStatusSaving(false);
+      setConfirmAction(null);
+    }
+  }
+
+  async function handleInterest() {
+    setInterestSending(true);
+    try {
+      const res = await offersApi.interest(id);
+      navigate(`/messages/${res.conversationWith}`);
+    } catch (err) {
+      toast.error(err.message);
+      setInterestSending(false);
+    }
+  }
+
+  async function handleThanksSubmit(e) {
+    e.preventDefault();
+    setThanksSending(true);
+    try {
+      await thanksApi.create(id, thanksText.trim() || null);
+      setThanksOpen(false);
+      setThanksText('');
+      toast.success(t('thanks.sent'));
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setThanksSending(false);
+    }
+  }
+
   async function toggleLike() {
     if (!currentUser) {
       navigate('/login');
@@ -155,18 +210,47 @@ export default function OfferDetail() {
     <main className={styles.page}>
       <Link to="/offers" className={styles.back} style={{ color: 'var(--green)' }}>{t('detail.backOffers')}</Link>
       <div className={styles.card}>
+        {offer.status === 'GIVEN' && (
+          <div className={styles.completedBanner}>
+            <span>{t('detail.givenBanner')}</span>
+            {currentUser && !isOwnPost && (
+              <Button size="sm" variant="accent" onClick={() => setThanksOpen(true)}>
+                {t('detail.thanksBtn')}
+              </Button>
+            )}
+          </div>
+        )}
         {!editing && offer.imageUrl && <img src={offer.imageUrl} className={styles.image} alt={offer.title} />}
         <span className={styles.category} style={{ color: 'var(--green)' }}>{tCat(offer.category)}</span>
         <h1>{offer.title}</h1>
+        {offer.status === 'RESERVED' && (
+          <div className={styles.statusRow}>
+            <Badge variant="warning">
+              {offer.reservedForUsername
+                ? tp('status.reservedFor', { user: offer.reservedForUsername })
+                : t('status.RESERVED')}
+            </Badge>
+          </div>
+        )}
         <div className={styles.authorRow}>
           <span>{t('detail.postedBy')}</span>
           <Link to={`/users/${offer.offeredById}`} className={styles.authorLink}>
             {offer.offeredByUsername}
           </Link>
           {!isOwnPost && currentUser && (
-            <Link to={`/messages/${offer.offeredById}`} className={styles.contactBtn}>
-              {t('detail.contact')}
-            </Link>
+            <>
+              <Button
+                size="sm"
+                onClick={handleInterest}
+                loading={interestSending}
+                disabled={offer.status === 'GIVEN'}
+              >
+                {t('detail.interested')}
+              </Button>
+              <Link to={`/messages/${offer.offeredById}`} className={styles.authorLink}>
+                {t('detail.contact')}
+              </Link>
+            </>
           )}
           {!currentUser && (
             <Link to="/login" className={styles.contactBtn}>{t('detail.signInContact')}</Link>
@@ -196,6 +280,32 @@ export default function OfferDetail() {
             <button className={styles.deleteBtn} onClick={() => setConfirmAction('delete')}>
               {t('detail.delete')}
             </button>
+          </div>
+        )}
+        {isOwnPost && !editing && (
+          <div className={styles.statusSection}>
+            <h3>
+              {t('detail.statusHeading')}
+              {interestedCount != null && (
+                <span className={styles.interestedNote}>
+                  {tp('detail.interestedCount', { n: interestedCount })}
+                </span>
+              )}
+            </h3>
+            <div className={styles.statusButtons}>
+              {['ACTIVE', 'RESERVED', 'GIVEN'].map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={(offer.status ?? 'ACTIVE') === s ? 'primary' : 'secondary'}
+                  disabled={(offer.status ?? 'ACTIVE') === s || statusSaving}
+                  onClick={() => (s === 'GIVEN' ? setConfirmAction('given') : changeStatus(s))}
+                >
+                  {t('status.' + s)}
+                </Button>
+              ))}
+            </div>
+            <p className={styles.statusHint}>{t('detail.statusHint')}</p>
           </div>
         )}
         {isAdmin && !isOwnPost && !editing && (
@@ -275,12 +385,42 @@ export default function OfferDetail() {
       </div>
       <ConfirmModal
         open={confirmAction !== null}
-        message={confirmAction === 'adminDelete' ? t('admin.confirmDelete') : t('detail.confirmOffer')}
-        danger
-        confirmLabel={t('detail.delete')}
-        onConfirm={confirmAction === 'adminDelete' ? handleAdminDelete : handleDelete}
+        message={
+          confirmAction === 'given' ? t('detail.confirmGiven')
+          : confirmAction === 'adminDelete' ? t('admin.confirmDelete')
+          : t('detail.confirmOffer')
+        }
+        danger={confirmAction !== 'given'}
+        confirmLabel={confirmAction === 'given' ? t('status.GIVEN') : t('detail.delete')}
+        onConfirm={
+          confirmAction === 'given' ? () => changeStatus('GIVEN')
+          : confirmAction === 'adminDelete' ? handleAdminDelete
+          : handleDelete
+        }
         onCancel={() => setConfirmAction(null)}
       />
+      <Modal open={thanksOpen} onClose={() => setThanksOpen(false)} title={t('thanks.title')}>
+        <form onSubmit={handleThanksSubmit}>
+          <p className={styles.thanksIntro}>{t('thanks.intro')}</p>
+          <Textarea
+            label={t('thanks.textLabel')}
+            value={thanksText}
+            onChange={(e) => setThanksText(e.target.value)}
+            maxLength={280}
+            rows={3}
+            placeholder={t('thanks.placeholder')}
+          />
+          <p className={styles.charCount}>{thanksText.length}/280</p>
+          <div className={styles.thanksActions}>
+            <Button type="button" variant="ghost" onClick={() => setThanksOpen(false)}>
+              {t('ui.cancel')}
+            </Button>
+            <Button type="submit" variant="accent" loading={thanksSending}>
+              {t('thanks.send')}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </main>
   );
 }

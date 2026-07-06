@@ -67,21 +67,34 @@ export const users = {
 };
 
 export const offers = {
-  list:       ()         => request('/offers'),
+  list:       (includeCompleted = false) =>
+    request(`/offers${includeCompleted ? '?includeCompleted=true' : ''}`),
   listByUser: (userId)   => request(`/offers?offeredBy=${userId}`),
   get:        (id)       => request(`/offers/${id}`),
   create:     (body)     => request('/offers',    { method: 'POST',   body: JSON.stringify(body) }),
   update:     (id, body) => request(`/offers/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   remove:     (id)       => request(`/offers/${id}`, { method: 'DELETE' }),
+  setStatus:  (id, status, reservedForId) =>
+    request(`/offers/${id}/status`, { method: 'POST', body: JSON.stringify({ status, ...(reservedForId ? { reservedForId } : {}) }) }),
+  interest:        (id) => request(`/offers/${id}/interest`, { method: 'POST' }),
+  interestedCount: (id) => request(`/offers/${id}/interested`),
 };
 
 export const requests = {
-  list:       ()         => request('/requests'),
+  list:       (includeCompleted = false) =>
+    request(`/requests${includeCompleted ? '?includeCompleted=true' : ''}`),
   listByUser: (userId)   => request(`/requests?requestedBy=${userId}`),
   get:        (id)       => request(`/requests/${id}`),
   create:     (body)     => request('/requests',    { method: 'POST',   body: JSON.stringify(body) }),
   update:     (id, body) => request(`/requests/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   remove:     (id)       => request(`/requests/${id}`, { method: 'DELETE' }),
+  setStatus:  (id, status) =>
+    request(`/requests/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
+};
+
+export const thanks = {
+  create:  (offerId, text) => request(`/offers/${offerId}/thanks`, { method: 'POST', body: JSON.stringify({ text }) }),
+  forUser: (userId)        => request(`/users/${userId}/thanks`),
 };
 
 export const images = {

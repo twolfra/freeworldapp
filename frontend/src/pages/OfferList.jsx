@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { offers as offersApi } from '../api/client';
 import { t, tCat, tp } from '../i18n';
-import { Card, Skeleton } from '../components/ui';
+import { Badge, Card, Skeleton } from '../components/ui';
 import styles from './OfferList.module.css';
 
 const CATEGORIES = [
@@ -21,15 +21,16 @@ export default function OfferList() {
   const [query, setQuery]     = useState(initialQuery);
   const [region, setRegion]   = useState('');
   const [page, setPage]       = useState(1);
+  const [includeCompleted, setIncludeCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
   useEffect(() => {
-    offersApi.list()
+    offersApi.list(includeCompleted)
       .then(setOffers)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [includeCompleted]);
 
 
   if (loading) return (
@@ -130,6 +131,14 @@ export default function OfferList() {
               <option value="">{t('list.allRegions')}</option>
               {regions.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
+            <label className={styles.completedToggle}>
+              <input
+                type="checkbox"
+                checked={includeCompleted}
+                onChange={(e) => { setIncludeCompleted(e.target.checked); setPage(1); }}
+              />
+              {t('list.showGiven')}
+            </label>
           </div>
           {filtered.length === 0
             ? <p className={styles.empty}>{t('offers.noMatch')}</p>
@@ -137,12 +146,21 @@ export default function OfferList() {
                 <ul className={styles.grid}>
                   {pageItems.map((o) => (
                     <li key={o.id}>
-                      <Link to={`/offers/${o.id}`} className={styles.card}>
+                      <Link
+                        to={`/offers/${o.id}`}
+                        className={o.status === 'GIVEN' ? `${styles.card} ${styles.cardCompleted}` : styles.card}
+                      >
                         <div className={styles.thumb}>
                           {o.imageUrl
                             ? <img src={o.imageUrl} className={styles.cardImage} alt={o.title} />
                             : <div className={styles.thumbEmpty} />}
                           <span className={styles.categoryPill}>{tCat(o.category)}</span>
+                          {o.status === 'RESERVED' && (
+                            <Badge variant="warning" className={styles.statusPill}>{t('status.RESERVED')}</Badge>
+                          )}
+                          {o.status === 'GIVEN' && (
+                            <Badge variant="neutral" className={styles.statusPill}>{t('status.GIVEN')}</Badge>
+                          )}
                         </div>
                         <div className={styles.body}>
                           <h3>{o.title}</h3>

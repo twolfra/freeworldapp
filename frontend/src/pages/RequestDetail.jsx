@@ -4,7 +4,7 @@ import { requests as requestsApi, images as imagesApi, likes as likesApi, admin 
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat } from '../i18n';
 import ReportButton from '../components/ReportButton';
-import { ConfirmModal, useToast } from '../components/ui';
+import { Button, ConfirmModal, useToast } from '../components/ui';
 import styles from './RequestDetail.module.css';
 
 const CATEGORIES = [
@@ -25,7 +25,8 @@ export default function RequestDetail() {
   const [newImageFile, setNewImageFile] = useState(null);
   const [editError, setEditError] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'delete' | 'adminDelete'
+  const [confirmAction, setConfirmAction] = useState(null); // 'delete' | 'adminDelete' | 'fulfilled'
+  const [statusSaving, setStatusSaving] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const { user: currentUser } = useAuth();
@@ -129,6 +130,20 @@ export default function RequestDetail() {
     }
   }
 
+  async function changeStatus(status) {
+    setStatusSaving(true);
+    try {
+      const updated = await requestsApi.setStatus(id, status);
+      setRequest(updated);
+      toast.success(t('detail.statusUpdated'));
+    } catch (err) {
+      toast.error(t('detail.statusErr') + err.message);
+    } finally {
+      setStatusSaving(false);
+      setConfirmAction(null);
+    }
+  }
+
   async function toggleLike() {
     if (!currentUser) {
       navigate('/login');
@@ -155,6 +170,11 @@ export default function RequestDetail() {
     <main className={styles.page}>
       <Link to="/requests" className={styles.back}>{t('detail.backRequests')}</Link>
       <div className={styles.card}>
+        {request.status === 'FULFILLED' && (
+          <div className={styles.completedBanner}>
+            <span>{t('detail.fulfilledBanner')}</span>
+          </div>
+        )}
         {!editing && request.imageUrl && <img src={request.imageUrl} className={styles.image} alt={request.title} />}
         <span className={styles.category}>{tCat(request.category)}</span>
         <h1>{request.title}</h1>
@@ -196,6 +216,25 @@ export default function RequestDetail() {
             <button className={styles.deleteBtn} onClick={() => setConfirmAction('delete')}>
               {t('detail.delete')}
             </button>
+          </div>
+        )}
+        {isOwnPost && !editing && (
+          <div className={styles.statusSection}>
+            <h3>{t('detail.statusHeading')}</h3>
+            <div className={styles.statusButtons}>
+              {['OPEN', 'FULFILLED'].map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={(request.status ?? 'OPEN') === s ? 'primary' : 'secondary'}
+                  disabled={(request.status ?? 'OPEN') === s || statusSaving}
+                  onClick={() => (s === 'FULFILLED' ? setConfirmAction('fulfilled') : changeStatus(s))}
+                >
+                  {t('status.' + s)}
+                </Button>
+              ))}
+            </div>
+            <p className={styles.statusHint}>{t('detail.statusHintRequest')}</p>
           </div>
         )}
         {isAdmin && !isOwnPost && !editing && (
@@ -275,10 +314,18 @@ export default function RequestDetail() {
       </div>
       <ConfirmModal
         open={confirmAction !== null}
-        message={confirmAction === 'adminDelete' ? t('admin.confirmDelete') : t('detail.confirmRequest')}
-        danger
-        confirmLabel={t('detail.delete')}
-        onConfirm={confirmAction === 'adminDelete' ? handleAdminDelete : handleDelete}
+        message={
+          confirmAction === 'fulfilled' ? t('detail.confirmFulfilled')
+          : confirmAction === 'adminDelete' ? t('admin.confirmDelete')
+          : t('detail.confirmRequest')
+        }
+        danger={confirmAction !== 'fulfilled'}
+        confirmLabel={confirmAction === 'fulfilled' ? t('status.FULFILLED') : t('detail.delete')}
+        onConfirm={
+          confirmAction === 'fulfilled' ? () => changeStatus('FULFILLED')
+          : confirmAction === 'adminDelete' ? handleAdminDelete
+          : handleDelete
+        }
         onCancel={() => setConfirmAction(null)}
       />
     </main>

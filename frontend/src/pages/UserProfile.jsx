@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { users, offers as offersApi, requests as requestsApi, subscriptions as subsApi, notifications } from '../api/client';
+import { users, offers as offersApi, requests as requestsApi, subscriptions as subsApi, notifications, thanks as thanksApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
-import { t, tCat } from '../i18n';
+import { t, tCat, tp } from '../i18n';
 import ReportButton from '../components/ReportButton';
 import styles from './UserProfile.module.css';
 
@@ -18,6 +18,7 @@ export default function UserProfile() {
   const [error, setError]           = useState(null);
   const [notifyOnMessage, setNotifyOnMessage] = useState(currentUser?.notifyOnMessage ?? true);
   const [notifySaving, setNotifySaving]       = useState(false);
+  const [thanksList, setThanksList]           = useState([]);
 
   const isSelf = currentUser?.id === id;
 
@@ -53,6 +54,12 @@ export default function UserProfile() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    thanksApi.forUser(id)
+      .then(setThanksList)
+      .catch(() => setThanksList([]));
+  }, [id]);
+
   const handleSubscribe = async () => {
     if (!currentUser) return;
     setSubLoading(true);
@@ -76,6 +83,8 @@ export default function UserProfile() {
     year: 'numeric', month: 'long',
   });
 
+  const givenCount = offers.filter((o) => o.status === 'GIVEN').length;
+
   return (
     <main className={styles.page}>
       <div className={styles.hero}>
@@ -86,6 +95,11 @@ export default function UserProfile() {
           <div className={styles.statsRow}>
             <span className={styles.stat}>{offers.length} {offers.length !== 1 ? t('profile.offers') : t('profile.offer')}</span>
             <span className={styles.stat}>{reqs.length} {reqs.length !== 1 ? t('profile.requests') : t('profile.request')}</span>
+            {givenCount > 0 && (
+              <span className={styles.stat}>
+                {givenCount === 1 ? t('profile.givenAwayOne') : tp('profile.givenAway', { n: givenCount })}
+              </span>
+            )}
             {!isSelf && currentUser && (
               <>
                 <Link to={`/messages/${id}`} className={styles.msgBtn}>{t('profile.contact')}</Link>
@@ -159,6 +173,35 @@ export default function UserProfile() {
             </ul>
         }
       </section>
+
+      {thanksList.length > 0 && (
+        <section className={styles.section}>
+          <h2>{t('profile.thanksSection')} 🎁</h2>
+          <ul className={styles.thanksList}>
+            {thanksList.map((th) => (
+              <li key={th.id} className={styles.thanksItem}>
+                <div className={styles.thanksHead}>
+                  <Link to={`/users/${th.fromUserId}`} className={styles.thanksFrom}>
+                    @{th.fromUsername}
+                  </Link>
+                  {th.offerTitle && (
+                    <span className={styles.thanksMeta}>
+                      {t('profile.thanksFor')} “{th.offerTitle}”
+                    </span>
+                  )}
+                  <span className={styles.thanksMeta}>
+                    · {new Date(th.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </span>
+                  {currentUser && currentUser.id !== th.fromUserId && (
+                    <ReportButton targetType="THANKS" targetId={th.id} />
+                  )}
+                </div>
+                {th.text && <p className={styles.thanksText}>“{th.text}”</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   );
 }

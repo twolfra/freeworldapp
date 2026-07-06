@@ -262,3 +262,75 @@
 }
 
 .removeImageBtn:hover { background: var(--border); }
+
+/* ---------- Lifecycle status (AP 2.3) ---------- */
+.completedBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  background: var(--success-soft);
+  color: var(--success);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.statusRow {
+  margin: 0.3rem 0 0.5rem;
+}
+
+.statusSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.statusSection h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  font-size: 0.95rem;
+  margin-bottom: 0.55rem;
+}
+
+.interestedNote {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.statusButtons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.statusHint {
+  font-size: 0.8rem;
+  color: var(--muted-soft);
+  margin-top: 0.5rem;
+}
+
+/* ---------- Thanks modal (AP 2.5) ---------- */
+.thanksIntro {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 0.8rem;
+}
+
+.charCount {
+  font-size: 0.78rem;
+  color: var(--muted-soft);
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+.thanksActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}

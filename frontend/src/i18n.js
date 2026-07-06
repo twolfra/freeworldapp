@@ -62,6 +62,13 @@ const T = {
     'list.qty': 'qty',
     'list.pagePrev': '← Prev', 'list.pageNext': 'Next →',
     'list.pageInfo': 'Page {n} of {total}',
+    'list.showGiven': 'Also show given away',
+    'list.showFulfilled': 'Also show fulfilled',
+
+    // Post lifecycle status
+    'status.ACTIVE': 'Active', 'status.RESERVED': 'Reserved', 'status.GIVEN': 'Given away',
+    'status.OPEN': 'Open', 'status.FULFILLED': 'Fulfilled',
+    'status.reservedFor': 'Reserved for @{user}',
 
     'offers.heading': 'Offers', 'offers.count': '{n} available',
     'offers.cta': '+ Give something away', 'offers.noMatch': 'No offers match your search.',
@@ -84,6 +91,26 @@ const T = {
     'detail.loadErrOffer': 'Could not load offer: ',
     'detail.loadErrRequest': 'Could not load request: ',
     'detail.loading': 'Loading…',
+    'detail.givenBanner': '🎁 This item has been given away.',
+    'detail.fulfilledBanner': '✅ This request has been fulfilled.',
+    'detail.statusHeading': 'Status',
+    'detail.statusHint': 'Reserved marks the item as promised to someone — you can arrange the details in the conversation. Given away hides it from the main list.',
+    'detail.statusHintRequest': 'Fulfilled hides the request from the main list.',
+    'detail.confirmGiven': 'Mark this offer as given away? It will be hidden from the main list.',
+    'detail.confirmFulfilled': 'Mark this request as fulfilled? It will be hidden from the main list.',
+    'detail.statusUpdated': 'Status updated.',
+    'detail.statusErr': 'Could not update status: ',
+    'detail.interestedCount': '{n} interested',
+    'detail.interested': "I'm interested",
+    'detail.thanksBtn': 'Say thanks 🎁',
+
+    // Thanks
+    'thanks.title': 'Say thanks',
+    'thanks.intro': 'A small thank-you to the giver — it will appear on their profile.',
+    'thanks.textLabel': 'Message (optional)',
+    'thanks.placeholder': 'Thank you so much!',
+    'thanks.send': 'Send thanks',
+    'thanks.sent': 'Thanks sent! 🎁',
 
     // Edit form
     'edit.offer': 'Edit Offer', 'edit.request': 'Edit Request',
@@ -133,6 +160,10 @@ const T = {
     'profile.settings': 'Settings',
     'profile.notifyMessages': 'Email me about new messages',
     'profile.notifyMessagesHint': 'Get an email when someone sends you a direct message and you\'re offline.',
+    'profile.givenAway': '🎁 Given away {n} times',
+    'profile.givenAwayOne': '🎁 Given away once',
+    'profile.thanksSection': 'Thanks',
+    'profile.thanksFor': 'for',
 
     // Inbox
     'inbox.title': 'Messages',
@@ -226,6 +257,7 @@ const T = {
     'conv.signInLink': 'sign in',
     'conv.connLost': 'Connection lost. Please refresh to reconnect.',
     'conv.userNotFound': 'User not found.',
+    'conv.ctxOffer': 'Offer', 'conv.ctxRequest': 'Request',
 
     // Report
     'report.button': 'Report',
@@ -251,7 +283,7 @@ const T = {
     'admin.noReports': 'No open reports. All clear!',
     'admin.reportedItem': 'Reported item', 'admin.author': 'Author', 'admin.reportedBy': 'Reported by',
     'admin.target.OFFER': 'Offer', 'admin.target.REQUEST': 'Request', 'admin.target.USER': 'User',
-    'admin.target.REPORT': 'Report',
+    'admin.target.REPORT': 'Report', 'admin.target.THANKS': 'Thanks',
     'admin.targetGone': 'No longer exists',
     'admin.deletePost': 'Delete post', 'admin.blockAuthor': 'Block author', 'admin.dismiss': 'Dismiss',
     'admin.deletePostBtn': 'Delete (admin)',
@@ -327,6 +359,13 @@ const T = {
     'list.qty': 'Anz.',
     'list.pagePrev': '← Zurück', 'list.pageNext': 'Weiter →',
     'list.pageInfo': 'Seite {n} von {total}',
+    'list.showGiven': 'Auch Vergebenes zeigen',
+    'list.showFulfilled': 'Auch Erfülltes zeigen',
+
+    // Post lifecycle status
+    'status.ACTIVE': 'Aktiv', 'status.RESERVED': 'Reserviert', 'status.GIVEN': 'Verschenkt',
+    'status.OPEN': 'Offen', 'status.FULFILLED': 'Erfüllt',
+    'status.reservedFor': 'Reserviert für @{user}',
 
     'offers.heading': 'Angebote', 'offers.count': '{n} verfügbar',
     'offers.cta': '+ Etwas verschenken', 'offers.noMatch': 'Keine Angebote gefunden.',
@@ -349,6 +388,26 @@ const T = {
     'detail.loadErrOffer': 'Angebot konnte nicht geladen werden: ',
     'detail.loadErrRequest': 'Gesuch konnte nicht geladen werden: ',
     'detail.loading': 'Wird geladen…',
+    'detail.givenBanner': '🎁 Dieser Artikel wurde verschenkt.',
+    'detail.fulfilledBanner': '✅ Dieses Gesuch wurde erfüllt.',
+    'detail.statusHeading': 'Status',
+    'detail.statusHint': 'Reserviert markiert den Artikel als jemandem versprochen — die Details könnt ihr in der Konversation klären. Verschenkt blendet ihn aus der Hauptliste aus.',
+    'detail.statusHintRequest': 'Erfüllt blendet das Gesuch aus der Hauptliste aus.',
+    'detail.confirmGiven': 'Dieses Angebot als verschenkt markieren? Es wird aus der Hauptliste ausgeblendet.',
+    'detail.confirmFulfilled': 'Dieses Gesuch als erfüllt markieren? Es wird aus der Hauptliste ausgeblendet.',
+    'detail.statusUpdated': 'Status aktualisiert.',
+    'detail.statusErr': 'Status konnte nicht aktualisiert werden: ',
+    'detail.interestedCount': '{n} Interessierte',
+    'detail.interested': 'Ich habe Interesse',
+    'detail.thanksBtn': 'Danke sagen 🎁',
+
+    // Thanks
+    'thanks.title': 'Danke sagen',
+    'thanks.intro': 'Ein kleines Dankeschön an den Schenkenden — es erscheint auf seinem Profil.',
+    'thanks.textLabel': 'Nachricht (optional)',
+    'thanks.placeholder': 'Vielen Dank!',
+    'thanks.send': 'Danke senden',
+    'thanks.sent': 'Danke gesendet! 🎁',
 
     // Edit form
     'edit.offer': 'Angebot bearbeiten', 'edit.request': 'Gesuch bearbeiten',
@@ -398,6 +457,10 @@ const T = {
     'profile.settings': 'Einstellungen',
     'profile.notifyMessages': 'E-Mail bei neuen Nachrichten',
     'profile.notifyMessagesHint': 'Erhalte eine E-Mail, wenn dir jemand eine Nachricht schickt und du offline bist.',
+    'profile.givenAway': '🎁 {n} Mal verschenkt',
+    'profile.givenAwayOne': '🎁 1 Mal verschenkt',
+    'profile.thanksSection': 'Danksagungen',
+    'profile.thanksFor': 'für',
 
     // Inbox
     'inbox.title': 'Nachrichten',
@@ -491,6 +554,7 @@ const T = {
     'conv.signInLink': 'anmelden',
     'conv.connLost': 'Verbindung unterbrochen. Bitte Seite neu laden.',
     'conv.userNotFound': 'Benutzer nicht gefunden.',
+    'conv.ctxOffer': 'Angebot', 'conv.ctxRequest': 'Gesuch',
 
     // Report
     'report.button': 'Melden',
@@ -516,7 +580,7 @@ const T = {
     'admin.noReports': 'Keine offenen Meldungen. Alles in Ordnung!',
     'admin.reportedItem': 'Gemeldeter Eintrag', 'admin.author': 'Autor', 'admin.reportedBy': 'Gemeldet von',
     'admin.target.OFFER': 'Angebot', 'admin.target.REQUEST': 'Gesuch', 'admin.target.USER': 'Nutzer',
-    'admin.target.REPORT': 'Meldung',
+    'admin.target.REPORT': 'Meldung', 'admin.target.THANKS': 'Danksagung',
     'admin.targetGone': 'Existiert nicht mehr',
     'admin.deletePost': 'Beitrag löschen', 'admin.blockAuthor': 'Autor sperren', 'admin.dismiss': 'Verwerfen',
     'admin.deletePostBtn': 'Löschen (Admin)',

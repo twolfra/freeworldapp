@@ -281,3 +281,30 @@
     font-size: 0.83rem;
   }
 }
+
+/* ---------- Lifecycle status (AP 2.3) ---------- */
+.statusPill {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+}
+
+.cardCompleted { opacity: 0.6; }
+.cardCompleted:hover { opacity: 0.85; }
+
+.completedToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.completedToggle input {
+  accent-color: var(--green);
+  cursor: pointer;
+}
