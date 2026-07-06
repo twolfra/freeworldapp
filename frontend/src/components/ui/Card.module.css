@@ -1,0 +1,9 @@
+.card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.padded {
+  padding: var(--space-5);
+}

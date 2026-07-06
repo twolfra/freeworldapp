@@ -1,0 +1,11 @@
+.field { composes: field from './Input.module.css'; }
+.label { composes: label from './Input.module.css'; }
+.error { composes: error from './Input.module.css'; }
+.invalid { composes: invalid from './Input.module.css'; }
+
+.textarea {
+  composes: control from './Input.module.css';
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.5;
+}

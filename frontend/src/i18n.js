@@ -31,6 +31,12 @@ const T = {
     'nav.messages': 'Messages', 'nav.following': 'Following', 'nav.likes': 'Likes',
     'nav.admin': 'Admin',
     'nav.signIn': 'Sign in', 'nav.join': 'Join', 'nav.signOut': 'Sign out',
+    'nav.themeDark': 'Switch to dark mode', 'nav.themeLight': 'Switch to light mode',
+
+    // Shared UI components
+    'ui.confirm': 'Confirm', 'ui.cancel': 'Cancel',
+    'ui.close': 'Close', 'ui.dismiss': 'Dismiss',
+    'ui.loading': 'Loading…',
 
     // Home
     'home.title': 'Everything here is', 'home.titleAccent': 'free',
@@ -290,6 +296,12 @@ const T = {
     'nav.messages': 'Nachrichten', 'nav.following': 'Abonniert', 'nav.likes': 'Likes',
     'nav.admin': 'Admin',
     'nav.signIn': 'Anmelden', 'nav.join': 'Registrieren', 'nav.signOut': 'Abmelden',
+    'nav.themeDark': 'Dunklen Modus aktivieren', 'nav.themeLight': 'Hellen Modus aktivieren',
+
+    // Shared UI components
+    'ui.confirm': 'Bestätigen', 'ui.cancel': 'Abbrechen',
+    'ui.close': 'Schließen', 'ui.dismiss': 'Ausblenden',
+    'ui.loading': 'Wird geladen…',
 
     // Home
     'home.title': 'Hier ist alles', 'home.titleAccent': 'kostenlos',

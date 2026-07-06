@@ -3,13 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { messages as messagesApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t, getLang, setLang } from '../i18n';
+import { resolvedTheme, setTheme } from '../theme';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
   const { user: currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [unread, setUnread] = useState(0);
+  const [theme, setThemeState] = useState(resolvedTheme);
   const lang = getLang();
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    setThemeState(next);
+  }
 
   useEffect(() => {
     if (!currentUser?.token) return;
@@ -63,6 +71,14 @@ export default function Navbar() {
         </nav>
 
         <div className={styles.actions}>
+          <button
+            className={styles.themeToggle}
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}
+            title={theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}
+          >
+            <span aria-hidden="true">{theme === 'dark' ? '☀️' : '🌙'}</span>
+          </button>
           <button
             className={styles.langToggle}
             onClick={() => setLang(lang === 'de' ? 'en' : 'de')}

@@ -1,0 +1,9 @@
+.field { composes: field from './Input.module.css'; }
+.label { composes: label from './Input.module.css'; }
+.error { composes: error from './Input.module.css'; }
+.invalid { composes: invalid from './Input.module.css'; }
+
+.select {
+  composes: control from './Input.module.css';
+  cursor: pointer;
+}
