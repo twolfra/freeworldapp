@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { users, offers as offersApi, requests as requestsApi, subscriptions as subsApi, notifications } from '../api/client';
 import { t, tCat } from '../i18n';
 import ReportButton from '../components/ReportButton';
 import styles from './UserProfile.module.css';
 
-export default function UserProfile({ id }) {
+export default function UserProfile() {
+  const { id } = useParams();
   const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
   const [user, setUser]             = useState(null);
   const [offers, setOffers]         = useState([]);
@@ -89,7 +91,7 @@ export default function UserProfile({ id }) {
             <span className={styles.stat}>{reqs.length} {reqs.length !== 1 ? t('profile.requests') : t('profile.request')}</span>
             {!isSelf && currentUser && (
               <>
-                <a href={`/messages/${id}`} className={styles.msgBtn}>{t('profile.contact')}</a>
+                <Link to={`/messages/${id}`} className={styles.msgBtn}>{t('profile.contact')}</Link>
                 <button
                   className={subscribed ? styles.subBtnActive : styles.subBtn}
                   onClick={handleSubscribe}
@@ -101,7 +103,7 @@ export default function UserProfile({ id }) {
               </>
             )}
             {!isSelf && !currentUser && (
-              <a href="/login" className={styles.msgBtn}>{t('profile.signInContact')}</a>
+              <Link to="/login" className={styles.msgBtn}>{t('profile.signInContact')}</Link>
             )}
           </div>
         </div>
@@ -130,12 +132,12 @@ export default function UserProfile({ id }) {
           : <ul className={styles.grid}>
               {offers.map((o) => (
                 <li key={o.id}>
-                  <a href={`/offers/${o.id}`} className={styles.card}>
+                  <Link to={`/offers/${o.id}`} className={styles.card}>
                     <span className={styles.category} style={{ color: '#2e7d32' }}>{tCat(o.category)}</span>
                     <h3>{o.title}</h3>
                     <p>{o.description}</p>
                     <footer>{o.region} · {t('list.qty')} {o.quantity}</footer>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -149,12 +151,12 @@ export default function UserProfile({ id }) {
           : <ul className={styles.grid}>
               {reqs.map((r) => (
                 <li key={r.id}>
-                  <a href={`/requests/${r.id}`} className={styles.card}>
+                  <Link to={`/requests/${r.id}`} className={styles.card}>
                     <span className={styles.category}>{tCat(r.category)}</span>
                     <h3>{r.title}</h3>
                     <p>{r.description}</p>
                     <footer>{r.region} · {t('list.qty')} {r.quantity}</footer>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

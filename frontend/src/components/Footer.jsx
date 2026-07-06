@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { t } from '../i18n';
 import styles from './Footer.module.css';
 
@@ -7,10 +8,10 @@ export default function Footer() {
       <div className={styles.inner}>
         <span className={styles.copy}>{t('footer.copy')}</span>
         <nav className={styles.links}>
-          <a href="/contact">{t('footer.contact')}</a>
-          <a href="/impressum">{t('footer.impressum')}</a>
-          <a href="/datenschutz">{t('footer.datenschutz')}</a>
-          <a href="/terms">{t('footer.terms')}</a>
+          <Link to="/contact">{t('footer.contact')}</Link>
+          <Link to="/impressum">{t('footer.impressum')}</Link>
+          <Link to="/datenschutz">{t('footer.datenschutz')}</Link>
+          <Link to="/terms">{t('footer.terms')}</Link>
         </nav>
       </div>
     </footer>

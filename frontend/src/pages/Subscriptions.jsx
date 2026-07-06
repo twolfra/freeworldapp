@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { subscriptions as subsApi } from '../api/client';
 import { t, tCat, tp } from '../i18n';
 import styles from './Subscriptions.module.css';
@@ -23,7 +24,7 @@ export default function Subscriptions() {
   if (!currentUser) return (
     <main className={styles.page}>
       <p className={styles.status}>
-        Please <a href="/login">{t('subs.signInLink')}</a> {t('subs.signIn').replace('Please {link} ', '')}
+        Please <Link to="/login">{t('subs.signInLink')}</Link> {t('subs.signIn').replace('Please {link} ', '')}
       </p>
     </main>
   );
@@ -43,23 +44,23 @@ export default function Subscriptions() {
       {feed.length === 0
         ? <p className={styles.empty}>
             {t('subs.emptyStart')}{' '}
-            <a href="/offers">{t('subs.browseOffers')}</a>{' '}
+            <Link to="/offers">{t('subs.browseOffers')}</Link>{' '}
             {t('subs.browseOr')}{' '}
-            <a href="/requests">{t('subs.browseRequests')}</a>{' '}
+            <Link to="/requests">{t('subs.browseRequests')}</Link>{' '}
             {t('subs.emptyEnd')}
           </p>
         : <>
             <ul className={styles.feed}>
               {pageItems.map((item) => (
                 <li key={`${item.type}-${item.id}`}>
-                  <a href={`/${item.type}s/${item.id}`} className={styles.card}>
+                  <Link to={`/${item.type}s/${item.id}`} className={styles.card}>
                     <div className={styles.cardTop}>
                       <span className={`${styles.badge} ${item.type === 'offer' ? styles.badgeOffer : styles.badgeRequest}`}>
                         {item.type === 'offer' ? t('subs.offer') : t('subs.request')}
                       </span>
                       <span className={styles.category}>{tCat(item.category)}</span>
                       <span className={styles.meta}>
-                        by <a href={`/users/${item.authorId}`} className={styles.authorLink} onClick={(e) => e.stopPropagation()}>{item.authorUsername}</a>
+                        by <Link to={`/users/${item.authorId}`} className={styles.authorLink} onClick={(e) => e.stopPropagation()}>{item.authorUsername}</Link>
                         {' · '}
                         {new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
@@ -67,7 +68,7 @@ export default function Subscriptions() {
                     <h3>{item.title}</h3>
                     <p>{item.description}</p>
                     <footer>{item.region} · {t('list.qty')} {item.quantity}</footer>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { auth } from '../api/client';
 import { t } from '../i18n';
 import styles from './VerifyEmail.module.css';
 
 export default function VerifyEmail() {
-  const params = new URLSearchParams(window.location.search);
+  const [params] = useSearchParams();
   const token = params.get('token');
   const prefilledEmail = params.get('email') || '';
   const resendMode = !token && (params.get('resend') === '1' || prefilledEmail);
@@ -50,7 +51,7 @@ export default function VerifyEmail() {
           <>
             <h2 className={styles.success}>{t('verify.success')}</h2>
             <p>{t('verify.successText')}</p>
-            <a href="/login" className="btn-primary" style={{ textAlign: 'center' }}>{t('verify.signIn')}</a>
+            <Link to="/login" className="btn-primary" style={{ textAlign: 'center' }}>{t('verify.signIn')}</Link>
           </>
         )}
 

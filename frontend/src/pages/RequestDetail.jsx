@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { requests as requestsApi, images as imagesApi, likes as likesApi, admin as adminApi } from '../api/client';
 import { t, tCat } from '../i18n';
 import ReportButton from '../components/ReportButton';
@@ -10,7 +11,9 @@ const CATEGORIES = [
   'Childcare', 'Transport', 'Other',
 ];
 
-export default function RequestDetail({ id }) {
+export default function RequestDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,7 +57,7 @@ export default function RequestDetail({ id }) {
     setDeleting(true);
     try {
       await adminApi.deleteRequest(id);
-      window.location.href = '/requests';
+      navigate('/requests');
     } catch (err) {
       alert(t('detail.deleteErr') + err.message);
       setDeleting(false);
@@ -120,7 +123,7 @@ export default function RequestDetail({ id }) {
     setDeleting(true);
     try {
       await requestsApi.remove(id);
-      window.location.href = '/requests';
+      navigate('/requests');
     } catch (err) {
       alert(t('detail.deleteErr') + err.message);
       setDeleting(false);
@@ -129,7 +132,7 @@ export default function RequestDetail({ id }) {
 
   async function toggleLike() {
     if (!currentUser) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
     try {
@@ -149,23 +152,23 @@ export default function RequestDetail({ id }) {
 
   return (
     <main className={styles.page}>
-      <a href="/requests" className={styles.back}>{t('detail.backRequests')}</a>
+      <Link to="/requests" className={styles.back}>{t('detail.backRequests')}</Link>
       <div className={styles.card}>
         {!editing && request.imageUrl && <img src={request.imageUrl} className={styles.image} alt={request.title} />}
         <span className={styles.category}>{tCat(request.category)}</span>
         <h1>{request.title}</h1>
         <div className={styles.authorRow}>
           <span>{t('detail.postedBy')}</span>
-          <a href={`/users/${request.requestedById}`} className={styles.authorLink}>
+          <Link to={`/users/${request.requestedById}`} className={styles.authorLink}>
             {request.requestedByUsername}
-          </a>
+          </Link>
           {!isOwnPost && currentUser && (
-            <a href={`/messages/${request.requestedById}`} className={styles.contactBtn}>
+            <Link to={`/messages/${request.requestedById}`} className={styles.contactBtn}>
               {t('detail.contact')}
-            </a>
+            </Link>
           )}
           {!currentUser && (
-            <a href="/login" className={styles.contactBtn}>{t('detail.signInContact')}</a>
+            <Link to="/login" className={styles.contactBtn}>{t('detail.signInContact')}</Link>
           )}
           <button
             onClick={toggleLike}

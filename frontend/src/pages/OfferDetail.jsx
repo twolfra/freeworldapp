@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { offers as offersApi, images as imagesApi, likes as likesApi, admin as adminApi } from '../api/client';
 import { t, tCat } from '../i18n';
 import ReportButton from '../components/ReportButton';
@@ -10,7 +11,9 @@ const CATEGORIES = [
   'Childcare', 'Transport', 'Other',
 ];
 
-export default function OfferDetail({ id }) {
+export default function OfferDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [offer, setOffer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,7 +57,7 @@ export default function OfferDetail({ id }) {
     setDeleting(true);
     try {
       await adminApi.deleteOffer(id);
-      window.location.href = '/offers';
+      navigate('/offers');
     } catch (err) {
       alert(t('detail.deleteErr') + err.message);
       setDeleting(false);
@@ -120,7 +123,7 @@ export default function OfferDetail({ id }) {
     setDeleting(true);
     try {
       await offersApi.remove(id);
-      window.location.href = '/offers';
+      navigate('/offers');
     } catch (err) {
       alert(t('detail.deleteErr') + err.message);
       setDeleting(false);
@@ -129,7 +132,7 @@ export default function OfferDetail({ id }) {
 
   async function toggleLike() {
     if (!currentUser) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
     try {
@@ -149,23 +152,23 @@ export default function OfferDetail({ id }) {
 
   return (
     <main className={styles.page}>
-      <a href="/offers" className={styles.back} style={{ color: '#2e7d32' }}>{t('detail.backOffers')}</a>
+      <Link to="/offers" className={styles.back} style={{ color: '#2e7d32' }}>{t('detail.backOffers')}</Link>
       <div className={styles.card}>
         {!editing && offer.imageUrl && <img src={offer.imageUrl} className={styles.image} alt={offer.title} />}
         <span className={styles.category} style={{ color: '#2e7d32' }}>{tCat(offer.category)}</span>
         <h1>{offer.title}</h1>
         <div className={styles.authorRow}>
           <span>{t('detail.postedBy')}</span>
-          <a href={`/users/${offer.offeredById}`} className={styles.authorLink}>
+          <Link to={`/users/${offer.offeredById}`} className={styles.authorLink}>
             {offer.offeredByUsername}
-          </a>
+          </Link>
           {!isOwnPost && currentUser && (
-            <a href={`/messages/${offer.offeredById}`} className={styles.contactBtn}>
+            <Link to={`/messages/${offer.offeredById}`} className={styles.contactBtn}>
               {t('detail.contact')}
-            </a>
+            </Link>
           )}
           {!currentUser && (
-            <a href="/login" className={styles.contactBtn}>{t('detail.signInContact')}</a>
+            <Link to="/login" className={styles.contactBtn}>{t('detail.signInContact')}</Link>
           )}
           <button
             onClick={toggleLike}

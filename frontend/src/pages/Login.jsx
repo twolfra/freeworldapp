@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { auth } from '../api/client';
 import { t } from '../i18n';
 import styles from './Register.module.css';
@@ -38,9 +39,9 @@ export default function Login() {
         {unverified && (
           <p className={styles.error}>
             {t('login.unverified')}{' '}
-            <a href="/verify-email?resend=1" style={{ color: '#c62828' }}>
+            <Link to="/verify-email?resend=1" style={{ color: '#c62828' }}>
               {t('login.resend')}
-            </a>
+            </Link>
           </p>
         )}
         <label>
@@ -53,7 +54,7 @@ export default function Login() {
         </label>
         <button type="submit" className="btn-primary">{t('login.submit')}</button>
         <p style={{ fontSize: '0.88rem', textAlign: 'center', color: '#666' }}>
-          {t('login.noAccount')} <a href="/register" style={{ color: '#2e7d32' }}>{t('login.join')}</a>
+          {t('login.noAccount')} <Link to="/register" style={{ color: '#2e7d32' }}>{t('login.join')}</Link>
         </p>
       </form>
     </main>

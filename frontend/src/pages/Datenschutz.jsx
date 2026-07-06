@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import styles from './Legal.module.css';
 
 export default function Datenschutz() {
@@ -69,7 +70,7 @@ export default function Datenschutz() {
           Tim Wolfram<br />
           Torgauer Str. 20<br />
           04315 Leipzig<br />
-          Kontakt: <a href="/contact">Kontaktformular</a>
+          Kontakt: <Link to="/contact">Kontaktformular</Link>
         </p>
 
         <h3>Widerruf Ihrer Einwilligung zur Datenverarbeitung</h3>
@@ -127,7 +128,7 @@ export default function Datenschutz() {
           Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der
           Verarbeitung und Datenübertragbarkeit Ihrer bei uns gespeicherten
           personenbezogenen Daten. Wenden Sie sich dazu an:
-          <a href="/contact">Kontaktformular</a>.
+          <Link to="/contact">Kontaktformular</Link>.
         </p>
         <p>
           Sie haben außerdem das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu

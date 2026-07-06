@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { offers, images as imagesApi } from '../api/client';
 import { t, tCat } from '../i18n';
 import styles from './OfferForm.module.css';
@@ -23,7 +24,7 @@ export default function OfferForm() {
     <main className={styles.page}>
       <div className={styles.card}>
         <h2>{t('form.signInTitle')}</h2>
-        <p>{t('form.signInOffer')} <a href="/login">{t('form.signIn')}</a> or <a href="/register">{t('form.join')}</a>.</p>
+        <p>{t('form.signInOffer')} <Link to="/login">{t('form.signIn')}</Link> or <Link to="/register">{t('form.join')}</Link>.</p>
       </div>
     </main>
   );
@@ -63,7 +64,7 @@ export default function OfferForm() {
     <main className={styles.page}>
       <div className={styles.card}>
         <h2>{t('offerForm.doneTitle')}</h2>
-        <p>{t('offerForm.doneText')} <a href="/offers">{t('offerForm.doneSee')}</a> or <a href="/offers/new">{t('offerForm.doneAnother')}</a>.</p>
+        <p>{t('offerForm.doneText')} <Link to="/offers">{t('offerForm.doneSee')}</Link> or <Link to="/offers/new">{t('offerForm.doneAnother')}</Link>.</p>
       </div>
     </main>
   );

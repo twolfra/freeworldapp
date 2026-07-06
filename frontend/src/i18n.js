@@ -243,6 +243,11 @@ const T = {
     'footer.contact': 'Contact', 'footer.impressum': 'Legal Notice', 'footer.datenschutz': 'Privacy Policy', 'footer.terms': 'Terms & Conditions',
     'footer.copy': '© 2025 FreeWorld',
 
+    // 404
+    'notfound.title': 'Page not found',
+    'notfound.text': 'The page you are looking for does not exist or has been moved.',
+    'notfound.home': 'Back to the home page',
+
     // Shared
     'qty': 'qty',
   },
@@ -464,6 +469,11 @@ const T = {
 
     'footer.contact': 'Kontakt', 'footer.impressum': 'Impressum', 'footer.datenschutz': 'Datenschutz', 'footer.terms': 'AGB',
     'footer.copy': '© 2025 FreeWorld',
+
+    // 404
+    'notfound.title': 'Seite nicht gefunden',
+    'notfound.text': 'Die gesuchte Seite existiert nicht oder wurde verschoben.',
+    'notfound.home': 'Zurück zur Startseite',
 
     // Shared
     'qty': 'Anz.',

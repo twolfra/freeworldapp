@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { admin as adminApi } from '../api/client';
 import { t } from '../i18n';
 import styles from './Admin.module.css';
@@ -11,7 +12,7 @@ export default function Admin() {
     return (
       <main className={styles.page}>
         <p className={styles.status}>
-          {t('admin.signIn')} <a href="/login">{t('admin.signInLink')}</a>
+          {t('admin.signIn')} <Link to="/login">{t('admin.signInLink')}</Link>
         </p>
       </main>
     );
@@ -110,13 +111,13 @@ function ReportsTab({ currentUser }) {
             <p>
               <strong>{t('admin.reportedItem')}:</strong>{' '}
               {r.targetExists
-                ? <a href={postLink(r)}>{r.targetTitle || r.targetId}</a>
+                ? <Link to={postLink(r)}>{r.targetTitle || r.targetId}</Link>
                 : <em>{t('admin.targetGone')}</em>}
             </p>
             {r.targetAuthorUsername && (
               <p>
                 <strong>{t('admin.author')}:</strong>{' '}
-                <a href={`/users/${r.targetAuthorId}`}>{r.targetAuthorUsername}</a>
+                <Link to={`/users/${r.targetAuthorId}`}>{r.targetAuthorUsername}</Link>
                 {r.targetAuthorBlocked && <span className={styles.blockedTag}>{t('admin.blocked')}</span>}
               </p>
             )}
@@ -206,7 +207,7 @@ function UsersTab({ currentUser }) {
         <tbody>
           {users.map((u) => (
             <tr key={u.id} className={u.blocked ? styles.blockedRow : undefined}>
-              <td><a href={`/users/${u.id}`}>{u.username}</a></td>
+              <td><Link to={`/users/${u.id}`}>{u.username}</Link></td>
               <td className={styles.dim}>{u.email}</td>
               <td>{u.role === 'ADMIN' ? <span className={styles.adminTag}>ADMIN</span> : 'USER'}</td>
               <td className={styles.dim}>{u.offerCount + u.requestCount}</td>

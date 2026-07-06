@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { users } from '../api/client';
 import { t, getLang } from '../i18n';
 import styles from './Register.module.css';
@@ -34,11 +35,11 @@ export default function Register() {
           <p className={styles.sub}>{t('register.checkHint')}</p>
           <p className={styles.sub}>
             {t('register.checkSpam')}{' '}
-            <a href={`/verify-email?resend=1&email=${encodeURIComponent(registeredEmail)}`}>
+            <Link to={`/verify-email?resend=1&email=${encodeURIComponent(registeredEmail)}`}>
               {t('register.checkResend')}
-            </a>.
+            </Link>.
           </p>
-          <a href="/login" className="btn-primary" style={{ textAlign: 'center' }}>{t('register.checkGoLogin')}</a>
+          <Link to="/login" className="btn-primary" style={{ textAlign: 'center' }}>{t('register.checkGoLogin')}</Link>
         </div>
       </main>
     );
