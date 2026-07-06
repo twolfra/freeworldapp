@@ -12,6 +12,8 @@ import de.freeworldapp.app.offer.Offer;
 import de.freeworldapp.app.offer.OfferRepository;
 import de.freeworldapp.app.message.MessageRepository;
 import de.freeworldapp.app.notification.NotificationRepository;
+import de.freeworldapp.app.postimage.PostImage;
+import de.freeworldapp.app.postimage.PostImageService;
 import de.freeworldapp.app.report.Report;
 import de.freeworldapp.app.report.ReportRepository;
 import de.freeworldapp.app.report.dto.ReportDtos;
@@ -51,6 +53,7 @@ public class AdminController {
     private final AdminAuditRepository auditRepo;
     private final ThanksRepository thanksRepo;
     private final NotificationRepository notificationRepo;
+    private final PostImageService postImages;
 
     public AdminController(AdminGuard adminGuard, UserRepository userRepo, OfferRepository offerRepo,
                            RequestRepository requestRepo, LikeRepository likeRepo, ReportRepository reportRepo,
@@ -58,7 +61,7 @@ public class AdminController {
                            SubscriptionRepository subscriptionRepo,
                            MessageRepository messageRepo, StorageService storage, EmailService emailService,
                            AdminAuditRepository auditRepo, ThanksRepository thanksRepo,
-                           NotificationRepository notificationRepo) {
+                           NotificationRepository notificationRepo, PostImageService postImages) {
         this.adminGuard = adminGuard;
         this.userRepo = userRepo;
         this.offerRepo = offerRepo;
@@ -74,6 +77,7 @@ public class AdminController {
         this.auditRepo = auditRepo;
         this.thanksRepo = thanksRepo;
         this.notificationRepo = notificationRepo;
+        this.postImages = postImages;
     }
 
     private static final ResponseEntity<Object> FORBIDDEN =
@@ -127,8 +131,8 @@ public class AdminController {
             return ResponseEntity.badRequest().body(Map.of("error", "You cannot delete your own account."));
         if (!userRepo.existsById(id)) return ResponseEntity.notFound().build();
 
-        offerRepo.findByOfferedBy_Id(id).forEach(o -> storage.delete(o.getImageUrl()));
-        requestRepo.findByRequestedBy_Id(id).forEach(r -> storage.delete(r.getImageUrl()));
+        offerRepo.findByOfferedBy_Id(id).forEach(o -> { storage.delete(o.getImageUrl()); postImages.deleteAll(PostImage.TargetType.OFFER, o.getId()); });
+        requestRepo.findByRequestedBy_Id(id).forEach(r -> { storage.delete(r.getImageUrl()); postImages.deleteAll(PostImage.TargetType.REQUEST, r.getId()); });
 
         reportRepo.deleteAllByReporterId(id);
         reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.USER, id);
@@ -261,6 +265,7 @@ public class AdminController {
         User owner = o.getOfferedBy();
         String title = o.getTitle();
         likeRepo.deleteAllByTargetTypeAndTargetId(Like.TargetType.OFFER, o.getId());
+        postImages.deleteAll(PostImage.TargetType.OFFER, o.getId());
         reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.OFFER, o.getId());
         offerRepo.delete(o);
         storage.delete(imageUrl);
@@ -272,6 +277,7 @@ public class AdminController {
         User owner = r.getRequestedBy();
         String title = r.getTitle();
         likeRepo.deleteAllByTargetTypeAndTargetId(Like.TargetType.REQUEST, r.getId());
+        postImages.deleteAll(PostImage.TargetType.REQUEST, r.getId());
         reportRepo.deleteAllByTargetTypeAndTargetId(Report.TargetType.REQUEST, r.getId());
         requestRepo.delete(r);
         storage.delete(imageUrl);

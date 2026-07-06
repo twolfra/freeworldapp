@@ -7,6 +7,8 @@ import de.freeworldapp.app.image.StorageService;
 import de.freeworldapp.app.like.Like;
 import de.freeworldapp.app.like.LikeRepository;
 import de.freeworldapp.app.notification.Notification;
+import de.freeworldapp.app.postimage.PostImage;
+import de.freeworldapp.app.postimage.PostImageService;
 import de.freeworldapp.app.notification.NotificationService;
 import de.freeworldapp.app.subscription.SubscriptionRepository;
 import de.freeworldapp.app.request.dto.RequestDtos;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,11 +36,13 @@ public class RequestController {
     private final PlzGeoRepository plzRepo;
     private final NotificationService notificationCenter;
     private final SubscriptionRepository subscriptionRepo;
+    private final PostImageService postImages;
 
     public RequestController(RequestRepository requestRepo, UserRepository userRepo, StorageService storage,
                              LikeRepository likeRepo, AdminGuard adminGuard,
                              PlzGeoRepository plzRepo,
-                             NotificationService notificationCenter, SubscriptionRepository subscriptionRepo) {
+                             NotificationService notificationCenter, SubscriptionRepository subscriptionRepo,
+                             PostImageService postImages) {
         this.requestRepo = requestRepo;
         this.userRepo = userRepo;
         this.storage = storage;
@@ -46,6 +51,7 @@ public class RequestController {
         this.plzRepo = plzRepo;
         this.notificationCenter = notificationCenter;
         this.subscriptionRepo = subscriptionRepo;
+        this.postImages = postImages;
     }
 
     @PostMapping
@@ -122,7 +128,34 @@ public class RequestController {
     @GetMapping("{id}")
     public ResponseEntity<RequestDtos.Response> get(@PathVariable UUID id) {
         return requestRepo.findById(id)
-                .map(r -> ResponseEntity.ok(toResponse(r)))
+                .map(r -> {
+                    RequestDtos.Response resp = toResponse(r);
+                    resp.images = postImages.list(PostImage.TargetType.REQUEST, id);
+                    return ResponseEntity.ok(resp);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Replaces the gallery (ordered, max 5); first image becomes the cover. */
+    @PutMapping("{id}/images")
+    @Transactional
+    public ResponseEntity<?> setImages(@PathVariable UUID id,
+                                       @RequestBody Map<String, List<Map<String, String>>> body) {
+        UUID callerId = SecurityContext.authenticatedId();
+        return requestRepo.findById(id)
+                .<ResponseEntity<?>>map(r -> {
+                    if (!r.getRequestedBy().getId().equals(callerId) && !adminGuard.isAdmin())
+                        return ResponseEntity.status(403).body(Map.of("error", "Not your request."));
+                    List<Map<String, String>> images = body.get("images");
+                    if (images != null && images.size() > PostImageService.MAX_IMAGES)
+                        return ResponseEntity.badRequest().body(Map.of("error",
+                                "A post can have at most " + PostImageService.MAX_IMAGES + " images."));
+                    String cover = postImages.replace(PostImage.TargetType.REQUEST, id, images);
+                    r.setImageUrl(cover);
+                    requestRepo.save(r);
+                    return ResponseEntity.ok(Map.of(
+                            "images", postImages.list(PostImage.TargetType.REQUEST, id)));
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -157,6 +190,7 @@ public class RequestController {
                         return ResponseEntity.status(403).<Void>build();
                     String imageUrl = r.getImageUrl();
                     likeRepo.deleteAllByTargetTypeAndTargetId(Like.TargetType.REQUEST, id);
+                    postImages.deleteAll(PostImage.TargetType.REQUEST, id);
                     requestRepo.delete(r);
                     storage.delete(imageUrl);
                     return ResponseEntity.noContent().<Void>build();

@@ -57,6 +57,7 @@ public class RequestDtos {
         public String postalCode;
         public String city;
         public Double distanceKm; // only set by /api/search with a location
+        public java.util.List<java.util.Map<String, Object>> images; // gallery, only on detail
         public String status;
     }
 }

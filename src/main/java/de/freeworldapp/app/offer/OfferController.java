@@ -11,6 +11,8 @@ import de.freeworldapp.app.message.Message;
 import de.freeworldapp.app.message.MessageNotificationService;
 import de.freeworldapp.app.message.MessageRepository;
 import de.freeworldapp.app.notification.Notification;
+import de.freeworldapp.app.postimage.PostImage;
+import de.freeworldapp.app.postimage.PostImageService;
 import de.freeworldapp.app.notification.NotificationService;
 import de.freeworldapp.app.subscription.SubscriptionRepository;
 import de.freeworldapp.app.offer.dto.OfferDtos;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -40,11 +43,13 @@ public class OfferController {
     private final MessageNotificationService notificationService;
     private final NotificationService notificationCenter;
     private final SubscriptionRepository subscriptionRepo;
+    private final PostImageService postImages;
 
     public OfferController(OfferRepository offerRepo, UserRepository userRepo, StorageService storage,
                            LikeRepository likeRepo, AdminGuard adminGuard, MessageRepository messageRepo,
                            ChatWebSocketHandler wsHandler, MessageNotificationService notificationService,
                            NotificationService notificationCenter, SubscriptionRepository subscriptionRepo,
+                           PostImageService postImages,
                            PlzGeoRepository plzRepo) {
         this.offerRepo = offerRepo;
         this.userRepo = userRepo;
@@ -57,6 +62,7 @@ public class OfferController {
         this.notificationService = notificationService;
         this.notificationCenter = notificationCenter;
         this.subscriptionRepo = subscriptionRepo;
+        this.postImages = postImages;
     }
 
     @PostMapping
@@ -203,7 +209,34 @@ public class OfferController {
     @GetMapping("{id}")
     public ResponseEntity<OfferDtos.Response> get(@PathVariable UUID id) {
         return offerRepo.findById(id)
-                .map(o -> ResponseEntity.ok(toResponse(o)))
+                .map(o -> {
+                    OfferDtos.Response resp = toResponse(o);
+                    resp.images = postImages.list(PostImage.TargetType.OFFER, id);
+                    return ResponseEntity.ok(resp);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Replaces the gallery (ordered, max 5); first image becomes the cover. */
+    @PutMapping("{id}/images")
+    @Transactional
+    public ResponseEntity<?> setImages(@PathVariable UUID id,
+                                       @RequestBody Map<String, List<Map<String, String>>> body) {
+        UUID callerId = SecurityContext.authenticatedId();
+        return offerRepo.findById(id)
+                .<ResponseEntity<?>>map(o -> {
+                    if (!o.getOfferedBy().getId().equals(callerId) && !adminGuard.isAdmin())
+                        return ResponseEntity.status(403).body(Map.of("error", "Not your offer."));
+                    List<Map<String, String>> images = body.get("images");
+                    if (images != null && images.size() > PostImageService.MAX_IMAGES)
+                        return ResponseEntity.badRequest().body(Map.of("error",
+                                "A post can have at most " + PostImageService.MAX_IMAGES + " images."));
+                    String cover = postImages.replace(PostImage.TargetType.OFFER, id, images);
+                    o.setImageUrl(cover);
+                    offerRepo.save(o);
+                    return ResponseEntity.ok(Map.of(
+                            "images", postImages.list(PostImage.TargetType.OFFER, id)));
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -239,6 +272,7 @@ public class OfferController {
                         return ResponseEntity.status(403).<Void>build();
                     String imageUrl = o.getImageUrl();
                     likeRepo.deleteAllByTargetTypeAndTargetId(Like.TargetType.OFFER, id);
+                    postImages.deleteAll(PostImage.TargetType.OFFER, id);
                     offerRepo.delete(o);
                     storage.delete(imageUrl);
                     return ResponseEntity.noContent().<Void>build();
