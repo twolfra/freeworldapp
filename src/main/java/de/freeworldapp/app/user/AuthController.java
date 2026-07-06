@@ -1,5 +1,6 @@
 package de.freeworldapp.app.user;
 
+import de.freeworldapp.app.auth.LoginAttemptService;
 import de.freeworldapp.app.auth.PasswordResetToken;
 import de.freeworldapp.app.auth.PasswordResetTokenRepository;
 import de.freeworldapp.app.auth.SecurityContext;
@@ -30,24 +31,32 @@ public class AuthController {
     private final SessionRepository sessionRepo;
     private final EmailService emailService;
     private final PasswordResetTokenRepository resetRepo;
+    private final LoginAttemptService loginAttempts;
 
     public AuthController(UserRepository userRepo, PasswordEncoder encoder,
                           SessionRepository sessionRepo, EmailService emailService,
-                          PasswordResetTokenRepository resetRepo) {
+                          PasswordResetTokenRepository resetRepo, LoginAttemptService loginAttempts) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.sessionRepo = sessionRepo;
         this.emailService = emailService;
         this.resetRepo = resetRepo;
+        this.loginAttempts = loginAttempts;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody UserDtos.Login in) {
+        if (loginAttempts.isLocked(in.username)) {
+            return ResponseEntity.status(429).body(Map.of("error",
+                    "Too many failed sign-in attempts. Please try again in a few minutes."));
+        }
         var userOpt = userRepo.findByUsername(in.username)
                 .filter(u -> encoder.matches(in.password, u.getPasswordHash()));
         if (userOpt.isEmpty()) {
+            loginAttempts.onFailure(in.username);
             return ResponseEntity.status(401).build();
         }
+        loginAttempts.onSuccess(in.username);
         User u = userOpt.get();
         if (!u.isEmailVerified()) {
             return ResponseEntity.status(403)
