@@ -38,10 +38,6 @@ springdoc:
   swagger-ui:
     enabled: ${SPRINGDOC_ENABLED:true}
     path: /api/docs
-logging:
-  level:
-    org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
 server:
   port: ${PORT:8080}
   servlet:
@@ -59,3 +55,14 @@ app:
   mail:
     from: ${MAIL_FROM:noreply@freeworldapp.local}
   base-url: ${BASE_URL:http://localhost:5173}
+---
+# Verbose SQL logging is dev-only: bind tracing logs personal data.
+# Activate with SPRING_PROFILES_ACTIVE=dev
+spring:
+  config:
+    activate:
+      on-profile: dev
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace

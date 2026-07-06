@@ -240,11 +240,12 @@ const T = {
     // Admin
     'admin.title': 'Moderation',
     'admin.signIn': 'Please', 'admin.signInLink': 'sign in', 'admin.denied': 'Admin access required.',
-    'admin.tabReports': 'Reports', 'admin.tabUsers': 'Users',
+    'admin.tabReports': 'Reports', 'admin.tabUsers': 'Users', 'admin.tabAudit': 'Audit log',
     'admin.loading': 'Loading…',
     'admin.noReports': 'No open reports. All clear!',
     'admin.reportedItem': 'Reported item', 'admin.author': 'Author', 'admin.reportedBy': 'Reported by',
     'admin.target.OFFER': 'Offer', 'admin.target.REQUEST': 'Request', 'admin.target.USER': 'User',
+    'admin.target.REPORT': 'Report',
     'admin.targetGone': 'No longer exists',
     'admin.deletePost': 'Delete post', 'admin.blockAuthor': 'Block author', 'admin.dismiss': 'Dismiss',
     'admin.deletePostBtn': 'Delete (admin)',
@@ -256,6 +257,12 @@ const T = {
     'admin.colPosts': 'Posts', 'admin.colStatus': 'Status',
     'admin.block': 'Block', 'admin.unblock': 'Unblock', 'admin.you': 'You',
     'admin.deleteUser': 'Delete account', 'admin.confirmDeleteUser': 'Permanently delete this account and all their posts? This cannot be undone.',
+    'admin.noAudit': 'No audit log entries yet.',
+    'admin.colWhen': 'When', 'admin.colAdmin': 'Admin', 'admin.colAction': 'Action', 'admin.colTarget': 'Target',
+    'admin.audit.BLOCK_USER': 'Blocked user', 'admin.audit.UNBLOCK_USER': 'Unblocked user',
+    'admin.audit.DELETE_USER': 'Deleted user', 'admin.audit.DELETE_OFFER': 'Deleted offer',
+    'admin.audit.DELETE_REQUEST': 'Deleted request', 'admin.audit.RESOLVE_REPORT': 'Resolved report',
+    'admin.audit.DISMISS_REPORT': 'Dismissed report',
 
     // Footer
     // Contact page
@@ -492,11 +499,12 @@ const T = {
     // Admin
     'admin.title': 'Moderation',
     'admin.signIn': 'Bitte', 'admin.signInLink': 'anmelden', 'admin.denied': 'Admin-Zugriff erforderlich.',
-    'admin.tabReports': 'Meldungen', 'admin.tabUsers': 'Nutzer',
+    'admin.tabReports': 'Meldungen', 'admin.tabUsers': 'Nutzer', 'admin.tabAudit': 'Audit-Log',
     'admin.loading': 'Wird geladen…',
     'admin.noReports': 'Keine offenen Meldungen. Alles in Ordnung!',
     'admin.reportedItem': 'Gemeldeter Eintrag', 'admin.author': 'Autor', 'admin.reportedBy': 'Gemeldet von',
     'admin.target.OFFER': 'Angebot', 'admin.target.REQUEST': 'Gesuch', 'admin.target.USER': 'Nutzer',
+    'admin.target.REPORT': 'Meldung',
     'admin.targetGone': 'Existiert nicht mehr',
     'admin.deletePost': 'Beitrag löschen', 'admin.blockAuthor': 'Autor sperren', 'admin.dismiss': 'Verwerfen',
     'admin.deletePostBtn': 'Löschen (Admin)',
@@ -508,6 +516,12 @@ const T = {
     'admin.colPosts': 'Beiträge', 'admin.colStatus': 'Status',
     'admin.block': 'Sperren', 'admin.unblock': 'Entsperren', 'admin.you': 'Du',
     'admin.deleteUser': 'Konto löschen', 'admin.confirmDeleteUser': 'Dieses Konto und alle Beiträge dauerhaft löschen? Dies kann nicht rückgängig gemacht werden.',
+    'admin.noAudit': 'Noch keine Audit-Log-Einträge.',
+    'admin.colWhen': 'Zeitpunkt', 'admin.colAdmin': 'Admin', 'admin.colAction': 'Aktion', 'admin.colTarget': 'Ziel',
+    'admin.audit.BLOCK_USER': 'Nutzer gesperrt', 'admin.audit.UNBLOCK_USER': 'Nutzer entsperrt',
+    'admin.audit.DELETE_USER': 'Nutzer gelöscht', 'admin.audit.DELETE_OFFER': 'Angebot gelöscht',
+    'admin.audit.DELETE_REQUEST': 'Gesuch gelöscht', 'admin.audit.RESOLVE_REPORT': 'Meldung geklärt',
+    'admin.audit.DISMISS_REPORT': 'Meldung verworfen',
 
     // Footer
     // Contact page

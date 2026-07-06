@@ -144,4 +144,5 @@ export const admin = {
   listReports:   (status)      => request(`/admin/reports${status ? `?status=${status}` : ''}`),
   resolveReport: (id)          => request(`/admin/reports/${id}/resolve`, { method: 'POST' }),
   dismissReport: (id)          => request(`/admin/reports/${id}/dismiss`, { method: 'POST' }),
+  audit:         ()            => request('/admin/audit'),
 };

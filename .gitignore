@@ -33,3 +33,6 @@ build/
 ### VS Code ###
 .vscode/
 uploads/
+
+# Private ops notes — never commit
+OPERATIONS.md

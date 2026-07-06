@@ -288,50 +288,14 @@ reports         id, reporter_id(FK→users), targetType(OFFER/REQUEST/USER), tar
 
 ## Production environment
 
-| Resource | Value |
-|---|---|
-| GCP project | `freeworld-tw` (account: `twolfram030@gmail.com`) |
-| Billing account | `0196C6-BA2C83-EE41C6` (under `twolfram030@gmail.com`) |
-| Cloud Run service | `freeworldapp` · region `europe-west3` |
-| Live URL | `https://freeworldapp-1040119781594.europe-west3.run.app` |
-| Database | Supabase · host `db.dqpjkomykecmisxfbapx.supabase.co` · db `postgres` · user `postgres` |
-| GCS bucket | `freeworld-tw-images` (public read, `europe-west3`) |
-| Email | Brevo HTTP API · sender `info@freeworldapp.de` · login `freeworldapp@web.de` |
-| Secrets | `db-password`, `brevo-api-key` in Secret Manager |
+Deployed on Google Cloud Run (region `europe-west3`) with an external managed
+PostgreSQL (Supabase), Google Cloud Storage for images, Brevo (HTTP API) for
+transactional email and GCP Secret Manager for secrets.
 
-### Redeploy command
-
-```bash
-gcloud run deploy freeworldapp \
-  --source . \
-  --region=europe-west3 \
-  --platform=managed \
-  --allow-unauthenticated \
-  --set-env-vars="DB_URL=jdbc:postgresql://db.dqpjkomykecmisxfbapx.supabase.co:5432/postgres" \
-  --set-env-vars="DB_USERNAME=postgres" \
-  --set-env-vars="GCS_BUCKET=freeworld-tw-images" \
-  --set-env-vars="BASE_URL=https://freeworldapp-1040119781594.europe-west3.run.app" \
-  --set-env-vars="CORS_ALLOWED_ORIGINS=https://freeworldapp-1040119781594.europe-west3.run.app" \
-  --set-env-vars="MAIL_FROM=info@freeworldapp.de" \
-  --set-env-vars="ADMIN_EMAILS=wolframtim1994@gmail.com" \
-  --set-secrets="DB_PASSWORD=db-password:latest,BREVO_API_KEY=brevo-api-key:latest" \
-  --project=freeworld-tw
-```
-
-> `ADMIN_EMAILS` is a comma-separated list of account emails promoted to ADMIN on startup. Replace/extend with the real admin address(es). A user must already be registered for promotion to take effect.
-
-### Useful ops commands
-
-```bash
-# View live logs
-gcloud run services logs read freeworldapp --region=europe-west3 --project=freeworld-tw --limit=50
-
-# Clear database (dev/reset)
-PGPASSWORD='<db-password>' psql "postgresql://postgres@db.dqpjkomykecmisxfbapx.supabase.co:5432/postgres" \
-  -c "TRUNCATE TABLE sessions, subscriptions, messages, likes, offers, requests, users RESTART IDENTITY CASCADE;"
-```
-
----
+Concrete project IDs, hostnames, account bindings, the redeploy command and
+ops runbooks live in the **gitignored `OPERATIONS.md`** (private). When
+deploying, remember: `DB_URL` must carry `?sslmode=require`, and set
+`SPRINGDOC_ENABLED=false` unless API docs should be public.
 
 ## Known limitations / not yet implemented
 
