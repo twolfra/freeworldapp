@@ -3,6 +3,7 @@ package de.freeworldapp.app.message;
 import de.freeworldapp.app.auth.SessionRepository;
 import de.freeworldapp.app.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -13,6 +14,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
@@ -27,6 +31,17 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final Map<UUID, CopyOnWriteArrayList<WebSocketSession>> userSessions = new ConcurrentHashMap<>();
     private final Map<String, UUID> wsToUser = new ConcurrentHashMap<>();
 
+    // Connections that have not yet sent a valid {type:"auth"} frame.
+    private final Map<String, WebSocketSession> pendingAuth = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService authTimeout = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "ws-auth-timeout");
+        t.setDaemon(true);
+        return t;
+    });
+
+    @Value("${app.ws.auth-timeout-ms:5000}")
+    private long authTimeoutMs;
+
     public ChatWebSocketHandler(SessionRepository sessionRepo, MessageRepository messageRepo,
                                 UserRepository userRepo, ObjectMapper mapper,
                                 MessageNotificationService notificationService) {
@@ -39,19 +54,25 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession ws) {
-        UUID userId = authenticate(ws);
-        if (userId == null) {
-            try { ws.close(CloseStatus.POLICY_VIOLATION); } catch (IOException ignored) {}
-            return;
-        }
-        wsToUser.put(ws.getId(), userId);
-        userSessions.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(ws);
+        // The token never travels in the URL (query params end up in access logs
+        // and proxies). Clients must authenticate with their first frame:
+        // {"type":"auth","token":...} — otherwise the connection is closed.
+        pendingAuth.put(ws.getId(), ws);
+        authTimeout.schedule(() -> {
+            WebSocketSession stale = pendingAuth.remove(ws.getId());
+            if (stale != null && stale.isOpen()) {
+                try { stale.close(CloseStatus.POLICY_VIOLATION); } catch (IOException ignored) {}
+            }
+        }, authTimeoutMs, TimeUnit.MILLISECONDS);
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession ws, TextMessage raw) throws Exception {
         UUID senderId = wsToUser.get(ws.getId());
-        if (senderId == null) return;
+        if (senderId == null) {
+            handleAuthFrame(ws, raw);
+            return;
+        }
 
         Map<?, ?> body;
         try { body = mapper.readValue(raw.getPayload(), Map.class); }
@@ -89,6 +110,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession ws, CloseStatus status) {
+        pendingAuth.remove(ws.getId());
         UUID userId = wsToUser.remove(ws.getId());
         if (userId == null) return;
         CopyOnWriteArrayList<WebSocketSession> list = userSessions.get(userId);
@@ -124,19 +146,33 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         if (!dead.isEmpty()) list.removeAll(dead);
     }
 
-    private UUID authenticate(WebSocketSession ws) {
-        String query = ws.getUri() != null ? ws.getUri().getQuery() : null;
-        if (query == null) return null;
+    private void handleAuthFrame(WebSocketSession ws, TextMessage raw) {
         String token = null;
-        for (String part : query.split("&")) {
-            if (part.startsWith("token=")) { token = part.substring(6); break; }
-        }
-        if (token == null) return null;
-        final String tok = token;
-        return sessionRepo.findByRawToken(tok)
+        try {
+            Map<?, ?> body = mapper.readValue(raw.getPayload(), Map.class);
+            if ("auth".equals(body.get("type"))) token = (String) body.get("token");
+        } catch (Exception ignored) {}
+
+        UUID userId = token == null ? null : sessionRepo.findByRawTokenWithUser(token)
                 .filter(s -> s.getExpiresAt() == null || s.getExpiresAt().isAfter(Instant.now()))
+                .filter(s -> !s.getUser().isBlocked())
                 .map(s -> s.getUser().getId())
                 .orElse(null);
+
+        if (userId == null) {
+            pendingAuth.remove(ws.getId());
+            try { ws.close(CloseStatus.POLICY_VIOLATION); } catch (IOException ignored) {}
+            return;
+        }
+
+        pendingAuth.remove(ws.getId());
+        wsToUser.put(ws.getId(), userId);
+        userSessions.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(ws);
+        try {
+            synchronized (ws) {
+                ws.sendMessage(new TextMessage("{\"type\":\"auth_ok\"}"));
+            }
+        } catch (IOException ignored) {}
     }
 
     Map<String, Object> toMessagePayload(Message m) {
