@@ -85,6 +85,7 @@ public class AuthFilter extends OncePerRequestFilter {
     // GET endpoints that require authentication (user-private data)
     private boolean isSensitivePath(String path) {
         return path.startsWith("/api/messages/conversation")
+            || (path.startsWith("/api/offers/") && path.endsWith("/interested"))
             || path.startsWith("/api/messages/unread-count")
             || path.startsWith("/api/likes")
             || path.equals("/api/subscriptions/feed")

@@ -175,7 +175,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         } catch (IOException ignored) {}
     }
 
-    Map<String, Object> toMessagePayload(Message m) {
+    public Map<String, Object> toMessagePayload(Message m) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("type", "message");
         map.put("id", m.getId().toString());
@@ -186,6 +186,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         map.put("content", m.getContent());
         map.put("createdAt", DateTimeFormatter.ISO_INSTANT.format(m.getCreatedAt()));
         map.put("readAt", m.getReadAt() != null ? DateTimeFormatter.ISO_INSTANT.format(m.getReadAt()) : null);
+        map.put("contextType", m.getContextType() != null ? m.getContextType().name() : null);
+        map.put("contextId", m.getContextId() != null ? m.getContextId().toString() : null);
         return map;
     }
 }

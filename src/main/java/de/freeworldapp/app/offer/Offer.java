@@ -37,6 +37,16 @@ public class Offer {
             foreignKey = @ForeignKey(name = "fk_offer_offered_by"))
     private User offeredBy;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16, columnDefinition = "varchar(16) DEFAULT 'ACTIVE'")
+    private Status status = Status.ACTIVE;
+
+    // Optional: who the item is currently reserved for (only when status = RESERVED).
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reserved_for_id",
+            foreignKey = @ForeignKey(name = "fk_offer_reserved_for"))
+    private User reservedFor;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -52,6 +62,8 @@ public class Offer {
     public String getImageUrl() { return imageUrl; }
     public User getOfferedBy() { return offeredBy; }
     public Instant getCreatedAt() { return createdAt; }
+    public Status getStatus() { return status; }
+    public User getReservedFor() { return reservedFor; }
 
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }
@@ -60,4 +72,8 @@ public class Offer {
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setOfferedBy(User offeredBy) { this.offeredBy = offeredBy; }
+    public void setStatus(Status status) { this.status = status; }
+    public void setReservedFor(User reservedFor) { this.reservedFor = reservedFor; }
+
+    public enum Status { ACTIVE, RESERVED, GIVEN }
 }

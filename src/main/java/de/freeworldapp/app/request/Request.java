@@ -37,6 +37,10 @@ public class Request {
             foreignKey = @ForeignKey(name = "fk_request_requested_by"))
     private User requestedBy;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16, columnDefinition = "varchar(16) DEFAULT 'OPEN'")
+    private Status status = Status.OPEN;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -52,6 +56,7 @@ public class Request {
     public String getImageUrl() { return imageUrl; }
     public User getRequestedBy() { return requestedBy; }
     public Instant getCreatedAt() { return createdAt; }
+    public Status getStatus() { return status; }
 
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }
@@ -60,4 +65,7 @@ public class Request {
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setRequestedBy(User requestedBy) { this.requestedBy = requestedBy; }
+    public void setStatus(Status status) { this.status = status; }
+
+    public enum Status { OPEN, FULFILLED }
 }

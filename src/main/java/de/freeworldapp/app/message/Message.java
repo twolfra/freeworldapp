@@ -33,6 +33,14 @@ public class Message {
     @Column(name = "read_at")
     private Instant readAt;
 
+    // Optional post reference (interest flow): OFFER/REQUEST + post id.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "context_type", length = 20)
+    private ContextType contextType;
+
+    @Column(name = "context_id")
+    private UUID contextId;
+
     @PrePersist
     void onCreate() { this.createdAt = Instant.now(); }
 
@@ -42,9 +50,15 @@ public class Message {
     public String getContent() { return content; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getReadAt() { return readAt; }
+    public ContextType getContextType() { return contextType; }
+    public UUID getContextId() { return contextId; }
 
     public void setSender(User sender) { this.sender = sender; }
     public void setRecipient(User recipient) { this.recipient = recipient; }
     public void setContent(String content) { this.content = content; }
     public void setReadAt(Instant readAt) { this.readAt = readAt; }
+    public void setContextType(ContextType contextType) { this.contextType = contextType; }
+    public void setContextId(UUID contextId) { this.contextId = contextId; }
+
+    public enum ContextType { OFFER, REQUEST }
 }

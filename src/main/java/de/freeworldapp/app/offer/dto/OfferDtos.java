@@ -32,6 +32,12 @@ public class OfferDtos {
         public String imageUrl;
     }
 
+    public static class StatusUpdate {
+        @NotBlank
+        public String status;            // ACTIVE / RESERVED / GIVEN
+        public String reservedForId;     // optional, only meaningful with RESERVED
+    }
+
     public static class Response {
         public String id;
         public String title;
@@ -43,5 +49,8 @@ public class OfferDtos {
         public String offeredByUsername;
         public String imageUrl;
         public String createdAt;
+        public String status;
+        public String reservedForId;
+        public String reservedForUsername;
     }
 }

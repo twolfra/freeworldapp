@@ -1,6 +1,8 @@
 package de.freeworldapp.app.message;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,4 +37,13 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     @Transactional
     @Query("DELETE FROM Message m WHERE m.sender.id = :userId OR m.recipient.id = :userId")
     void deleteAllInvolvingUser(@Param("userId") UUID userId);
+
+    boolean existsBySender_IdAndContextTypeAndContextId(java.util.UUID senderId,
+            Message.ContextType contextType, java.util.UUID contextId);
+
+    @Query("SELECT COUNT(DISTINCT m.sender.id) FROM Message m " +
+           "WHERE m.contextType = :type AND m.contextId = :contextId AND m.recipient.id = :ownerId")
+    long countInterestedUsers(@Param("type") Message.ContextType type,
+                              @Param("contextId") java.util.UUID contextId,
+                              @Param("ownerId") java.util.UUID ownerId);
 }
