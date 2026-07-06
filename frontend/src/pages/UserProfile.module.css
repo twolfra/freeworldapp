@@ -8,10 +8,10 @@
   display: flex;
   align-items: flex-start;
   gap: 1.5rem;
-  background: #fff;
+  background: var(--bg-elevated);
   border-radius: 14px;
   padding: 2rem 2.5rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-md);
   margin-bottom: 2rem;
 }
 
@@ -19,7 +19,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: #2e7d32;
+  background: var(--green);
   color: #fff;
   display: flex;
   align-items: center;
@@ -38,13 +38,13 @@
 .username {
   font-size: 1.6rem;
   font-weight: 700;
-  color: #111;
+  color: var(--text);
   margin: 0;
 }
 
 .since {
   font-size: 0.9rem;
-  color: #777;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -57,17 +57,17 @@
 }
 
 .stat {
-  background: #f0f4f0;
+  background: var(--success-soft);
   border-radius: 20px;
   padding: 0.25rem 0.8rem;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #2e7d32;
+  color: var(--success);
 }
 
 .msgBtn {
   padding: 0.4rem 1.1rem;
-  background: #2e7d32;
+  background: var(--green);
   color: #fff;
   border-radius: 6px;
   font-size: 0.88rem;
@@ -76,13 +76,13 @@
   transition: background 0.15s;
 }
 
-.msgBtn:hover { background: #1b5e20; }
+.msgBtn:hover { background: var(--green-dark); }
 
 .subBtn {
   padding: 0.4rem 1.1rem;
-  background: #fff;
-  color: #2e7d32;
-  border: 1.5px solid #2e7d32;
+  background: var(--bg-elevated);
+  color: var(--success);
+  border: 1.5px solid var(--success);
   border-radius: 6px;
   font-size: 0.88rem;
   font-weight: 600;
@@ -91,12 +91,12 @@
   font-family: inherit;
 }
 
-.subBtn:hover { background: #f1f8f1; }
+.subBtn:hover { background: var(--green-light); }
 
 .subBtnActive {
   padding: 0.4rem 1.1rem;
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: var(--green-light);
+  color: var(--success);
   border: 1.5px solid #a5d6a7;
   border-radius: 6px;
   font-size: 0.88rem;
@@ -106,7 +106,7 @@
   transition: background 0.15s;
 }
 
-.subBtnActive:hover { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
+.subBtnActive:hover { background: var(--danger-soft); color: var(--danger); border-color: #ef9a9a; }
 
 .section {
   margin-bottom: 2.5rem;
@@ -114,10 +114,10 @@
 
 .section h2 {
   font-size: 1.2rem;
-  color: #1b5e20;
+  color: var(--green-dark);
   margin-bottom: 1rem;
   padding-bottom: 0.4rem;
-  border-bottom: 2px solid #e8f5e9;
+  border-bottom: 2px solid var(--green-light);
 }
 
 .notifyRow {
@@ -125,7 +125,7 @@
   align-items: center;
   gap: 0.6rem;
   font-size: 0.98rem;
-  color: #1a1a1a;
+  color: var(--text);
   cursor: pointer;
 }
 
@@ -138,7 +138,7 @@
 .notifyHint {
   margin-top: 0.4rem;
   font-size: 0.85rem;
-  color: #777;
+  color: var(--text-muted);
 }
 
 .grid {
@@ -149,10 +149,10 @@
 }
 
 .card {
-  background: #fff;
+  background: var(--bg-elevated);
   border-radius: 10px;
   padding: 1.2rem 1.4rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -162,19 +162,19 @@
 }
 
 .card:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
 .card h3 {
   font-size: 1.05rem;
-  color: #111;
+  color: var(--text);
   margin: 0;
 }
 
 .card p {
   font-size: 0.9rem;
-  color: #555;
+  color: var(--text-muted);
   line-height: 1.5;
   flex: 1;
   margin: 0;
@@ -186,7 +186,7 @@
 
 .card footer {
   font-size: 0.8rem;
-  color: #888;
+  color: var(--text-muted);
   margin-top: 0.4rem;
 }
 
@@ -195,16 +195,16 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #1565c0;
+  color: var(--blue);
 }
 
 .status {
   text-align: center;
   margin-top: 3rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .empty {
-  color: #aaa;
+  color: var(--muted-soft);
   font-size: 0.9rem;
 }

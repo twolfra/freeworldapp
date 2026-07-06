@@ -4,6 +4,7 @@ import { offers as offersApi, images as imagesApi, likes as likesApi, admin as a
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat } from '../i18n';
 import ReportButton from '../components/ReportButton';
+import { ConfirmModal, useToast } from '../components/ui';
 import styles from './RequestDetail.module.css';
 
 const CATEGORIES = [
@@ -24,10 +25,11 @@ export default function OfferDetail() {
   const [newImageFile, setNewImageFile] = useState(null);
   const [editError, setEditError] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // 'delete' | 'adminDelete'
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const { user: currentUser } = useAuth();
+  const toast = useToast();
 
   useEffect(() => {
     offersApi.get(id)
@@ -54,14 +56,12 @@ export default function OfferDetail() {
   const isAdmin = currentUser?.role === 'ADMIN';
 
   async function handleAdminDelete() {
-    if (!window.confirm(t('admin.confirmDelete'))) return;
-    setDeleting(true);
     try {
       await adminApi.deleteOffer(id);
       navigate('/offers');
     } catch (err) {
-      alert(t('detail.deleteErr') + err.message);
-      setDeleting(false);
+      toast.error(t('detail.deleteErr') + err.message);
+      setConfirmAction(null);
     }
   }
 
@@ -120,14 +120,12 @@ export default function OfferDetail() {
   }
 
   async function handleDelete() {
-    if (!window.confirm(t('detail.confirmOffer'))) return;
-    setDeleting(true);
     try {
       await offersApi.remove(id);
       navigate('/offers');
     } catch (err) {
-      alert(t('detail.deleteErr') + err.message);
-      setDeleting(false);
+      toast.error(t('detail.deleteErr') + err.message);
+      setConfirmAction(null);
     }
   }
 
@@ -136,27 +134,29 @@ export default function OfferDetail() {
       navigate('/login');
       return;
     }
+    // Optimistic update: flip immediately, revert on API error.
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikeCount((c) => c + (wasLiked ? -1 : 1));
     try {
-      if (liked) {
+      if (wasLiked) {
         await likesApi.unlike('offer', id);
-        setLiked(false);
-        setLikeCount(c => c - 1);
       } else {
         await likesApi.like('offer', id);
-        setLiked(true);
-        setLikeCount(c => c + 1);
       }
     } catch (err) {
-      console.error(err);
+      setLiked(wasLiked);
+      setLikeCount((c) => c + (wasLiked ? 1 : -1));
+      toast.error(err.message);
     }
   }
 
   return (
     <main className={styles.page}>
-      <Link to="/offers" className={styles.back} style={{ color: '#2e7d32' }}>{t('detail.backOffers')}</Link>
+      <Link to="/offers" className={styles.back} style={{ color: 'var(--green)' }}>{t('detail.backOffers')}</Link>
       <div className={styles.card}>
         {!editing && offer.imageUrl && <img src={offer.imageUrl} className={styles.image} alt={offer.title} />}
-        <span className={styles.category} style={{ color: '#2e7d32' }}>{tCat(offer.category)}</span>
+        <span className={styles.category} style={{ color: 'var(--green)' }}>{tCat(offer.category)}</span>
         <h1>{offer.title}</h1>
         <div className={styles.authorRow}>
           <span>{t('detail.postedBy')}</span>
@@ -179,7 +179,7 @@ export default function OfferDetail() {
               cursor: 'pointer',
               fontSize: '1rem',
               marginLeft: 'auto',
-              color: liked ? '#dc2626' : '#999',
+              color: liked ? 'var(--danger)' : 'var(--muted-soft)',
               fontWeight: 'bold',
             }}
             title={liked ? 'Unlike' : 'Like'}
@@ -193,15 +193,15 @@ export default function OfferDetail() {
         {isOwnPost && !editing && (
           <div className={styles.ownerActions}>
             <button className={styles.editBtn} onClick={startEdit}>{t('detail.edit')}</button>
-            <button className={styles.deleteBtn} onClick={handleDelete} disabled={deleting}>
-              {deleting ? t('detail.deleting') : t('detail.delete')}
+            <button className={styles.deleteBtn} onClick={() => setConfirmAction('delete')}>
+              {t('detail.delete')}
             </button>
           </div>
         )}
         {isAdmin && !isOwnPost && !editing && (
           <div className={styles.ownerActions}>
-            <button className={styles.deleteBtn} onClick={handleAdminDelete} disabled={deleting}>
-              {deleting ? t('detail.deleting') : t('admin.deletePostBtn')}
+            <button className={styles.deleteBtn} onClick={() => setConfirmAction('adminDelete')}>
+              {t('admin.deletePostBtn')}
             </button>
           </div>
         )}
@@ -273,6 +273,14 @@ export default function OfferDetail() {
           </>
         )}
       </div>
+      <ConfirmModal
+        open={confirmAction !== null}
+        message={confirmAction === 'adminDelete' ? t('admin.confirmDelete') : t('detail.confirmOffer')}
+        danger
+        confirmLabel={t('detail.delete')}
+        onConfirm={confirmAction === 'adminDelete' ? handleAdminDelete : handleDelete}
+        onCancel={() => setConfirmAction(null)}
+      />
     </main>
   );
 }

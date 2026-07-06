@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { likes as likesApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat, tp } from '../i18n';
+import { Card, Skeleton } from '../components/ui';
 import styles from './Subscriptions.module.css';
 
 const PAGE_SIZE = 12;
@@ -30,7 +31,20 @@ export default function Likes() {
     </main>
   );
 
-  if (loading) return <p className={styles.status}>{t('detail.loading')}</p>;
+  if (loading) return (
+    <main className={styles.page} aria-busy="true">
+      <div className={styles.header}>
+        <h2>{t('likes.title')}</h2>
+      </div>
+      <ul className={styles.feed}>
+        {Array.from({ length: 6 }, (_, i) => (
+          <li key={i}>
+            <Card><Skeleton variant="text" lines={3} /></Card>
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
   if (error)   return <p className={styles.status}>Could not load likes: {error}</p>;
 
   const totalPages = Math.max(1, Math.ceil(likedPosts.length / PAGE_SIZE));

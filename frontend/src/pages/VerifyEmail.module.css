@@ -5,27 +5,27 @@
 }
 
 .card {
-  background: #fff;
+  background: var(--bg-elevated);
   border-radius: 12px;
   padding: 2rem 2.5rem;
   width: 100%;
   max-width: 440px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.card h2 { color: #1b5e20; font-size: 1.5rem; }
+.card h2 { color: var(--green-dark); font-size: 1.5rem; }
 
-.sub { font-size: 0.9rem; color: #777; }
+.sub { font-size: 0.9rem; color: var(--text-muted); }
 
-.success { color: #2e7d32; }
+.success { color: var(--success); }
 
 .errorMsg {
-  color: #c62828;
+  color: var(--danger);
   font-size: 0.88rem;
-  background: #ffebee;
+  background: var(--danger-soft);
   padding: 0.4rem 0.75rem;
   border-radius: 6px;
 }
@@ -38,11 +38,12 @@
 
 .resend input {
   padding: 0.5rem 0.75rem;
-  border: 1.5px solid #ccc;
+  border: 1.5px solid var(--border);
   border-radius: 6px;
   font-size: 0.95rem;
   font-family: inherit;
   outline: none;
+  background: var(--bg-elevated);
 }
 
-.resend input:focus { border-color: #2e7d32; }
+.resend input:focus { border-color: var(--green); }

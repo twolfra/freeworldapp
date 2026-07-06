@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { admin as adminApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t } from '../i18n';
+import { ConfirmModal, useToast } from '../components/ui';
 import styles from './Admin.module.css';
 
 export default function Admin() {
@@ -60,6 +61,8 @@ function ReportsTab({ currentUser }) {
   const [reports, setReports] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(null);
+  const [pending, setPending] = useState(null); // { message, run }
+  const toast = useToast();
 
   function load() {
     adminApi.listReports('OPEN')
@@ -74,7 +77,7 @@ function ReportsTab({ currentUser }) {
       await fn();
       load();
     } catch (e) {
-      alert(e.message);
+      toast.error(e.message);
     } finally {
       setBusy(null);
     }
@@ -86,21 +89,25 @@ function ReportsTab({ currentUser }) {
     return `/users/${r.targetId}`;
   }
 
-  async function deletePost(r) {
-    if (!window.confirm(t('admin.confirmDelete'))) return;
+  function deletePost(r) {
     const del = r.targetType === 'OFFER' ? adminApi.deleteOffer : adminApi.deleteRequest;
-    await act(async () => {
-      await del(r.targetId);
-      await adminApi.resolveReport(r.id);
-    }, r.id);
+    setPending({
+      message: t('admin.confirmDelete'),
+      run: () => act(async () => {
+        await del(r.targetId);
+        await adminApi.resolveReport(r.id);
+      }, r.id),
+    });
   }
 
-  async function blockAuthor(r) {
-    if (!window.confirm(t('admin.confirmBlock'))) return;
-    await act(async () => {
-      await adminApi.block(r.targetAuthorId);
-      await adminApi.resolveReport(r.id);
-    }, r.id);
+  function blockAuthor(r) {
+    setPending({
+      message: t('admin.confirmBlock'),
+      run: () => act(async () => {
+        await adminApi.block(r.targetAuthorId);
+        await adminApi.resolveReport(r.id);
+      }, r.id),
+    });
   }
 
   if (error) return <p className={styles.status}>{error}</p>;
@@ -154,6 +161,19 @@ function ReportsTab({ currentUser }) {
           </div>
         </div>
       ))}
+      <ConfirmModal
+        open={pending !== null}
+        message={pending?.message}
+        danger
+        onConfirm={async () => {
+          try {
+            await pending.run();
+          } finally {
+            setPending(null);
+          }
+        }}
+        onCancel={() => setPending(null)}
+      />
     </div>
   );
 }
@@ -162,6 +182,8 @@ function UsersTab({ currentUser }) {
   const [users, setUsers] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(null);
+  const [pending, setPending] = useState(null); // { message, run }
+  const toast = useToast();
 
   function load() {
     adminApi.listUsers()
@@ -170,31 +192,30 @@ function UsersTab({ currentUser }) {
   }
   useEffect(load, []);
 
-  async function toggleBlock(u) {
-    const confirmMsg = u.blocked ? t('admin.confirmUnblock') : t('admin.confirmBlock');
-    if (!window.confirm(confirmMsg)) return;
-    setBusy(u.id);
+  async function act(fn, id) {
+    setBusy(id);
     try {
-      await (u.blocked ? adminApi.unblock(u.id) : adminApi.block(u.id));
+      await fn();
       load();
     } catch (e) {
-      alert(e.message);
+      toast.error(e.message);
     } finally {
       setBusy(null);
     }
   }
 
-  async function deleteUser(u) {
-    if (!window.confirm(t('admin.confirmDeleteUser'))) return;
-    setBusy(u.id);
-    try {
-      await adminApi.deleteUser(u.id);
-      load();
-    } catch (e) {
-      alert(e.message);
-    } finally {
-      setBusy(null);
-    }
+  function toggleBlock(u) {
+    setPending({
+      message: u.blocked ? t('admin.confirmUnblock') : t('admin.confirmBlock'),
+      run: () => act(() => (u.blocked ? adminApi.unblock(u.id) : adminApi.block(u.id)), u.id),
+    });
+  }
+
+  function deleteUser(u) {
+    setPending({
+      message: t('admin.confirmDeleteUser'),
+      run: () => act(() => adminApi.deleteUser(u.id), u.id),
+    });
   }
 
   if (error) return <p className={styles.status}>{error}</p>;
@@ -248,6 +269,19 @@ function UsersTab({ currentUser }) {
           ))}
         </tbody>
       </table>
+      <ConfirmModal
+        open={pending !== null}
+        message={pending?.message}
+        danger
+        onConfirm={async () => {
+          try {
+            await pending.run();
+          } finally {
+            setPending(null);
+          }
+        }}
+        onCancel={() => setPending(null)}
+      />
     </div>
   );
 }

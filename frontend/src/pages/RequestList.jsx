@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { requests as requestsApi } from '../api/client';
 import { t, tCat, tp } from '../i18n';
+import { Card, Skeleton } from '../components/ui';
 import styles from './OfferList.module.css';
 
 const CATEGORIES = [
@@ -31,7 +32,27 @@ export default function RequestList() {
   }, []);
 
 
-  if (loading) return <p className={styles.status}>{t('home.loading')}</p>;
+  if (loading) return (
+    <main className={styles.page} aria-busy="true">
+      <div className={styles.layout}>
+        <aside className={styles.sidebar} />
+        <div className={styles.main}>
+          <ul className={styles.grid}>
+            {Array.from({ length: 8 }, (_, i) => (
+              <li key={i}>
+                <Card padded={false} style={{ overflow: 'hidden' }}>
+                  <Skeleton height="150px" style={{ borderRadius: 0 }} />
+                  <div style={{ padding: '0.8rem' }}>
+                    <Skeleton variant="text" lines={2} />
+                  </div>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </main>
+  );
   if (error)   return <p className={styles.status}>{error}</p>;
 
   const regions = [...new Set(requests.map((r) => r.region))].sort();

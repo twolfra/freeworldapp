@@ -13,7 +13,7 @@
 
 .header h2 {
   font-size: 1.5rem;
-  color: #1b5e20;
+  color: var(--green-dark);
 }
 
 .list {
@@ -28,16 +28,16 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.2rem;
-  background: #fff;
+  background: var(--bg-elevated);
   border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-sm);
   text-decoration: none;
   color: inherit;
   transition: box-shadow 0.15s, transform 0.15s;
 }
 
 .row:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
@@ -45,7 +45,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: #2e7d32;
+  background: var(--green);
   color: #fff;
   display: flex;
   align-items: center;
@@ -66,12 +66,12 @@
 .username {
   font-weight: 700;
   font-size: 0.95rem;
-  color: #111;
+  color: var(--text);
 }
 
 .preview {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -87,17 +87,17 @@
 
 .time {
   font-size: 0.8rem;
-  color: #aaa;
+  color: var(--muted-soft);
 }
 
-.unread .username { color: #1b5e20; }
-.unread .preview { color: #333; font-weight: 500; }
+.unread .username { color: var(--green-dark); }
+.unread .preview { color: var(--text); font-weight: 500; }
 
 .unreadBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #e53935;
+  background: var(--danger);
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
@@ -111,5 +111,5 @@
 .empty {
   text-align: center;
   margin-top: 3rem;
-  color: #666;
+  color: var(--text-muted);
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { offers, images as imagesApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat } from '../i18n';
+import { Button } from '../components/ui';
 import styles from './OfferForm.module.css';
 
 const CATEGORIES = [
@@ -115,9 +116,9 @@ export default function OfferForm() {
           }
         </label>
 
-        <button type="submit" className="btn-primary" disabled={submitting}>
+        <Button type="submit" loading={submitting}>
           {submitting ? t('offerForm.submitting') : t('offerForm.submit')}
-        </button>
+        </Button>
       </form>
     </main>
   );

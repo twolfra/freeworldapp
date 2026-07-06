@@ -130,7 +130,7 @@ export default function UserProfile() {
               {offers.map((o) => (
                 <li key={o.id}>
                   <Link to={`/offers/${o.id}`} className={styles.card}>
-                    <span className={styles.category} style={{ color: '#2e7d32' }}>{tCat(o.category)}</span>
+                    <span className={styles.category} style={{ color: 'var(--green)' }}>{tCat(o.category)}</span>
                     <h3>{o.title}</h3>
                     <p>{o.description}</p>
                     <footer>{o.region} · {t('list.qty')} {o.quantity}</footer>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { requests, images as imagesApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat } from '../i18n';
+import { Button } from '../components/ui';
 import styles from './OfferForm.module.css';
 
 const CATEGORIES = [
@@ -73,7 +74,7 @@ export default function RequestForm() {
   return (
     <main className={styles.page}>
       <form className={styles.card} onSubmit={handleSubmit}>
-        <h2 style={{ color: '#1565c0' }}>{t('requestForm.heading')}</h2>
+        <h2 style={{ color: 'var(--blue)' }}>{t('requestForm.heading')}</h2>
         <p className={styles.sub}>{t('requestForm.as')} <strong>{currentUser.username}</strong></p>
         {error && <p className={styles.error}>{error}</p>}
 
@@ -115,9 +116,9 @@ export default function RequestForm() {
           }
         </label>
 
-        <button type="submit" className="btn-primary" style={{ background: '#1565c0' }} disabled={submitting}>
+        <Button type="submit" loading={submitting} style={{ background: 'var(--blue)' }}>
           {submitting ? t('requestForm.submitting') : t('requestForm.submit')}
-        </button>
+        </Button>
       </form>
     </main>
   );

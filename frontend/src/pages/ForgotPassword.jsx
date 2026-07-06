@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { auth } from '../api/client';
 import { t } from '../i18n';
+import { Button } from '../components/ui';
 import styles from './Register.module.css';
 
 export default function ForgotPassword() {
@@ -48,11 +49,11 @@ export default function ForgotPassword() {
             required
           />
         </label>
-        <button type="submit" className="btn-primary" disabled={status === 'sending'}>
+        <Button type="submit" loading={status === 'sending'}>
           {status === 'sending' ? t('forgot.sending') : t('forgot.submit')}
-        </button>
-        <p style={{ fontSize: '0.88rem', textAlign: 'center', color: '#666' }}>
-          <Link to="/login" style={{ color: '#2e7d32' }}>{t('forgot.backToLogin')}</Link>
+        </Button>
+        <p style={{ fontSize: '0.88rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+          <Link to="/login" style={{ color: 'var(--green)' }}>{t('forgot.backToLogin')}</Link>
         </p>
       </form>
     </main>
