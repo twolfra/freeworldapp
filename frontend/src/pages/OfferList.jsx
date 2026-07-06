@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { offers as offersApi } from '../api/client';
 import { t, tCat, tp } from '../i18n';
+import { Badge, Button, Card, EmptyState, Skeleton } from '../components/ui';
 import styles from './OfferList.module.css';
 
 const CATEGORIES = [
@@ -20,18 +21,39 @@ export default function OfferList() {
   const [query, setQuery]     = useState(initialQuery);
   const [region, setRegion]   = useState('');
   const [page, setPage]       = useState(1);
+  const [includeCompleted, setIncludeCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
   useEffect(() => {
-    offersApi.list()
+    offersApi.list(includeCompleted)
       .then(setOffers)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [includeCompleted]);
 
 
-  if (loading) return <p className={styles.status}>{t('home.loading')}</p>;
+  if (loading) return (
+    <main className={styles.page} aria-busy="true">
+      <div className={styles.layout}>
+        <aside className={styles.sidebar} />
+        <div className={styles.main}>
+          <ul className={styles.grid}>
+            {Array.from({ length: 8 }, (_, i) => (
+              <li key={i}>
+                <Card padded={false} style={{ overflow: 'hidden' }}>
+                  <Skeleton height="150px" style={{ borderRadius: 0 }} />
+                  <div style={{ padding: '0.8rem' }}>
+                    <Skeleton variant="text" lines={2} />
+                  </div>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </main>
+  );
   if (error)   return <p className={styles.status}>{error}</p>;
 
   const regions = [...new Set(offers.map((o) => o.region))].sort();
@@ -109,19 +131,51 @@ export default function OfferList() {
               <option value="">{t('list.allRegions')}</option>
               {regions.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
+            <label className={styles.completedToggle}>
+              <input
+                type="checkbox"
+                checked={includeCompleted}
+                onChange={(e) => { setIncludeCompleted(e.target.checked); setPage(1); }}
+              />
+              {t('list.showGiven')}
+            </label>
           </div>
-          {filtered.length === 0
-            ? <p className={styles.empty}>{t('offers.noMatch')}</p>
+          {offers.length === 0
+            ? <EmptyState
+                icon="🎁"
+                title={t('offers.emptyTitle')}
+                text={t('offers.emptyText')}
+                action={<Button as={Link} to="/offers/new" variant="accent">{t('home.give')}</Button>}
+              />
+            : filtered.length === 0
+            ? <EmptyState
+                icon="🔍"
+                title={t('offers.noMatch')}
+                action={
+                  <Button variant="secondary" onClick={() => { setQuery(''); setRegion(''); setPage(1); }}>
+                    {t('list.clearFilters')}
+                  </Button>
+                }
+              />
             : <>
                 <ul className={styles.grid}>
                   {pageItems.map((o) => (
                     <li key={o.id}>
-                      <Link to={`/offers/${o.id}`} className={styles.card}>
+                      <Link
+                        to={`/offers/${o.id}`}
+                        className={o.status === 'GIVEN' ? `${styles.card} ${styles.cardCompleted}` : styles.card}
+                      >
                         <div className={styles.thumb}>
                           {o.imageUrl
                             ? <img src={o.imageUrl} className={styles.cardImage} alt={o.title} />
                             : <div className={styles.thumbEmpty} />}
                           <span className={styles.categoryPill}>{tCat(o.category)}</span>
+                          {o.status === 'RESERVED' && (
+                            <Badge variant="warning" className={styles.statusPill}>{t('status.RESERVED')}</Badge>
+                          )}
+                          {o.status === 'GIVEN' && (
+                            <Badge variant="neutral" className={styles.statusPill}>{t('status.GIVEN')}</Badge>
+                          )}
                         </div>
                         <div className={styles.body}>
                           <h3>{o.title}</h3>

@@ -54,11 +54,34 @@ describe('OfferList page', () => {
     expect(offersApi.list).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the translated empty state when there are no offers', async () => {
+  it('shows the nothing-here EmptyState with a post CTA when there are no offers at all', async () => {
     offersApi.list.mockResolvedValue([]);
     renderOfferList();
 
-    expect(await screen.findByText('No offers match your search.')).toBeInTheDocument();
+    expect(await screen.findByText('Nothing here yet')).toBeInTheDocument();
+    expect(screen.getByText('Be the first to give something away to your community.')).toBeInTheDocument();
+    const cta = screen.getByRole('link', { name: 'Give something away' });
+    expect(cta).toHaveAttribute('href', '/offers/new');
+    // The no-match variant must not show for a truly empty list.
+    expect(screen.queryByText('No offers match your search.')).not.toBeInTheDocument();
+  });
+
+  it('shows the no-match EmptyState and clears filters via its CTA', async () => {
+    const user = userEvent.setup();
+    offersApi.list.mockResolvedValue(mockOffers);
+    renderOfferList();
+
+    await screen.findByText('Free sofa');
+    await user.type(screen.getByPlaceholderText('Search by title, category…'), 'zzz-no-such-thing');
+
+    expect(screen.getByText('No offers match your search.')).toBeInTheDocument();
+    expect(screen.queryByText('Free sofa')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }));
+
+    expect(screen.getByText('Free sofa')).toBeInTheDocument();
+    expect(screen.getByText('Garden apples')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search by title, category…')).toHaveValue('');
   });
 
   it('filters the cards as the user types into the search box', async () => {
@@ -88,5 +111,44 @@ describe('OfferList page', () => {
     renderOfferList();
 
     expect(await screen.findByText('boom from the API')).toBeInTheDocument();
+  });
+
+  it('shows the include-completed toggle and refetches when checked', async () => {
+    const user = userEvent.setup();
+    offersApi.list.mockResolvedValue(mockOffers);
+    renderOfferList();
+
+    await screen.findByText('Free sofa');
+    expect(offersApi.list).toHaveBeenLastCalledWith(false);
+
+    await user.click(screen.getByRole('checkbox', { name: 'Also show given away' }));
+
+    expect(offersApi.list).toHaveBeenLastCalledWith(true);
+    expect(offersApi.list).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows status badges and dims given-away cards', async () => {
+    offersApi.list.mockResolvedValue([
+      { ...mockOffers[0], status: 'RESERVED' },
+      { ...mockOffers[1], status: 'GIVEN' },
+    ]);
+    renderOfferList();
+
+    expect(await screen.findByText('Reserved')).toBeInTheDocument();
+    expect(screen.getByText('Given away')).toBeInTheDocument();
+    // The GIVEN card link is dimmed via the cardCompleted class.
+    const givenCard = screen.getByRole('link', { name: /Garden apples/ });
+    expect(givenCard.className).toMatch(/cardCompleted/);
+    const reservedCard = screen.getByRole('link', { name: /Free sofa/ });
+    expect(reservedCard.className).not.toMatch(/cardCompleted/);
+  });
+
+  it('renders no status badge for active offers', async () => {
+    offersApi.list.mockResolvedValue([{ ...mockOffers[0], status: 'ACTIVE' }]);
+    renderOfferList();
+
+    await screen.findByText('Free sofa');
+    expect(screen.queryByText('Reserved')).not.toBeInTheDocument();
+    expect(screen.queryByText('Given away')).not.toBeInTheDocument();
   });
 });

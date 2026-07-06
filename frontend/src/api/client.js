@@ -56,6 +56,8 @@ export const auth = {
   verify:              (token) => request(`/auth/verify?token=${encodeURIComponent(token)}`),
   resendVerification:  (email) => request('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }),
   forgotPassword:      (email) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  changePassword:      (oldPassword, newPassword) =>
+    request('/auth/change-password', { method: 'POST', body: JSON.stringify({ oldPassword, newPassword }) }),
   resetPassword:       (token, newPassword) =>
     request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
 };
@@ -64,24 +66,41 @@ export const users = {
   list: ()     => request('/users'),
   get:  (id)   => request(`/users/${id}`),
   create: (body) => request('/users', { method: 'POST', body: JSON.stringify(body) }),
+  update: (id, body) => request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  // Partial profile update — omitted/null fields are kept, "" clears a field.
+  updateProfile: (id, fields) => request(`/users/${id}/profile`, { method: 'PUT', body: JSON.stringify(fields) }),
+  remove: (id) => request(`/users/${id}`, { method: 'DELETE' }),
 };
 
 export const offers = {
-  list:       ()         => request('/offers'),
+  list:       (includeCompleted = false) =>
+    request(`/offers${includeCompleted ? '?includeCompleted=true' : ''}`),
   listByUser: (userId)   => request(`/offers?offeredBy=${userId}`),
   get:        (id)       => request(`/offers/${id}`),
   create:     (body)     => request('/offers',    { method: 'POST',   body: JSON.stringify(body) }),
   update:     (id, body) => request(`/offers/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   remove:     (id)       => request(`/offers/${id}`, { method: 'DELETE' }),
+  setStatus:  (id, status, reservedForId) =>
+    request(`/offers/${id}/status`, { method: 'POST', body: JSON.stringify({ status, ...(reservedForId ? { reservedForId } : {}) }) }),
+  interest:        (id) => request(`/offers/${id}/interest`, { method: 'POST' }),
+  interestedCount: (id) => request(`/offers/${id}/interested`),
 };
 
 export const requests = {
-  list:       ()         => request('/requests'),
+  list:       (includeCompleted = false) =>
+    request(`/requests${includeCompleted ? '?includeCompleted=true' : ''}`),
   listByUser: (userId)   => request(`/requests?requestedBy=${userId}`),
   get:        (id)       => request(`/requests/${id}`),
   create:     (body)     => request('/requests',    { method: 'POST',   body: JSON.stringify(body) }),
   update:     (id, body) => request(`/requests/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   remove:     (id)       => request(`/requests/${id}`, { method: 'DELETE' }),
+  setStatus:  (id, status) =>
+    request(`/requests/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
+};
+
+export const thanks = {
+  create:  (offerId, text) => request(`/offers/${offerId}/thanks`, { method: 'POST', body: JSON.stringify({ text }) }),
+  forUser: (userId)        => request(`/users/${userId}/thanks`),
 };
 
 export const images = {

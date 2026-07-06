@@ -39,7 +39,7 @@
   padding: 0.65rem 1rem;
   border: 1.5px solid var(--line);
   border-radius: 999px;
-  background: #fff;
+  background: var(--bg-elevated);
 }
 .searchInput:focus {
   border-color: var(--green);
@@ -50,7 +50,7 @@
   padding: 0.65rem 1rem;
   border: 1.5px solid var(--line);
   border-radius: 999px;
-  background: #fff;
+  background: var(--bg-elevated);
   cursor: pointer;
 }
 .filterSelect:focus {
@@ -79,7 +79,7 @@
 .card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-hover);
-  border-color: #d4d7dc;
+  border-color: var(--border);
 }
 
 /* image / placeholder */
@@ -109,7 +109,7 @@
   top: 0.6rem;
   left: 0.6rem;
   background: rgba(255,255,255,0.95);
-  color: var(--green-dark);
+  color: #14572a;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -182,7 +182,7 @@
   padding: 0.5rem 1.2rem;
   border: 1.5px solid var(--line);
   border-radius: 999px;
-  background: #fff;
+  background: var(--bg-elevated);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9rem;
@@ -202,7 +202,7 @@
   padding: 0.4rem 1.2rem;
   border-radius: 999px;
   border: 1.5px solid var(--line);
-  background: #fff;
+  background: var(--bg-elevated);
   color: var(--muted);
   font-size: 0.9rem;
   font-weight: 600;
@@ -262,7 +262,7 @@
   border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--text);
   text-decoration: none;
   transition: background 0.12s, color 0.12s;
 }
@@ -274,10 +274,41 @@
   .sidebar { position: static; }
   .catList { flex-direction: row; flex-wrap: wrap; gap: 0.4rem; }
   .catRow {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;                 /* touch target */
     background: var(--bg);
     border: 1px solid var(--line);
     border-radius: 999px;
-    padding: 0.25rem 0.7rem;
+    padding: 0.25rem 0.9rem;
     font-size: 0.83rem;
   }
+  .pageBtn { min-height: 44px; }      /* touch target */
+}
+
+/* ---------- Lifecycle status (AP 2.3) ---------- */
+.statusPill {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+}
+
+.cardCompleted { opacity: 0.6; }
+.cardCompleted:hover { opacity: 0.85; }
+
+.completedToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.completedToggle input {
+  accent-color: var(--green);
+  cursor: pointer;
 }

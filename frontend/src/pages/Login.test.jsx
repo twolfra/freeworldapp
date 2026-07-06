@@ -17,6 +17,7 @@ function renderLogin() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/offers" element={<div>offers-page-probe</div>} />
+          <Route path="/welcome" element={<div>welcome-page-probe</div>} />
         </Routes>
       </MemoryRouter>
     </AuthProvider>,
@@ -38,8 +39,9 @@ describe('Login page', () => {
     expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
   });
 
-  it('logs in, stores the user, and navigates to /offers on success', async () => {
+  it('logs in, stores the user, and navigates to /offers when already onboarded', async () => {
     const user = userEvent.setup();
+    localStorage.setItem('fw_onboarded', '1');
     authApi.login.mockResolvedValue({ id: 'u1', username: 'tim', token: 'tok-1' });
     renderLogin();
 
@@ -53,6 +55,19 @@ describe('Login page', () => {
       username: 'tim',
       token: 'tok-1',
     });
+  });
+
+  it('navigates to /welcome on the first login on this device', async () => {
+    const user = userEvent.setup();
+    authApi.login.mockResolvedValue({ id: 'u1', username: 'tim', token: 'tok-1' });
+    renderLogin();
+
+    await user.type(screen.getByLabelText('Username'), 'tim');
+    await user.type(screen.getByLabelText('Password'), 'secret');
+    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+
+    expect(await screen.findByText('welcome-page-probe')).toBeInTheDocument();
+    expect(screen.queryByText('offers-page-probe')).not.toBeInTheDocument();
   });
 
   it('shows the bad-credentials error when login fails', async () => {

@@ -166,6 +166,8 @@ public class MessageController {
         out.createdAt        = DateTimeFormatter.ISO_INSTANT.format(m.getCreatedAt());
         out.readAt           = m.getReadAt() != null
                 ? DateTimeFormatter.ISO_INSTANT.format(m.getReadAt()) : null;
+        out.contextType      = m.getContextType() != null ? m.getContextType().name() : null;
+        out.contextId        = m.getContextId() != null ? m.getContextId().toString() : null;
         return out;
     }
 }

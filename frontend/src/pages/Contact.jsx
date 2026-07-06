@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { t } from '../i18n';
+import { Button } from '../components/ui';
 import styles from './Legal.module.css';
 
 export default function Contact() {
@@ -49,14 +50,13 @@ export default function Contact() {
             {status === 'error' && (
               <p className={styles.formError}>{t('contact.error')}</p>
             )}
-            <button
+            <Button
               type="submit"
-              className="btn-primary"
-              disabled={status === 'submitting'}
+              loading={status === 'submitting'}
               style={{ alignSelf: 'flex-start' }}
             >
               {status === 'submitting' ? t('contact.submitting') : t('contact.submit')}
-            </button>
+            </Button>
           </form>
         )}
       </div>

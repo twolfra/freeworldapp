@@ -201,6 +201,11 @@ public class AuthController {
         out.role = u.getRole().name();
         out.notifyOnMessage = u.isNotifyOnMessage();
         out.language = u.getLanguage();
+        out.displayName = u.getDisplayName();
+        out.bio = u.getBio();
+        out.avatarUrl = u.getAvatarUrl();
+        out.postalCode = u.getPostalCode();
+        out.city = u.getCity();
         return out;
     }
 }

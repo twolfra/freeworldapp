@@ -68,7 +68,7 @@ public class Report {
     public void setResolvedBy(UUID resolvedBy) { this.resolvedBy = resolvedBy; }
     public void setResolvedAt(Instant resolvedAt) { this.resolvedAt = resolvedAt; }
 
-    public enum TargetType { OFFER, REQUEST, USER }
+    public enum TargetType { OFFER, REQUEST, USER, THANKS }
 
     public enum Reason { SPAM, INAPPROPRIATE, SCAM, HARASSMENT, OTHER }
 

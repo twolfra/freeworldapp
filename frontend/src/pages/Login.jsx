@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { t } from '../i18n';
+import { Button } from '../components/ui';
+import { hasOnboarded } from './onboardingFlag';
 import styles from './Register.module.css';
 
 export default function Login() {
@@ -10,6 +12,7 @@ export default function Login() {
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState(null);
   const [unverified, setUnverified] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -19,15 +22,18 @@ export default function Login() {
     e.preventDefault();
     setError(null);
     setUnverified(false);
+    setSubmitting(true);
     try {
       await login(form);
-      navigate('/offers');
+      // First sign-in on this device → run the mini-onboarding once.
+      navigate(hasOnboarded() ? '/offers' : '/welcome');
     } catch (err) {
       if (err.message && err.message.toLowerCase().includes('not verified')) {
         setUnverified(true);
       } else {
         setError(t('login.badCreds'));
       }
+      setSubmitting(false);
     }
   }
 
@@ -40,7 +46,7 @@ export default function Login() {
         {unverified && (
           <p className={styles.error}>
             {t('login.unverified')}{' '}
-            <Link to="/verify-email?resend=1" style={{ color: '#c62828' }}>
+            <Link to="/verify-email?resend=1" style={{ color: 'var(--danger)' }}>
               {t('login.resend')}
             </Link>
           </p>
@@ -54,11 +60,11 @@ export default function Login() {
           <input name="password" type="password" value={form.password} onChange={handleChange} required />
         </label>
         <p style={{ fontSize: '0.85rem', textAlign: 'right', marginTop: '-0.6rem' }}>
-          <Link to="/forgot-password" style={{ color: '#2e7d32' }}>{t('login.forgot')}</Link>
+          <Link to="/forgot-password" style={{ color: 'var(--green)' }}>{t('login.forgot')}</Link>
         </p>
-        <button type="submit" className="btn-primary">{t('login.submit')}</button>
-        <p style={{ fontSize: '0.88rem', textAlign: 'center', color: '#666' }}>
-          {t('login.noAccount')} <Link to="/register" style={{ color: '#2e7d32' }}>{t('login.join')}</Link>
+        <Button type="submit" loading={submitting}>{t('login.submit')}</Button>
+        <p style={{ fontSize: '0.88rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+          {t('login.noAccount')} <Link to="/register" style={{ color: 'var(--green)' }}>{t('login.join')}</Link>
         </p>
       </form>
     </main>

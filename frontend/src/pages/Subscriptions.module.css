@@ -12,7 +12,7 @@
 
 .header h2 {
   font-size: 1.5rem;
-  color: #1b5e20;
+  color: var(--green-dark);
 }
 
 .feed {
@@ -26,16 +26,16 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  background: #fff;
+  background: var(--bg-elevated);
   border-radius: 10px;
   padding: 1.2rem 1.6rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-sm);
   text-decoration: none;
   color: inherit;
   transition: box-shadow 0.15s;
 }
 
-.card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+.card:hover { box-shadow: var(--shadow-md); }
 
 .cardTop {
   display: flex;
@@ -54,13 +54,13 @@
 }
 
 .badgeOffer {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: var(--success-soft);
+  color: var(--success);
 }
 
 .badgeRequest {
-  background: #e3f2fd;
-  color: #1565c0;
+  background: var(--blue-light);
+  color: var(--blue);
 }
 
 .category {
@@ -68,17 +68,17 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .meta {
   margin-left: auto;
   font-size: 0.8rem;
-  color: #aaa;
+  color: var(--muted-soft);
 }
 
 .authorLink {
-  color: #1565c0;
+  color: var(--blue);
   font-weight: 600;
   text-decoration: none;
 }
@@ -87,20 +87,20 @@
 
 .card h3 {
   font-size: 1.05rem;
-  color: #111;
+  color: var(--text);
   margin: 0;
 }
 
 .card p {
   font-size: 0.9rem;
-  color: #555;
+  color: var(--text-muted);
   line-height: 1.6;
   margin: 0;
 }
 
 .card footer {
   font-size: 0.8rem;
-  color: #888;
+  color: var(--text-muted);
   margin-top: 0.2rem;
 }
 
@@ -108,7 +108,7 @@
 .empty {
   text-align: center;
   margin-top: 3rem;
-  color: #666;
+  color: var(--text-muted);
   line-height: 1.8;
 }
 
@@ -123,16 +123,16 @@
 
 .pageBtn {
   padding: 0.45rem 1.1rem;
-  border: 1.5px solid #ccc;
+  border: 1.5px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--bg-elevated);
   cursor: pointer;
   font-size: 0.9rem;
   font-family: inherit;
   transition: border-color 0.15s, color 0.15s;
 }
 
-.pageBtn:hover:not(:disabled) { border-color: #2e7d32; color: #2e7d32; }
+.pageBtn:hover:not(:disabled) { border-color: var(--success); color: var(--success); }
 .pageBtn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-.pageInfo { font-size: 0.9rem; color: #666; }
+.pageInfo { font-size: 0.9rem; color: var(--text-muted); }

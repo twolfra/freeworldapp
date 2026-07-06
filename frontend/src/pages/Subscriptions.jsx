@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { subscriptions as subsApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { t, tCat, tp } from '../i18n';
+import { Button, Card, EmptyState, Skeleton } from '../components/ui';
 import styles from './Subscriptions.module.css';
 
 const PAGE_SIZE = 12;
@@ -30,7 +31,20 @@ export default function Subscriptions() {
     </main>
   );
 
-  if (loading) return <p className={styles.status}>{t('detail.loading')}</p>;
+  if (loading) return (
+    <main className={styles.page} aria-busy="true">
+      <div className={styles.header}>
+        <h2>{t('subs.title')}</h2>
+      </div>
+      <ul className={styles.feed}>
+        {Array.from({ length: 6 }, (_, i) => (
+          <li key={i}>
+            <Card><Skeleton variant="text" lines={3} /></Card>
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
   if (error)   return <p className={styles.status}>Could not load feed: {error}</p>;
 
   const totalPages = Math.max(1, Math.ceil(feed.length / PAGE_SIZE));
@@ -43,13 +57,12 @@ export default function Subscriptions() {
         <h2>{t('subs.title')}</h2>
       </div>
       {feed.length === 0
-        ? <p className={styles.empty}>
-            {t('subs.emptyStart')}{' '}
-            <Link to="/offers">{t('subs.browseOffers')}</Link>{' '}
-            {t('subs.browseOr')}{' '}
-            <Link to="/requests">{t('subs.browseRequests')}</Link>{' '}
-            {t('subs.emptyEnd')}
-          </p>
+        ? <EmptyState
+            icon="👥"
+            title={t('subs.emptyTitle')}
+            text={t('subs.emptyText')}
+            action={<Button as={Link} to="/offers" variant="secondary">{t('subs.browseOffers')}</Button>}
+          />
         : <>
             <ul className={styles.feed}>
               {pageItems.map((item) => (

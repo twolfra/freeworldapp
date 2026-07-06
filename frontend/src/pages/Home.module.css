@@ -2,7 +2,7 @@
 .hero {
   background:
     radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.10), transparent 55%),
-    linear-gradient(130deg, var(--green) 0%, var(--green-dark) 100%);
+    linear-gradient(130deg, var(--green) 0%, #14572a 100%);
   color: #fff;
   padding: 3rem 1.5rem 3.5rem;
 }
@@ -34,12 +34,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #fff;
+  background: var(--bg-elevated);
   border-radius: 999px;
   padding: 0.35rem 0.35rem 0.35rem 1.1rem;
   margin: 1.6rem auto 0;
   max-width: 580px;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.20);
+  box-shadow: var(--shadow-lg);
 }
 .searchBar input {
   flex: 1;
@@ -76,7 +76,7 @@
 .searchDivider {
   width: 1px;
   height: 1.4rem;
-  background: rgba(0,0,0,0.12);
+  background: var(--border);
   flex-shrink: 0;
   align-self: center;
 }
@@ -132,7 +132,7 @@
   border-radius: var(--radius-sm);
   font-size: 0.92rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--text);
   transition: background 0.12s, color 0.12s;
 }
 .catRow:hover { background: var(--green-light); color: var(--green-dark); }
@@ -206,7 +206,7 @@
 .card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-hover);
-  border-color: #d4d7dc;
+  border-color: var(--border);
 }
 
 .thumb {
@@ -235,6 +235,7 @@
   top: 0.5rem;
   left: 0.5rem;
   background: rgba(255,255,255,0.93);
+  color: #16181c;
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;

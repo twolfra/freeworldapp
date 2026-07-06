@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { users } from '../api/client';
 import { t, getLang } from '../i18n';
+import { Button } from '../components/ui';
 import styles from './Register.module.css';
 
 export default function Register() {
@@ -9,6 +10,7 @@ export default function Register() {
   const [error, setError] = useState(null);
   const [registered, setRegistered] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -17,12 +19,15 @@ export default function Register() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
+    setSubmitting(true);
     try {
       await users.create({ ...form, language: getLang() });
       setRegisteredEmail(form.email);
       setRegistered(true);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -62,9 +67,9 @@ export default function Register() {
         <label>
           {t('register.password')}
           <input name="password" type="password" value={form.password} onChange={handleChange} required minLength={6} />
-          <span style={{ fontSize: '0.78rem', color: '#888' }}>{t('register.passwordHint')}</span>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t('register.passwordHint')}</span>
         </label>
-        <button type="submit" className="btn-primary">{t('register.submit')}</button>
+        <Button type="submit" loading={submitting}>{t('register.submit')}</Button>
       </form>
     </main>
   );

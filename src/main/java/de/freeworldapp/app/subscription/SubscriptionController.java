@@ -118,7 +118,8 @@ public class SubscriptionController {
         List<SubscriptionDtos.FeedItem> items = new ArrayList<>();
 
         offerRepo.findByOfferedBy_IdIn(followedIds).stream()
-                .filter(o -> !o.getOfferedBy().isBlocked()).forEach(o -> {
+                .filter(o -> !o.getOfferedBy().isBlocked())
+                .filter(o -> o.getStatus() != de.freeworldapp.app.offer.Offer.Status.GIVEN).forEach(o -> {
             var item = new SubscriptionDtos.FeedItem();
             item.type            = "offer";
             item.id              = o.getId().toString();
@@ -134,7 +135,8 @@ public class SubscriptionController {
         });
 
         requestRepo.findByRequestedBy_IdIn(followedIds).stream()
-                .filter(r -> !r.getRequestedBy().isBlocked()).forEach(r -> {
+                .filter(r -> !r.getRequestedBy().isBlocked())
+                .filter(r -> r.getStatus() != de.freeworldapp.app.request.Request.Status.FULFILLED).forEach(r -> {
             var item = new SubscriptionDtos.FeedItem();
             item.type            = "request";
             item.id              = r.getId().toString();

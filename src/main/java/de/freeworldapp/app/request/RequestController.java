@@ -1,5 +1,6 @@
 package de.freeworldapp.app.request;
 
+import de.freeworldapp.app.auth.AdminGuard;
 import de.freeworldapp.app.auth.SecurityContext;
 import de.freeworldapp.app.image.StorageService;
 import de.freeworldapp.app.like.Like;
@@ -24,12 +25,15 @@ public class RequestController {
     private final UserRepository userRepo;
     private final StorageService storage;
     private final LikeRepository likeRepo;
+    private final AdminGuard adminGuard;
 
-    public RequestController(RequestRepository requestRepo, UserRepository userRepo, StorageService storage, LikeRepository likeRepo) {
+    public RequestController(RequestRepository requestRepo, UserRepository userRepo, StorageService storage,
+                             LikeRepository likeRepo, AdminGuard adminGuard) {
         this.requestRepo = requestRepo;
         this.userRepo = userRepo;
         this.storage = storage;
         this.likeRepo = likeRepo;
+        this.adminGuard = adminGuard;
     }
 
     @PostMapping
@@ -54,18 +58,40 @@ public class RequestController {
     }
 
     @GetMapping
-    public ResponseEntity<?> list(@RequestParam(required = false) String requestedBy) {
+    public ResponseEntity<?> list(@RequestParam(required = false) String requestedBy,
+                                  @RequestParam(defaultValue = "false") boolean includeCompleted) {
         if (requestedBy != null) {
             UUID uid;
             try { uid = UUID.fromString(requestedBy); }
             catch (IllegalArgumentException e) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Invalid user id."));
             }
+            // Per-user views (profile, own management) always show every status.
             return ResponseEntity.ok(requestRepo.findByRequestedBy_Id(uid).stream().map(this::toResponse).toList());
         }
         return ResponseEntity.ok(requestRepo.findAll().stream()
                 .filter(r -> !r.getRequestedBy().isBlocked())
+                .filter(r -> includeCompleted || r.getStatus() != Request.Status.FULFILLED)
                 .map(this::toResponse).toList());
+    }
+
+    /** Lifecycle: owner (or admin) moves a request between OPEN / FULFILLED. */
+    @PostMapping("{id}/status")
+    public ResponseEntity<?> changeStatus(@PathVariable UUID id, @Valid @RequestBody RequestDtos.StatusUpdate in) {
+        UUID callerId = SecurityContext.authenticatedId();
+        return requestRepo.findById(id)
+                .<ResponseEntity<?>>map(r -> {
+                    if (!r.getRequestedBy().getId().equals(callerId) && !adminGuard.isAdmin())
+                        return ResponseEntity.status(403).body(Map.of("error", "Not your request."));
+                    Request.Status newStatus;
+                    try { newStatus = Request.Status.valueOf(in.status.toUpperCase()); }
+                    catch (IllegalArgumentException e) {
+                        return ResponseEntity.badRequest().body(Map.of("error", "Invalid status."));
+                    }
+                    r.setStatus(newStatus);
+                    return ResponseEntity.ok(toResponse(requestRepo.save(r)));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("{id}")
@@ -125,6 +151,7 @@ public class RequestController {
         out.requestedByUsername = r.getRequestedBy().getUsername();
         out.imageUrl = r.getImageUrl();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(r.getCreatedAt());
+        out.status = r.getStatus().name();
         return out;
     }
 }

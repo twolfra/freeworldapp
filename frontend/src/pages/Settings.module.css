@@ -1,0 +1,154 @@
+.page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+.heading {
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+.status {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem 0;
+}
+
+/* Tabs — same look as the Admin panel */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.tab, .tabActive {
+  background: none;
+  border: none;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tabActive {
+  color: var(--success);
+  border-bottom-color: var(--success);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.subheading {
+  font-size: 1.1rem;
+  color: var(--green-dark);
+  margin: 0 0 0.25rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--green-light);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.4rem;
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+@media (max-width: 540px) {
+  .twoCol { grid-template-columns: 1fr; }
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.counter {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Avatar */
+.avatarRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.4rem;
+}
+
+.avatarActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.fileInput {
+  display: none;
+}
+
+/* Notifications */
+.notifyRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.98rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.notifyRow input {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+}
+
+/* Language */
+.langSelect {
+  max-width: 280px;
+}
+
+/* Danger zone */
+.dangerZone {
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.dangerHeading {
+  font-size: 1.1rem;
+  color: var(--danger);
+  margin: 0;
+}

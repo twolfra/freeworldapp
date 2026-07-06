@@ -104,6 +104,11 @@ Client-side via **react-router-dom v7** — `App.jsx` declares `<Routes>` inside
 | `/datenschutz` | Datenschutz |
 | `/terms` | Terms |
 | `/admin` | Admin (admin-only moderation panel) |
+| `/forgot-password` | ForgotPassword |
+| `/reset-password?token=` | ResetPassword |
+| `/settings` | Settings (profile · account · notifications · language) |
+| `/welcome` | Onboarding (3 steps after first login, skippable, `fw_onboarded` flag) |
+| `*` | NotFound (404) |
 
 ---
 
@@ -127,6 +132,8 @@ Client-side via **react-router-dom v7** — `App.jsx` declares `<Routes>` inside
 | GET | `/api/users` | List all |
 | GET | `/api/users/:id` | Get one |
 | PUT | `/api/users/:id` | Update username/email |
+| PUT | `/api/users/:id/profile` | Owner-only partial update `{ displayName?, bio?, avatarUrl?, postalCode?, city? }` — null keeps, "" clears |
+| GET | `/api/users/:id/thanks` | Public: qualitative thanks list `{ fromUsername, text, offerTitle, createdAt }` (no score) |
 | DELETE | `/api/users/:id` | Delete |
 
 ### Offers
@@ -137,6 +144,10 @@ Client-side via **react-router-dom v7** — `App.jsx` declares `<Routes>` inside
 | GET | `/api/offers/:id` | Get one — response includes `offeredByUsername`, `imageUrl` |
 | PUT | `/api/offers/:id` | Update `{ title, description, region, category, quantity, imageUrl? }` — send current imageUrl to keep, null to remove |
 | DELETE | `/api/offers/:id` | Delete |
+| POST | `/api/offers/:id/status` | Owner/admin: `{ status: ACTIVE\|RESERVED\|GIVEN, reservedForId? }`; leaving RESERVED clears the reservation. Default GET list hides GIVEN (`?includeCompleted=true` shows; `?offeredBy=` always shows all) |
+| POST | `/api/offers/:id/interest` | Interest flow: creates a context-carrying first message to the owner (idempotent per user+offer) → `{ conversationWith, created }` |
+| GET | `/api/offers/:id/interested` | Owner/admin: `{ count }` distinct interested users |
+| POST | `/api/offers/:id/thanks` | `{ text? ≤280 }` — only after GIVEN, not own offer, once per gift (409), requires a conversation with the owner |
 
 ### Requests
 | Method | Path | Notes |
@@ -146,6 +157,7 @@ Client-side via **react-router-dom v7** — `App.jsx` declares `<Routes>` inside
 | GET | `/api/requests/:id` | Get one — response includes `requestedByUsername`, `imageUrl` |
 | PUT | `/api/requests/:id` | Update `{ title, description, region, category, quantity, imageUrl? }` — send current imageUrl to keep, null to remove |
 | DELETE | `/api/requests/:id` | Delete |
+| POST | `/api/requests/:id/status` | Owner/admin: `{ status: OPEN\|FULFILLED }`. Default GET list hides FULFILLED (same params as offers) |
 
 **Categories (used in both):** Food & Drink, Clothing, Books & Media, Tools & Equipment, Furniture, Electronics, Skills & Services, Plants & Seeds, Childcare, Transport, Other
 
@@ -177,7 +189,7 @@ Client-side via **react-router-dom v7** — `App.jsx` declares `<Routes>` inside
 ### Reports
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/api/reports` | `{ targetType (OFFER/REQUEST/USER), targetId, reason (SPAM/INAPPROPRIATE/SCAM/HARASSMENT/OTHER), note? }` — any signed-in user; 404 unknown target, 400 self-report, 409 duplicate open report |
+| POST | `/api/reports` | `{ targetType (OFFER/REQUEST/USER/THANKS), targetId, reason (SPAM/INAPPROPRIATE/SCAM/HARASSMENT/OTHER), note? }` — any signed-in user; 404 unknown target, 400 self-report, 409 duplicate open report |
 
 ### Notifications
 | Method | Path | Notes |
@@ -231,6 +243,8 @@ reports         id, reporter_id(FK→users), targetType(OFFER/REQUEST/USER), tar
 - **Auth check:** `const { user, login, logout, updateUser } = useAuth()` from `auth/AuthContext.jsx`. `auth/authStorage.js` is the ONLY module that reads/writes the `currentUser` localStorage key (client.js gets the token through it). Never parse localStorage in pages/components.
 - **Navigation:** `<Link to>` / `useNavigate()` from react-router-dom — client-side, no full reloads. Exception: the Navbar language toggle (`setLang`) intentionally reloads.
 - **API client:** `frontend/src/api/client.js` exports named objects (`auth`, `users`, `offers`, `requests`, `messages`, `subscriptions`, `images`, `likes`, `reports`, `admin`). All return promises. Errors throw with message string parsed from Spring's validation format. Multipart uploads use a separate `upload()` helper that omits the `Content-Type` header so the browser sets the multipart boundary automatically.
+- **Design system:** `frontend/src/components/ui/` (Button, Card, Input, Select, Textarea, Modal, ConfirmModal, Toast/`useToast()`, Badge, Avatar, EmptyState, Skeleton, Spinner) + semantic tokens in `index.css` (`--bg/--bg-elevated/--text/--text-muted/--border`, spacing/radius/shadow/type scales). Dark mode via `:root[data-theme=dark]`; `theme.js` + `fw_theme` localStorage (auto = prefers-color-scheme), moon/sun toggle in Navbar. NO `alert()`/`confirm()` — use `useToast()`/`ConfirmModal`.
+- **Mobile:** `TabBar.jsx` bottom navigation < 768px (Discover · Search · ➕ Give · Messages+badge · Profile); desktop Navbar links hidden on mobile. Unread badge logic shared via `hooks/useUnreadCount.js`.
 - **CSS:** Each page has its own `.module.css`. `OfferList.module.css` is shared by both `OfferList` and `RequestList`. `RequestDetail.module.css` is shared by both detail pages. `OfferForm.module.css` is shared by both form pages.
 - **SSE connections:** Both `Navbar.jsx` (for unread badge) and `Conversation.jsx` open `EventSource` to `/api/messages/stream`. Fan-out in `SseService` (`Map<UUID, CopyOnWriteArrayList<SseEmitter>>`) delivers events to all open connections for the same user simultaneously.
 - **i18n:** `frontend/src/i18n.js` exports `t(key)`, `tp(key, params)` (with `{placeholder}` interpolation), and `tCat(englishCategoryName)`. Language stored in `localStorage` key `fw_lang` (defaults to `'en'`). `setLang(lang)` sets it and reloads. Navbar shows a DE/EN pill toggle. Category values sent to the API always stay in English; only display labels are translated.
@@ -289,6 +303,8 @@ reports         id, reporter_id(FK→users), targetType(OFFER/REQUEST/USER), tar
 - [x] **Phase 0 of UPGRADE_PLAN.md (foundation & tech debt)** — **AP 0.6**: Java package `com.example.marketplace` → `de.freeworldapp.app`, Maven coords `de.freeworldapp:freeworldapp`, Java 17 → 21 (Dockerfile images on temurin 21). **AP 0.3**: Flyway (`V1__baseline.sql` full schema; `baseline-on-migrate` marks it applied on pre-existing DBs; `ddl-auto: validate`). **AP 0.1**: react-router-dom v7 — `<Routes>` in App.jsx, `Link`/`useNavigate`/`useParams`/`useSearchParams` everywhere, `*` → 404 page, `Remount` wrapper keys param routes to reproduce full-reload semantics, `TitleManager` keeps per-route document titles. **AP 0.2**: `AuthProvider`/`useAuth()` (`frontend/src/auth/`); `authStorage.js` solely owns the `currentUser` key; post-login/logout navigation is client-side. **AP 0.7**: springdoc-openapi — Swagger UI `/api/docs`, spec `/api/docs/spec`, `SPRINGDOC_ENABLED=false` hides in prod. **AP 0.4**: test infra — backend `mvn test` boots the app against a PostgreSQL Testcontainer (27 integration tests: auth flow, ownership 403s, AuthFilter paths; also validates the Flyway baseline), frontend `npm test` runs Vitest + Testing Library (15 tests: client.js error parsing, Login, OfferList). Found+fixed: owner `DELETE /api/offers/:id` & `/api/requests/:id` 500'd (`@Modifying` like-cleanup without a transaction) — both delete endpoints are now `@Transactional`. **AP 0.5**: GitHub Actions CI (`.github/workflows/ci.yml` — mvn verify + vitest/build on push/PR, non-blocking dependency/audit reports) and manual Cloud Run deploy workflow; README with badge.
 
 - [x] **Phase 1 of UPGRADE_PLAN.md (security hardening)** — **AP 1.2**: session tokens are 256-bit base64url, stored only as SHA-256 hashes (`sessions.token_hash`, V2; one-time force re-login); `POST /api/auth/change-password` (min 10 chars, invalidates other sessions). **AP 1.1**: password reset — hashed single-use 1h tokens (V3), anti-enumeration forgot endpoint, DE/EN mails, `/forgot-password` + `/reset-password` pages, sessions invalidated on reset. **AP 1.4**: uploads decoded (magic bytes) and re-encoded via Thumbnailator (EXIF/GPS stripped, 2560px cap, 480px `_t` thumbs, `{url, thumbUrl}` response); Local + GCS storage handle thumbs incl. deletion. **AP 1.5**: RateLimitFilter on Bucket4j (login/register 20/min, messages 60/min, images 10/min, reports 5/min, resend 3/15min, forgot 5/15min, contact 3/15min) + account lockout (10 failed logins → 15 min). **AP 1.6**: WS auth via first frame `{type:"auth",token}` → `{type:"auth_ok"}`; unauthenticated connections closed after `app.ws.auth-timeout-ms` (5s); token no longer in URL. **AP 1.3**: SecurityHeadersFilter — CSP (report-only toggle `CSP_REPORT_ONLY`), nosniff, Referrer-Policy, Permissions-Policy, HSTS (honours X-Forwarded-Proto). **AP 1.7**: SQL/bind logging dev-profile-only; infra details moved to gitignored `OPERATIONS.md`; Dependabot (maven/npm/actions); `admin_audit_log` (V4) written by all admin actions + `GET /api/admin/audit` + admin-panel tab. Bugfixes found by tests: admin block 500'd (missing @Transactional); WS auth needed join-fetch for blocked-check. 66 backend + 15 frontend tests green.
+
+- [x] **Phase 2 of UPGRADE_PLAN.md (core UX & product logic)** — **AP 2.1**: design-token system (semantic colors, spacing/radius/shadow/type scales), full dark mode (`fw_theme`, Navbar toggle), 13-component ui/ library, zero `alert()`/`confirm()` (Toast + ConfirmModal), skeleton loading grids, `<Button loading>` submits, optimistic likes. **AP 2.3**: offer lifecycle ACTIVE/RESERVED/GIVEN + request OPEN/FULFILLED (V5), owner/admin status endpoint, default lists hide completed (`?includeCompleted=true`), banners/badges/dimming, "🎁 Given away N times" profile chip. **AP 2.4**: interest flow — `POST /api/offers/:id/interest` creates a context-carrying first message (V6 `context_type/context_id` on messages, in REST+WS payloads), conversation shows a linked context card, owner sees "N interested". **AP 2.5**: thanks system (V7) — one qualitative thanks per GIVEN offer (≤280 chars, requires prior conversation, denormalized so it survives offer deletion), public profile list without scores, reportable (`targetType THANKS`). **AP 2.6**: profile fields displayName/bio/avatarUrl/postalCode/city (V8, postal code never public), `PUT /api/users/:id/profile`, `/settings` area (avatar upload via image pipeline, account/username/email, change password, delete account with ConfirmModal, notifications, language), public profile hero with Avatar/displayName/bio/📍city. **AP 2.2**: mobile bottom TabBar (<768px, 44px+ targets, safe-area, unread badge via shared `useUnreadCount` hook) + touch-target pass. **AP 2.7**: EmptyStates with CTAs in every list/inbox/feed + 3-step skippable `/welcome` onboarding after first login. Backend 85 tests / frontend 49 tests green.
 
 ---
 

@@ -22,6 +22,8 @@ public class MessageDtos {
         public String content;
         public String createdAt;
         public String readAt; // null if unread
+        public String contextType; // OFFER/REQUEST or null
+        public String contextId;
     }
 
     public static class ConversationSummary {

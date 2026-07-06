@@ -1,40 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { messages as messagesApi } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
+import useUnreadCount from '../hooks/useUnreadCount';
 import { t, getLang, setLang } from '../i18n';
+import { resolvedTheme, setTheme } from '../theme';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
   const { user: currentUser, logout } = useAuth();
   const navigate = useNavigate();
-  const [unread, setUnread] = useState(0);
+  const unread = useUnreadCount(currentUser);
+  const [theme, setThemeState] = useState(resolvedTheme);
   const lang = getLang();
 
-  useEffect(() => {
-    if (!currentUser?.token) return;
-
-    const refreshCount = () => {
-      messagesApi.getUnreadCount(currentUser.id)
-        .then((r) => setUnread(r.count))
-        .catch(() => {});
-    };
-
-    refreshCount();
-
-    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const ws = new WebSocket(
-      `${proto}://${window.location.host}/ws/messages`
-    );
-    // First frame must authenticate — the token no longer travels in the URL.
-    ws.onopen = () => ws.send(JSON.stringify({ type: 'auth', token: currentUser.token }));
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'message' || data.type === 'read') refreshCount();
-    };
-
-    return () => ws.close();
-  }, [currentUser?.id]);
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    setThemeState(next);
+  }
 
   async function signOut() {
     await logout();
@@ -64,6 +47,14 @@ export default function Navbar() {
 
         <div className={styles.actions}>
           <button
+            className={styles.themeToggle}
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}
+            title={theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}
+          >
+            <span aria-hidden="true">{theme === 'dark' ? '☀️' : '🌙'}</span>
+          </button>
+          <button
             className={styles.langToggle}
             onClick={() => setLang(lang === 'de' ? 'en' : 'de')}
             title={lang === 'de' ? 'Switch to English' : 'Auf Deutsch wechseln'}
@@ -73,8 +64,18 @@ export default function Navbar() {
           {currentUser ? (
             <>
               <Link to={`/users/${currentUser.id}`} className={styles.userChip}>
-                <span className={styles.avatar}>{currentUser.username.charAt(0).toUpperCase()}</span>
+                {currentUser.avatarUrl
+                  ? <img src={currentUser.avatarUrl} alt="" className={styles.avatarImg} />
+                  : <span className={styles.avatar}>{currentUser.username.charAt(0).toUpperCase()}</span>}
                 <span className={styles.userName}>{currentUser.username}</span>
+              </Link>
+              <Link
+                to="/settings"
+                className={styles.settingsLink}
+                title={t('nav.settings')}
+                aria-label={t('nav.settings')}
+              >
+                <span aria-hidden="true">⚙️</span>
               </Link>
               <button className={styles.signOut} onClick={signOut} title={t('nav.signOut')}>{t('nav.signOut')}</button>
             </>

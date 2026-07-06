@@ -32,6 +32,11 @@ public class RequestDtos {
         public String imageUrl;
     }
 
+    public static class StatusUpdate {
+        @NotBlank
+        public String status;            // OPEN / FULFILLED
+    }
+
     public static class Response {
         public String id;
         public String title;
@@ -43,5 +48,6 @@ public class RequestDtos {
         public String requestedByUsername;
         public String imageUrl;
         public String createdAt;
+        public String status;
     }
 }

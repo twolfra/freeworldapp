@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { auth } from '../api/client';
 import { t } from '../i18n';
+import { Button } from '../components/ui';
 import styles from './Register.module.css';
 
 export default function ResetPassword() {
@@ -82,15 +83,15 @@ export default function ResetPassword() {
         <label>
           {t('reset.password')}
           <input name="password" type="password" value={form.password} onChange={handleChange} required minLength={10} />
-          <span style={{ fontSize: '0.78rem', color: '#888' }}>{t('reset.passwordHint')}</span>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t('reset.passwordHint')}</span>
         </label>
         <label>
           {t('reset.confirm')}
           <input name="confirm" type="password" value={form.confirm} onChange={handleChange} required />
         </label>
-        <button type="submit" className="btn-primary" disabled={status === 'submitting'}>
+        <Button type="submit" loading={status === 'submitting'}>
           {status === 'submitting' ? t('reset.submitting') : t('reset.submit')}
-        </button>
+        </Button>
       </form>
     </main>
   );

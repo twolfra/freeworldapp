@@ -1,9 +1,14 @@
 package de.freeworldapp.app.offer;
 
+import de.freeworldapp.app.auth.AdminGuard;
 import de.freeworldapp.app.auth.SecurityContext;
 import de.freeworldapp.app.image.StorageService;
 import de.freeworldapp.app.like.Like;
 import de.freeworldapp.app.like.LikeRepository;
+import de.freeworldapp.app.message.ChatWebSocketHandler;
+import de.freeworldapp.app.message.Message;
+import de.freeworldapp.app.message.MessageNotificationService;
+import de.freeworldapp.app.message.MessageRepository;
 import de.freeworldapp.app.offer.dto.OfferDtos;
 import de.freeworldapp.app.user.UserRepository;
 import jakarta.validation.Valid;
@@ -24,12 +29,22 @@ public class OfferController {
     private final UserRepository userRepo;
     private final StorageService storage;
     private final LikeRepository likeRepo;
+    private final AdminGuard adminGuard;
+    private final MessageRepository messageRepo;
+    private final ChatWebSocketHandler wsHandler;
+    private final MessageNotificationService notificationService;
 
-    public OfferController(OfferRepository offerRepo, UserRepository userRepo, StorageService storage, LikeRepository likeRepo) {
+    public OfferController(OfferRepository offerRepo, UserRepository userRepo, StorageService storage,
+                           LikeRepository likeRepo, AdminGuard adminGuard, MessageRepository messageRepo,
+                           ChatWebSocketHandler wsHandler, MessageNotificationService notificationService) {
         this.offerRepo = offerRepo;
         this.userRepo = userRepo;
         this.storage = storage;
         this.likeRepo = likeRepo;
+        this.adminGuard = adminGuard;
+        this.messageRepo = messageRepo;
+        this.wsHandler = wsHandler;
+        this.notificationService = notificationService;
     }
 
     @PostMapping
@@ -54,18 +69,106 @@ public class OfferController {
     }
 
     @GetMapping
-    public ResponseEntity<?> list(@RequestParam(required = false) String offeredBy) {
+    public ResponseEntity<?> list(@RequestParam(required = false) String offeredBy,
+                                  @RequestParam(defaultValue = "false") boolean includeCompleted) {
         if (offeredBy != null) {
             UUID uid;
             try { uid = UUID.fromString(offeredBy); }
             catch (IllegalArgumentException e) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Invalid user id."));
             }
+            // Per-user views (profile, own management) always show every status.
             return ResponseEntity.ok(offerRepo.findByOfferedBy_Id(uid).stream().map(this::toResponse).toList());
         }
         return ResponseEntity.ok(offerRepo.findAll().stream()
                 .filter(o -> !o.getOfferedBy().isBlocked())
+                .filter(o -> includeCompleted || o.getStatus() != Offer.Status.GIVEN)
                 .map(this::toResponse).toList());
+    }
+
+    /**
+     * Interest flow: instead of a raw DM, creates a structured first message
+     * carrying the offer as context. Idempotent per user+offer.
+     */
+    @PostMapping("{id}/interest")
+    public ResponseEntity<?> expressInterest(@PathVariable UUID id) {
+        UUID callerId = SecurityContext.authenticatedId();
+        return offerRepo.findById(id)
+                .<ResponseEntity<?>>map(o -> {
+                    UUID ownerId = o.getOfferedBy().getId();
+                    if (ownerId.equals(callerId))
+                        return ResponseEntity.badRequest().body(Map.of("error", "This is your own offer."));
+
+                    boolean alreadyInterested = messageRepo
+                            .existsBySender_IdAndContextTypeAndContextId(callerId, Message.ContextType.OFFER, id);
+                    if (!alreadyInterested) {
+                        var caller = userRepo.findById(callerId).orElseThrow();
+                        boolean de = "de".equalsIgnoreCase(o.getOfferedBy().getLanguage());
+                        Message m = new Message();
+                        m.setSender(caller);
+                        m.setRecipient(o.getOfferedBy());
+                        m.setContent((de ? "Ich interessiere mich für: " : "I'm interested in: ") + o.getTitle());
+                        m.setContextType(Message.ContextType.OFFER);
+                        m.setContextId(id);
+                        Message saved = messageRepo.save(m);
+                        Map<String, Object> payload = wsHandler.toMessagePayload(saved);
+                        wsHandler.push(ownerId, payload);
+                        wsHandler.push(callerId, payload);
+                        notificationService.notifyNewMessage(ownerId, callerId, saved.getContent());
+                    }
+                    return ResponseEntity.ok(Map.of(
+                            "conversationWith", ownerId.toString(),
+                            "created", !alreadyInterested));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Owner/admin only: how many distinct users expressed interest. */
+    @GetMapping("{id}/interested")
+    public ResponseEntity<?> interestedCount(@PathVariable UUID id) {
+        UUID callerId = SecurityContext.authenticatedId();
+        return offerRepo.findById(id)
+                .<ResponseEntity<?>>map(o -> {
+                    if (!o.getOfferedBy().getId().equals(callerId) && !adminGuard.isAdmin())
+                        return ResponseEntity.status(403).body(Map.of("error", "Not your offer."));
+                    long count = messageRepo.countInterestedUsers(Message.ContextType.OFFER, id,
+                            o.getOfferedBy().getId());
+                    return ResponseEntity.ok(Map.of("count", count));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Lifecycle: owner (or admin) moves an offer between ACTIVE / RESERVED / GIVEN. */
+    @PostMapping("{id}/status")
+    public ResponseEntity<?> changeStatus(@PathVariable UUID id, @Valid @RequestBody OfferDtos.StatusUpdate in) {
+        UUID callerId = SecurityContext.authenticatedId();
+        return offerRepo.findById(id)
+                .<ResponseEntity<?>>map(o -> {
+                    if (!o.getOfferedBy().getId().equals(callerId) && !adminGuard.isAdmin())
+                        return ResponseEntity.status(403).body(Map.of("error", "Not your offer."));
+
+                    Offer.Status newStatus;
+                    try { newStatus = Offer.Status.valueOf(in.status.toUpperCase()); }
+                    catch (IllegalArgumentException e) {
+                        return ResponseEntity.badRequest().body(Map.of("error", "Invalid status."));
+                    }
+
+                    if (newStatus == Offer.Status.RESERVED && in.reservedForId != null && !in.reservedForId.isBlank()) {
+                        try {
+                            var reservedFor = userRepo.findById(UUID.fromString(in.reservedForId));
+                            if (reservedFor.isEmpty())
+                                return ResponseEntity.badRequest().body(Map.of("error", "Unknown user."));
+                            o.setReservedFor(reservedFor.get());
+                        } catch (IllegalArgumentException e) {
+                            return ResponseEntity.badRequest().body(Map.of("error", "Invalid user id."));
+                        }
+                    }
+                    if (newStatus != Offer.Status.RESERVED) o.setReservedFor(null);
+
+                    o.setStatus(newStatus);
+                    return ResponseEntity.ok(toResponse(offerRepo.save(o)));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("{id}")
@@ -126,6 +229,11 @@ public class OfferController {
         out.offeredByUsername = o.getOfferedBy().getUsername();
         out.imageUrl = o.getImageUrl();
         out.createdAt = DateTimeFormatter.ISO_INSTANT.format(o.getCreatedAt());
+        out.status = o.getStatus().name();
+        if (o.getReservedFor() != null) {
+            out.reservedForId = o.getReservedFor().getId().toString();
+            out.reservedForUsername = o.getReservedFor().getUsername();
+        }
         return out;
     }
 }

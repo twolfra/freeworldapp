@@ -17,6 +17,7 @@ import de.freeworldapp.app.report.dto.ReportDtos;
 import de.freeworldapp.app.request.Request;
 import de.freeworldapp.app.request.RequestRepository;
 import de.freeworldapp.app.subscription.SubscriptionRepository;
+import de.freeworldapp.app.thanks.ThanksRepository;
 import de.freeworldapp.app.user.User;
 import de.freeworldapp.app.user.UserRepository;
 import de.freeworldapp.app.user.dto.UserDtos;
@@ -47,13 +48,14 @@ public class AdminController {
     private final StorageService storage;
     private final EmailService emailService;
     private final AdminAuditRepository auditRepo;
+    private final ThanksRepository thanksRepo;
 
     public AdminController(AdminGuard adminGuard, UserRepository userRepo, OfferRepository offerRepo,
                            RequestRepository requestRepo, LikeRepository likeRepo, ReportRepository reportRepo,
                            SessionRepository sessionRepo, PasswordResetTokenRepository resetRepo,
                            SubscriptionRepository subscriptionRepo,
                            MessageRepository messageRepo, StorageService storage, EmailService emailService,
-                           AdminAuditRepository auditRepo) {
+                           AdminAuditRepository auditRepo, ThanksRepository thanksRepo) {
         this.adminGuard = adminGuard;
         this.userRepo = userRepo;
         this.offerRepo = offerRepo;
@@ -67,6 +69,7 @@ public class AdminController {
         this.storage = storage;
         this.emailService = emailService;
         this.auditRepo = auditRepo;
+        this.thanksRepo = thanksRepo;
     }
 
     private static final ResponseEntity<Object> FORBIDDEN =
@@ -132,6 +135,7 @@ public class AdminController {
 
         sessionRepo.deleteByUser_Id(id);
         resetRepo.deleteByUser_Id(id);
+        thanksRepo.deleteByFromUser_IdOrToUser_Id(id, id);
         subscriptionRepo.deleteAllInvolvingUser(id);
         messageRepo.deleteAllInvolvingUser(id);
         likeRepo.deleteAllByUserId(id);

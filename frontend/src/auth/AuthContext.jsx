@@ -14,9 +14,11 @@ export function AuthProvider({ children }) {
     return loggedIn;
   }, []);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async ({ skipServer = false } = {}) => {
     // Best-effort server-side session invalidation; always clear locally.
-    await authApi.logout().catch(() => {});
+    // skipServer: when the session is already gone (e.g. account deleted),
+    // calling the endpoint would 401 and hard-redirect to /login.
+    if (!skipServer) await authApi.logout().catch(() => {});
     clearStoredUser();
     setUser(null);
   }, []);
